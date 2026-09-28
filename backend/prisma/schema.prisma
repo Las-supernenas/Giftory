@@ -3,6 +3,7 @@
 
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,4 +11,168 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// INTEREST CATEGORIES
+// ==========================================
+
+enum Interest {
+  // Technology and entertainment
+  TECHNOLOGY
+  GAMING
+  PHOTOGRAPHY
+  FILM_AND_TV
+  MUSIC
+
+  // Reading and learning
+  BOOKS_AND_READING
+  SCIENCE
+  HISTORY
+  LANGUAGES
+  EDUCATION
+
+  // Arts and creativity
+  ART_AND_DESIGN
+  CRAFTS_AND_DIY
+  WRITING
+  FASHION
+
+  // Sports and wellbeing
+  FITNESS
+  OUTDOOR_SPORTS
+  TEAM_SPORTS
+  WELLNESS_AND_SELF_CARE
+  YOGA_AND_MEDITATION
+
+  // Food and drink
+  COOKING
+  BAKING
+  FOOD_AND_GASTRONOMY
+  COFFEE_AND_TEA
+
+  // Nature and animals
+  GARDENING
+  NATURE_AND_WILDLIFE
+  PETS
+  SUSTAINABILITY
+
+  // Travel and experiences
+  TRAVEL
+  ADVENTURE
+  CULTURAL_EXPERIENCES
+
+  // Lifestyle and collecting
+  HOME_AND_DECOR
+  BEAUTY_AND_SKINCARE
+  COLLECTIBLES
+  CARS_AND_MOTORSPORTS
+  BOARD_GAMES_AND_PUZZLES
+}
+
+// ==========================================
+// USER
+// ==========================================
+
+model User {
+  id           Int    @id @default(autoincrement())
+  name         String
+  email        String @unique
+  passwordHash String
+
+  persons      Person[]
+  giftIdeas    GiftIdea[]
+  libraryItems LibraryItem[]
+}
+
+// ==========================================
+// PERSON
+// ==========================================
+
+model Person {
+  id        Int        @id @default(autoincrement())
+  name      String
+  userId    Int
+  interests Interest[]
+
+  user       User        @relation(fields: [userId], references: [id])
+  events     Event[]
+  savedItems SavedIdea[]
+
+  @@index([userId])
+}
+
+// ==========================================
+// EVENT
+// ==========================================
+
+model Event {
+  id       Int      @id @default(autoincrement())
+  name     String
+  date     DateTime @db.Date
+  personId Int
+
+  person Person @relation(fields: [personId], references: [id])
+
+  @@index([personId, date])
+}
+
+// ==========================================
+// GIFT IDEA
+// ==========================================
+
+model GiftIdea {
+  id        Int        @id @default(autoincrement())
+  name      String
+  price     Decimal    @db.Decimal(10, 2)
+  interests Interest[]
+  userId    Int
+
+  // Soft deletion
+  deletedAt DateTime?
+
+  user         User          @relation(fields: [userId], references: [id])
+  libraryItems LibraryItem[]
+  savedItems   SavedIdea[]
+
+  @@index([userId])
+}
+
+// ==========================================
+// LIBRARY ITEM
+// ==========================================
+
+model LibraryItem {
+  id         Int @id @default(autoincrement())
+  userId     Int
+  giftIdeaId Int
+
+  user User @relation(fields: [userId], references: [id])
+
+  giftIdea GiftIdea @relation(fields: [giftIdeaId], references: [id], onDelete: Restrict)
+
+  // A user can collect an idea only once.
+  @@unique([userId, giftIdeaId])
+  // Find library entries referencing a particular idea.
+  @@index([giftIdeaId])
+}
+
+// ==========================================
+// SAVED IDEA
+// ==========================================
+
+model SavedIdea {
+  id          Int     @id @default(autoincrement())
+  personId    Int
+  giftIdeaId  Int
+  privateNote String?
+
+  person Person @relation(fields: [personId], references: [id])
+
+  giftIdea GiftIdea @relation(fields: [giftIdeaId], references: [id], onDelete: Restrict)
+
+  // A person can have an idea saved only once.
+  @@unique([personId, giftIdeaId])
+  // Find saved entries referencing a particular idea.
+  @@index([giftIdeaId])
 }
