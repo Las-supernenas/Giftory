@@ -12,7 +12,7 @@ giftory/
 
 ## Requisitos
 
-- Node.js 18+
+- Node.js 20.19+ o 22.12+
 - npm
 
 ## Backend
@@ -40,7 +40,6 @@ La app arranca en `http://localhost:5173`.
 El frontend necesita un archivo `.env` con la URL del backend:
 
 VITE_BASE_URL=http://localhost:3000
-
 
 ## Notas
 
