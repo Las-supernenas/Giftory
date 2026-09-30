@@ -1,92 +1,102 @@
 # Giftory
 
-Encuentra el regalo. Recuerda a la persona.
+Find the gift. Remember the person.
 
-Monorepo con el backend y el frontend en carpetas separadas, cada uno con sus propias dependencias.
+Monorepo with the backend and the frontend in separate folders, each with its own dependencies.
 
-## Estructura
+## Structure
 
+```
 giftory/
-├── backend/ API en Express + TypeScript
-└── frontend/ React + Vite + TypeScript
+├── backend/    API built with Express + TypeScript
+└── frontend/   React + Vite + TypeScript
+```
 
-## Requisitos
+## Requirements
 
-- Node.js 20.19+ o 22.12+
+- Node.js 20.19+ or 22.12+
 - npm
+- Docker Desktop
 
 ## Backend
 
 ```bash
-   cd backend
-   npm install
-   npm start
+cd backend
+npm install
+npm start
 ```
 
-El servidor arranca en `http://localhost:3000`.
+The server runs at `http://localhost:3000`.
 
-Otros scripts útiles: `npm run typecheck`, `npm run lint`, `npm run prettier:fix`.
+Other useful scripts: `npm run typecheck`, `npm run lint`, `npm run prettier:fix`.
 
-## Base de datos (Docker + Prisma)
+## Database (Docker + Prisma)
 
-Requisito: Docker Desktop abierto.
+Requirement: Docker Desktop must be running.
 
-1. Crea los archivos de entorno a partir de los ejemplos (desde la raíz):
+1. Create the environment files from the examples (from the project root):
 
-```bash
+   ```bash
    cp .env.example .env
    cp backend/.env.example backend/.env
-```
+   ```
 
-   Elige una contraseña (solo letras, números y `_`) y ponla en los dos archivos:
+   Choose a password (letters, numbers and `_` only) and use it in both files:
    - `.env` → `POSTGRES_PASSWORD`
-   - `backend/.env` → dentro de `DATABASE_URL`, en el lugar de `replace_with_your_local_password`
+   - `backend/.env` → inside `DATABASE_URL`, replacing `replace_with_your_local_password`
 
-2. Levanta PostgreSQL:
+2. Start the services (from the project root):
 
-```bash
+   ```bash
+   docker compose up -d --build
+   ```
+
+   If you only need the database (for example, to run the seed):
+
+   ```bash
    docker compose up -d db
-```
+   ```
 
-3. Crea las tablas y carga los datos de prueba (desde `backend/`):
+3. Create the tables and load the seed data (from `backend/`):
 
-```bash
+   ```bash
    npx prisma migrate dev
    npx prisma db seed
-```
+   ```
 
-   Para empezar de cero (borra la base de datos, aplica las migraciones y ejecuta el seed):
+   To start from scratch (drops the database, applies the migrations and runs the seed):
 
-```bash
+   ```bash
    npx prisma migrate reset
-```
+   ```
 
-   Para ver los datos en el navegador: `npx prisma studio`
+   To browse the data: `npx prisma studio`
 
-### Datos de prueba (seed)
+### Seed data
 
-El seed se puede ejecutar varias veces sin duplicar datos. Crea:
+The seed can be run multiple times without duplicating data. It creates:
 
-- Usuario demo: `demo@giftory.dev` / `giftory123`
-- Personas: Laura (con intereses) y Mamá (sin intereses, para probar estados vacíos)
-- 3 ideas de regalo, 1 idea en la biblioteca del usuario y 1 idea guardada para Laura con nota privada
-- 2 eventos: cumpleaños de Laura dentro de 12 días y de Mamá dentro de 54 días
+- Demo user: `demo@giftory.dev` / `giftory123`
+- People: Laura (with interests) and Mamá (no interests, useful for testing empty states)
+- 3 gift ideas, 1 idea in the user's library and 1 idea saved for Laura with a private note
+- 2 events: Laura's birthday in 12 days and Mamá's birthday in 54 days (dates relative to the current day)
 
 ## Frontend
 
 ```bash
-   cd frontend
-   npm install
-   npm run dev
+cd frontend
+npm install
+npm run dev
 ```
 
-La app arranca en `http://localhost:5173`.
+The app runs at `http://localhost:5173`.
 
-El frontend necesita un archivo `.env` con la URL del backend:
+The frontend needs a `.env` file with the backend URL:
 
+```
 VITE_BASE_URL=http://localhost:3000
+```
 
-## Notas
+## Notes
 
-Backend y frontend son dos proyectos independientes: cada uno lleva su propio `package.json` y necesita su propio `npm install`.
-
+Backend and frontend are two independent projects: each one has its own `package.json` and needs its own `npm install`.
