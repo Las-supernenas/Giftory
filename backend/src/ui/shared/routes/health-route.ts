@@ -1,7 +1,7 @@
-import { Router } from "express";
+import { Router } from 'express';
 
 export const healthRouter = Router();
 
-healthRouter.get('/healt', (req, res) => {
-    res.status(200).json({ status: 'ok'});
+healthRouter.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
 });
