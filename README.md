@@ -91,11 +91,13 @@ npm run dev
 
 The app runs at `http://localhost:5173`.
 
-The frontend needs a `.env` file with the backend URL:
+The frontend uses `VITE_API_URL` as the target for Vite's development proxy. To configure your local environment, copy `frontend/.env.example` to `frontend/.env.local`:
 
+```env
+VITE_API_URL=http://localhost:3000
 ```
-VITE_BASE_URL=http://localhost:3000
-```
+
+Vite loads `.env.local` automatically. Keep `.env.local` local and do not commit it; commit `frontend/.env.example` as the shared template. Restart Vite after changing the variable.
 
 ## Notes
 
