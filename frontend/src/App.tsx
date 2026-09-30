@@ -1,6 +1,28 @@
 import { Route, Routes } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 function App() {
+  const [apiStatus, setApiStatus] = useState("Comprobando API...");
+
+  useEffect(() => {
+    async function checkApi() {
+      try {
+        const response = await fetch("/api/health");
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data: { status: string } = await response.json();
+        setApiStatus(`API: ${data.status}`);
+      } catch {
+        setApiStatus("No se pudo conectar con la API.");
+      }
+    }
+
+    void checkApi();
+  }, []);
+
   return (
     <>
       <Routes>
@@ -11,6 +33,7 @@ function App() {
               <h1 className="font-serif text-4xl font-semibold tracking-tight">
                 Giftory
               </h1>
+              <p>{apiStatus}</p>
             </div>
           }
         />
