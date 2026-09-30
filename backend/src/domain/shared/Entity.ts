@@ -1,11 +1,11 @@
 export interface EntityProps {
-    id: number;
+  id: number;
 }
 
 export class Entity {
-    readonly id: number;
+  readonly id: number;
 
-    constructor(props: EntityProps) {
-        this.id = props.id;
-    }
+  constructor(props: EntityProps) {
+    this.id = props.id;
+  }
 }

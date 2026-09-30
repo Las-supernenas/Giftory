@@ -1,5 +1,5 @@
-import { Request, Response } from "express";
+import { Request, Response } from 'express';
 
 export const notFoundMiddleware = (req: Request, res: Response) => {
-    res.status(404).json({ error: `Route ${req.method} ${req.path} not found`});
+  res.status(404).json({ error: `Route ${req.method} ${req.path} not found` });
 };
