@@ -18,19 +18,32 @@ giftory/
 - npm
 - Docker Desktop
 
+---
+
 ## Backend
+
+### Getting started
 
 ```bash
 cd backend
 npm install
-npm start
+npm run dev
 ```
 
 The server runs at `http://localhost:3000`.
 
-Other useful scripts: `npm run typecheck`, `npm run lint`, `npm run prettier:fix`.
+Other useful scripts:
 
-## Database (Docker + Prisma)
+| Script | What it does |
+|---|---|
+| `npm run dev` | Starts the server in development mode (reloads on changes) |
+| `npm run build` | Compiles TypeScript to `dist/` |
+| `npm start` | Runs the compiled server (`npm run build` first) |
+| `npm run typecheck` | Checks types without compiling |
+| `npm run lint` | Runs ESLint |
+| `npm run prettier:fix` | Formats the code |
+
+### Database (Docker + Prisma)
 
 Requirement: Docker Desktop must be running.
 
@@ -72,7 +85,7 @@ Requirement: Docker Desktop must be running.
 
    To browse the data: `npx prisma studio`
 
-### Seed data
+#### Seed data
 
 The seed can be run multiple times without duplicating data. It creates:
 
@@ -81,7 +94,73 @@ The seed can be run multiple times without duplicating data. It creates:
 - 3 gift ideas, 1 idea in the user's library and 1 idea saved for Laura with a private note
 - 2 events: Laura's birthday in 12 days and Mamá's birthday in 54 days (dates relative to the current day)
 
+### Architecture (hexagonal)
+
+The backend follows a hexagonal architecture (ports and adapters): the business logic does not depend on Express or Prisma, they are plugged in from the outside.
+
+Folders shown as `<feature>/` do not exist yet: they are created with each feature (e.g. `user/` with registration).
+
+```
+backend/src/
+├── domain/                      Business core: no Express, no Prisma
+│   ├── errors/                  Domain errors (ValidationError, UnauthorizedError...)
+│   ├── shared/                  Shared building blocks (Entity)
+│   └── <feature>/               e.g. user/, person/, gift-idea/
+│       ├── <Entity>.ts          Entity (User, Person...)
+│       ├── use-cases/           Application layer: use cases (RegisterUserUseCase...)
+│       ├── repositories/        Ports: repository interfaces (UserRepository...)
+│       └── services/            Ports: service interfaces (SecurityService...)
+├── infrastructure/              Driven adapters: implement the ports
+│   ├── prisma-client.ts         Shared PrismaClient instance
+│   └── <feature>/               e.g. PrismaUserRepository, BcryptSecurityService
+├── ui/                          Driving adapter: HTTP with Express
+│   ├── api.ts                   createApi(): middlewares, routes, error handling
+│   ├── shared/                  Shared routes (health) and middlewares
+│   └── <feature>/               Routes and controllers per feature
+└── index.ts                     Entry point: wires the adapters and starts the server
+```
+
+| Hexagonal layer | Folder |
+|---|---|
+| Domain | `domain/` (entities, `errors/`) |
+| Application | `domain/<feature>/use-cases/` |
+| Ports | `domain/<feature>/repositories/`, `domain/<feature>/services/` |
+| Driven adapters (out) | `infrastructure/` (Prisma, bcrypt, JWT) |
+| Driving adapters (in) | `ui/` (Express) |
+
+#### Rules
+
+- `domain/` never imports Express, Prisma or anything from `infrastructure/` or `ui/`.
+- Use cases receive their dependencies (ports) through the constructor.
+- Dependencies are created and wired **only in `index.ts`**. Controllers receive the use cases already built.
+- Ports define their own types; they never import from use cases.
+- All routes are mounted under `/api`.
+
+#### Error handling
+
+Domain errors are translated to HTTP status codes in `ui/shared/middlewares/error-handler-middleware.ts`:
+
+| Error | Status |
+|---|---|
+| `ValidationError` | 400 |
+| `UnauthorizedError` | 401 |
+| `ForbiddenOperationError` | 403 |
+| `EntityNotFoundError` | 404 |
+| `BusinessConflictError` | 409 |
+| Unknown route | 404 |
+| Any other error | 500 |
+
+### API endpoints
+
+| Method | Route | Response |
+|---|---|---|
+| `GET` | `/api/health` | `200 { "status": "ok" }` |
+
+---
+
 ## Frontend
+
+### Getting started
 
 ```bash
 cd frontend
@@ -91,13 +170,17 @@ npm run dev
 
 The app runs at `http://localhost:5173`.
 
-El frontend usa `VITE_API_URL` como destino del proxy de Vite para las peticiones a la API. Para configurar tu entorno local, copia `frontend/.env.example` como `frontend/.env.local`:
+### Environment variables
+
+The frontend uses `VITE_API_URL` as the target of the Vite proxy for API requests. To configure your local environment, copy `frontend/.env.example` to `frontend/.env.local`:
 
 ```env
 VITE_API_URL=http://localhost:3000
 ```
 
-Vite carga `.env.local` automáticamente. Este archivo es local y no debe subirse a Git; `frontend/.env.example` sí debe incluirse en el repositorio. Si cambias la variable, reinicia Vite.
+Vite loads `.env.local` automatically. This file is local and must not be committed to Git; `frontend/.env.example` must be included in the repository. If you change the variable, restart Vite.
+
+---
 
 ## Notes
 
