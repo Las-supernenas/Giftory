@@ -9,10 +9,10 @@ api.get("/", (req, res) => {
   res.json({ message: "Server is running" });
 });
 
-api.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+api.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
 });
 
-api.get("/api/health", (req, res) => {
-  res.status(200).json({ status: "ok" });
+api.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
 });
