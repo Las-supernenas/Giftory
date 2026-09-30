@@ -31,6 +31,9 @@ async function main() {
   if (process.env.NODE_ENV === 'production') {
     throw new Error('El seed de desarrollo no se ejecuta en producción.');
   }
+  if (process.env.ALLOW_DEMO_SEED !== 'true') {
+    throw new Error('Para ejecutar el seed, configura ALLOW_DEMO_SEED=true.');
+  }
 
   // 1 · Usuario demo: si existe se actualiza, si no se crea
   const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
@@ -44,15 +47,10 @@ async function main() {
   //     El schema no tiene borrado en cascada, así que el orden importa:
   //     primero las tablas que apuntan a otras (hijas), después las apuntadas (padres).
   await prisma.$transaction([
-    prisma.savedIdea.deleteMany({
-      where: { OR: [{ person: { userId: user.id } }, { giftIdea: { userId: user.id } }] },
-    }),
-    prisma.libraryItem.deleteMany({
-      where: { OR: [{ userId: user.id }, { giftIdea: { userId: user.id } }] },
-    }),
+    prisma.savedIdea.deleteMany({ where: { person: { userId: user.id } } }),
+    prisma.libraryItem.deleteMany({ where: { userId: user.id } }),
     prisma.event.deleteMany({ where: { person: { userId: user.id } } }),
     prisma.person.deleteMany({ where: { userId: user.id } }),
-    prisma.giftIdea.deleteMany({ where: { userId: user.id } }),
   ]);
 
   // 3 · Personas
@@ -72,30 +70,42 @@ async function main() {
   });
 
   // 4 · Ideas de regalo (las de la presentación)
-  const ceramica = await prisma.giftIdea.create({
-    data: {
-      userId: user.id,
-      name: 'Taller de cerámica',
-      price: 45,
-      interests: [Interest.CRAFTS_AND_DIY, Interest.ART_AND_DESIGN],
-    },
-  });
-  const pasta = await prisma.giftIdea.create({
-    data: {
-      userId: user.id,
-      name: 'Curso de pasta fresca',
-      price: 45,
-      interests: [Interest.COOKING],
-    },
-  });
-  const mapa = await prisma.giftIdea.create({
-    data: {
-      userId: user.id,
-      name: 'Mapa de viajes personalizado',
-      price: 39,
-      interests: [Interest.TRAVEL, Interest.HOME_AND_DECOR],
-    },
-  });
+  const ceramica =
+    (await prisma.giftIdea.findFirst({
+      where: { userId: user.id, name: 'Taller de cerámica' },
+    })) ??
+    (await prisma.giftIdea.create({
+      data: {
+        userId: user.id,
+        name: 'Taller de cerámica',
+        price: 45,
+        interests: [Interest.CRAFTS_AND_DIY, Interest.ART_AND_DESIGN],
+      },
+    }));
+  const pasta =
+    (await prisma.giftIdea.findFirst({
+      where: { userId: user.id, name: 'Curso de pasta fresca' },
+    })) ??
+    (await prisma.giftIdea.create({
+      data: {
+        userId: user.id,
+        name: 'Curso de pasta fresca',
+        price: 45,
+        interests: [Interest.COOKING],
+      },
+    }));
+  const mapa =
+    (await prisma.giftIdea.findFirst({
+      where: { userId: user.id, name: 'Mapa de viajes personalizado' },
+    })) ??
+    (await prisma.giftIdea.create({
+      data: {
+        userId: user.id,
+        name: 'Mapa de viajes personalizado',
+        price: 39,
+        interests: [Interest.TRAVEL, Interest.HOME_AND_DECOR],
+      },
+    }));
 
   // 5 · Biblioteca del usuario
   await prisma.libraryItem.create({
