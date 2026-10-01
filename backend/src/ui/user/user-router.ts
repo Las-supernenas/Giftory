@@ -1,9 +1,6 @@
 import { Router } from 'express';
+import { registerUserController } from './controllers/register-user-controller';
 
 export const userRouter = Router();
 
-userRouter.post('/', (req, res) => {
-  res.status(501).json({
-    message: 'User registration not implemented yet',
-  });
-});
+userRouter.post("/register", registerUserController);
