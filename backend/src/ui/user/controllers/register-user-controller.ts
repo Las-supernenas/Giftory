@@ -3,6 +3,7 @@ import {z} from "zod"
 import { PrismaUserRepository } from "../../../infrastructure/user/repositories/PrismaUserRepository";
 import { SecurityServiceImplementation } from "../../../infrastructure/services/SecurityServiceImplementation";
 import { RegisterUserUseCase } from "../../../domain/user/use-cases/RegisterUserUseCase";
+import { ValidationError } from "../../../domain/errors/ValidationError";
 
 const registerUserSchema = z.object({
   name: z.string().min(1, "Name is mandatory."),
@@ -16,7 +17,13 @@ export const registerUserController = async (
   next: NextFunction,
 ) => {
   try {
-    const { name, email, password } = registerUserSchema.parse(req.body);
+    const result = registerUserSchema.safeParse(req.body);
+
+        if (!result.success) {
+        throw new ValidationError(result.error.issues[0].message);
+        }
+        
+        const { name, email, password } = result.data;
 
     const prismaUserRepository = new PrismaUserRepository();
     const securityService = new SecurityServiceImplementation();
