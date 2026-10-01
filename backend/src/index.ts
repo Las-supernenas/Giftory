@@ -1,17 +1,9 @@
-import express from "express";
+import 'dotenv/config';
+import { createApi } from './ui/api';
 
-const api = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT ?? 3000);
 
-api.use(express.json());
-
-api.get("/", (req, res) => {
-  res.json({ message: "Server is running" });
-});
-
-api.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
-});
+const api = createApi();
 
 api.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
