@@ -3,7 +3,11 @@ function RegisterPage() {
     <main>
       <h1>Crear cuenta</h1>
 
-      <form action="">
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+        }}
+      >
         <label htmlFor="name">Nombre</label>
         <input id="name" name="name" type="text" required />
 
@@ -13,7 +17,7 @@ function RegisterPage() {
         <label htmlFor="password">Contraseña</label>
         <input id="password" name="password" type="password" required />
 
-        <button type="button">Crear cuenta</button>
+        <button type="submit">Crear cuenta</button>
       </form>
     </main>
   );
