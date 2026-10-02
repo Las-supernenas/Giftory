@@ -1,6 +1,14 @@
 import { Router } from 'express';
-import { registerUserController } from './controllers/register-user-controller';
+import { RegisterUserUseCase } from '../../domain/user/use-cases/RegisterUserUseCase';
+import { createRegisterUserController } from './controllers/register-user-controller';
 
-export const userRouter = Router();
+export const createUserRouter = (registerUserUseCase: RegisterUserUseCase) => {
+  const userRouter = Router();
 
-userRouter.post("/register", registerUserController);
+  userRouter.post(
+    '/register',
+    createRegisterUserController(registerUserUseCase),
+  );
+
+  return userRouter;
+};
