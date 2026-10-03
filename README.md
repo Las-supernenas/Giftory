@@ -58,6 +58,14 @@ Requirement: Docker Desktop must be running.
    - `.env` → `POSTGRES_PASSWORD`
    - `backend/.env` → inside `DATABASE_URL`, replacing `replace_with_your_local_password`
 
+   Generate a JWT secret and use the same value as `JWT_SECRET` in both files:
+
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   ```
+
+   The server does not start if `JWT_SECRET` is missing.
+
 2. Start the services (from the project root):
 
    ```bash
@@ -155,7 +163,12 @@ Domain errors are translated to HTTP status codes in `ui/shared/middlewares/erro
 | Method | Route | Response |
 |---|---|---|
 | `GET` | `/api/health` | `200 { "status": "ok" }` |
+| `POST` | `/api/users/register` | `201 { id, name, email }` · `400` invalid data · `409` email already registered |
+| `POST` | `/api/users/login` | `200 { accessToken, user: { id, name, email } }` · `400` invalid data · `401` invalid credentials |
 
+#### Authentication
+
+`POST /api/users/login` returns a JWT (`accessToken`) valid for 5 days. Send it in the `Authorization` header ...
 ---
 
 ## Frontend
