@@ -1,9 +1,9 @@
-import { UserRepository } from "../repositories/UserRepository";
-import { SecurityService } from "../../services/SecurityService";
-import { User } from "../User";
-import { BusinessConflictError } from "../../errors/BusinessConflictError";
-import { ValidationError } from "../../errors/ValidationError";
-import { passwordValidator, emailValidator } from "../utils/validators";
+import { UserRepository } from '../repositories/UserRepository';
+import { SecurityService } from '../../services/SecurityService';
+import { User } from '../User';
+import { BusinessConflictError } from '../../errors/BusinessConflictError';
+import { ValidationError } from '../../errors/ValidationError';
+import { passwordValidator, emailValidator } from '../utils/validators';
 
 export interface RegisterUserUseCaseInput {
   name: string;
@@ -15,10 +15,7 @@ export class RegisterUserUseCase {
   private readonly userRepository: UserRepository;
   private readonly securityService: SecurityService;
 
-  constructor(
-    userRepository: UserRepository,
-    securityService: SecurityService,
-  ) {
+  constructor(userRepository: UserRepository, securityService: SecurityService) {
     this.userRepository = userRepository;
     this.securityService = securityService;
   }
@@ -27,20 +24,18 @@ export class RegisterUserUseCase {
     const existingUser = await this.userRepository.findByEmail(input.email);
 
     if (existingUser) {
-      throw new BusinessConflictError(
-        "A user with this email already exists.",
-      );
+      throw new BusinessConflictError('A user with this email already exists.');
     }
 
     const validatedEmail = emailValidator(input.email);
     const validatedPassword = passwordValidator(input.password);
 
     if (!validatedEmail) {
-      throw new ValidationError("Invalid email.");
+      throw new ValidationError('Invalid email.');
     }
 
     if (!validatedPassword) {
-      throw new ValidationError("Invalid password.");
+      throw new ValidationError('Invalid password.');
     }
 
     const hashedPassword = await this.securityService.hash(input.password);

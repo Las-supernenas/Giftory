@@ -1,6 +1,5 @@
 export const passwordValidator = (password: string): boolean => {
-  const passwordRegExp =
-    /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_]).{8,20}$/;
+  const passwordRegExp = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_]).{8,20}$/;
 
   return passwordRegExp.test(password);
 };
