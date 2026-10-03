@@ -18,6 +18,11 @@ function RegisterPage() {
 
           const formData = new FormData(event.currentTarget);
 
+          if (formData.get("password") !== formData.get("confirmpassword")) {
+            setErrorMessage("Las contraseñas no coinciden.");
+            return;
+          }
+
           setIsLoading(true);
 
           try {
@@ -59,6 +64,15 @@ function RegisterPage() {
         <input
           id="password"
           name="password"
+          type="password"
+          minLength={8}
+          maxLength={20}
+          required
+        />
+        <label htmlFor="confirmpassword">Confirmar Contraseña</label>
+        <input
+          id="confirmpassword"
+          name="confirmpassword"
           type="password"
           minLength={8}
           maxLength={20}
