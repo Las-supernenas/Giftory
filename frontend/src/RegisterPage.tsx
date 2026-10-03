@@ -42,7 +42,7 @@ function RegisterPage() {
               setErrorMessage("Ya existe una cuenta con ese email.");
             } else if (response.status === 400) {
               setErrorMessage(
-                "Revisa los datos. La contraseña debe tener entre 8 y 20 caracteres, mayúscula, minúscula, número y símbolo.",
+                "Revisa el nombre, el email y la contraseña. Esta debe tener entre 8 y 20 caracteres, mayúscula, minúscula, número y símbolo.",
               );
             } else {
               setErrorMessage("No se pudo completar el registro.");
