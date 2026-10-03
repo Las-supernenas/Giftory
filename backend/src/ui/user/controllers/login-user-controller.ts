@@ -5,7 +5,7 @@ import { LoginUserUseCase } from '../../../domain/user/use-cases/LoginUserUseCas
 
 const loginUserSchema = z.object({
   email: z.email({ error: 'Email is required and must be valid.' }),
-  password: z.string({ error: 'Password is required.' }).min(1, 'Password is mandatory.'),
+  password: z.string({ error: 'Password is required.' }).min(1, 'Password is required.'),
 });
 
 export const createLoginUserController =

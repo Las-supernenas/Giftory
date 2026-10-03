@@ -95,7 +95,7 @@ Requirement: Docker Desktop must be running.
 
 #### Seed data
 
-The seed can be run multiple times without duplicating data. It creates:
+The seed only runs if `ALLOW_DEMO_SEED=true` is set in `backend/.env` (already included in `backend/.env.example`). It can be run multiple times without duplicating data. It creates:
 
 - Demo user: `demo@giftory.dev` / `giftory123`
 - People: Laura (with interests) and Mamá (no interests, useful for testing empty states)
@@ -168,7 +168,14 @@ Domain errors are translated to HTTP status codes in `ui/shared/middlewares/erro
 
 #### Authentication
 
-`POST /api/users/login` returns a JWT (`accessToken`) valid for 5 days. Send it in the `Authorization` header ...
+`POST /api/users/login` returns a JWT (`accessToken`) valid for 5 days. Send it in the `Authorization` header of requests to private routes:
+
+```
+Authorization: Bearer <accessToken>
+```
+
+Wrong password and unknown email return the same `401` error, so the API does not reveal which emails are registered.
+
 ---
 
 ## Frontend
