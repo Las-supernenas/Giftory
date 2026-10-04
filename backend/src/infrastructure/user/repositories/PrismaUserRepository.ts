@@ -1,9 +1,6 @@
-import {
-  CreateUserInput,
-  UserRepository,
-} from "../../../domain/user/repositories/UserRepository";
-import { User } from "../../../domain/user/User";
-import { prisma } from "../../prisma-client";
+import { CreateUserInput, UserRepository } from '../../../domain/user/repositories/UserRepository';
+import { User } from '../../../domain/user/User';
+import { prisma } from '../../prisma-client';
 
 export class PrismaUserRepository implements UserRepository {
   private readonly prisma = prisma;

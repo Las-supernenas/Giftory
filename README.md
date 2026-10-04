@@ -58,6 +58,14 @@ Requirement: Docker Desktop must be running.
    - `.env` → `POSTGRES_PASSWORD`
    - `backend/.env` → inside `DATABASE_URL`, replacing `replace_with_your_local_password`
 
+   Generate a JWT secret and use the same value as `JWT_SECRET` in both files:
+
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   ```
+
+   The server does not start if `JWT_SECRET` is missing.
+
 2. Start the services (from the project root):
 
    ```bash
@@ -87,7 +95,7 @@ Requirement: Docker Desktop must be running.
 
 #### Seed data
 
-The seed can be run multiple times without duplicating data. It creates:
+The seed only runs if you manually add `ALLOW_DEMO_SEED=true` to `backend/.env` when you intend to run it. It can be run multiple times without duplicating data. It creates:
 
 - Demo user: `demo@giftory.dev` / `giftory123`
 - People: Laura (with interests) and Mamá (no interests, useful for testing empty states)
@@ -155,6 +163,18 @@ Domain errors are translated to HTTP status codes in `ui/shared/middlewares/erro
 | Method | Route | Response |
 |---|---|---|
 | `GET` | `/api/health` | `200 { "status": "ok" }` |
+| `POST` | `/api/users/register` | `201 { id, name, email }` · `400` invalid data · `409` email already registered |
+| `POST` | `/api/users/login` | `200 { accessToken, user: { id, name, email } }` · `400` invalid data · `401` invalid credentials |
+
+#### Authentication
+
+`POST /api/users/login` returns a JWT (`accessToken`) valid for 5 days. Send it in the `Authorization` header of requests to private routes:
+
+```
+Authorization: Bearer <accessToken>
+```
+
+Wrong password and unknown email return the same `401` error, so the API does not reveal which emails are registered.
 
 ---
 
