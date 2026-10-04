@@ -95,7 +95,7 @@ Requirement: Docker Desktop must be running.
 
 #### Seed data
 
-The seed only runs if `ALLOW_DEMO_SEED=true` is set in `backend/.env` (already included in `backend/.env.example`). It can be run multiple times without duplicating data. It creates:
+The seed only runs if you manually add `ALLOW_DEMO_SEED=true` to `backend/.env` when you intend to run it. It can be run multiple times without duplicating data. It creates:
 
 - Demo user: `demo@giftory.dev` / `giftory123`
 - People: Laura (with interests) and Mamá (no interests, useful for testing empty states)
