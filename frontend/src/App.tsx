@@ -1,6 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import { useEffect, useState } from "react";
 import RegisterPage from "./RegisterPage";
+import LoginPage from "./LoginPage";
 
 function App() {
   const [apiStatus, setApiStatus] = useState("Comprobando API...");
@@ -39,16 +40,7 @@ function App() {
           }
         />
 
-        <Route
-          path="/login"
-          element={
-            <div className="min-h-screen flex items-start justify-center pt-8">
-              <h1 className="font-sans text-2xl font-medium tracking-wide">
-                Login
-              </h1>
-            </div>
-          }
-        />
+        <Route path="/login" element={<LoginPage />} />
 
         <Route path="/register" element={<RegisterPage />} />
 
