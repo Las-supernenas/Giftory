@@ -1,5 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { UnauthorizedError } from '../../domain/errors/UnauthorizedError';
 
 import { SecurityService } from '../../domain/services/SecurityService';
 
@@ -22,5 +23,33 @@ export class SecurityServiceImplementation implements SecurityService {
 
   generateToken(userId: number): string {
     return jwt.sign({ userId }, this.jwtSecret, { expiresIn: TOKEN_EXPIRATION });
+  }
+
+  verifyToken(token: string): number {
+    try {
+      const payload = jwt.verify(token, this.jwtSecret, {
+        algorithms: ['HS256'],
+      });
+
+      if (typeof payload === 'string') {
+        throw new UnauthorizedError('Invalid or expired token.');
+      }
+
+      const userId = payload.userId;
+
+      if (typeof userId !== 'number') {
+        throw new UnauthorizedError('Invalid or expired token.');
+      }
+
+      const isValidUserId = Number.isSafeInteger(userId) && userId > 0;
+
+      if (!isValidUserId) {
+        throw new UnauthorizedError('Invalid or expired token.');
+      }
+
+      return userId;
+    } catch {
+      throw new UnauthorizedError('Invalid or expired token.');
+    }
   }
 }
