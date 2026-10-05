@@ -4,6 +4,7 @@ import { PrismaUserRepository } from './infrastructure/user/repositories/PrismaU
 import { createApi } from './ui/api';
 import { LoginUserUseCase } from './domain/user/use-cases/LoginUserUseCase';
 import { environmentService } from './infrastructure/EnvironmentService';
+import { createAuthenticationMiddleware } from './ui/shared/middlewares/authentication-middleware';
 
 environmentService.load();
 const { PORT, JWT_SECRET } = environmentService.get();
@@ -12,11 +13,12 @@ const { PORT, JWT_SECRET } = environmentService.get();
 
 const userRepository = new PrismaUserRepository();
 const securityService = new SecurityServiceImplementation(JWT_SECRET);
+const authenticationMiddleware = createAuthenticationMiddleware(securityService);
 
 const registerUserUseCase = new RegisterUserUseCase(userRepository, securityService);
 const loginUserUseCase = new LoginUserUseCase(userRepository, securityService);
 
-const api = createApi({ registerUserUseCase, loginUserUseCase });
+const api = createApi({ registerUserUseCase, loginUserUseCase, authenticationMiddleware });
 
 api.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
