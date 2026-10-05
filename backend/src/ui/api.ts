@@ -5,6 +5,7 @@ import { errorHandlerMiddleware } from './shared/middlewares/error-handler-middl
 import { createUserRouter } from './user/user-router';
 import { LoginUserUseCase } from '../domain/user/use-cases/LoginUserUseCase';
 import { RegisterUserUseCase } from '../domain/user/use-cases/RegisterUserUseCase';
+import type { RequestHandler } from 'express';
 
 // All the use cases the HTTP layer needs. Created in index.ts and passed to the routers.
 // When a new use case is added, add it here too.
@@ -12,6 +13,7 @@ import { RegisterUserUseCase } from '../domain/user/use-cases/RegisterUserUseCas
 export interface ApiDependencies {
   registerUserUseCase: RegisterUserUseCase;
   loginUserUseCase: LoginUserUseCase;
+  authenticationMiddleware: RequestHandler;
 }
 
 export const createApi = (dependencies: ApiDependencies) => {
