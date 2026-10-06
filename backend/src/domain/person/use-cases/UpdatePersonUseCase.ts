@@ -16,7 +16,7 @@ export class UpdatePersonUseCase {
 
   async execute(input: UpdatePersonUseCaseInput): Promise<Person> {
     //Ownership: only finds the person if it belongs to this user and its not deleted.
-    //Another users person returns 303, as if it did not exist.
+    //Another users person returns 404, as if it did not exist.
     const person = await this.personRepository.findByIdAndUserId(input.personId, input.userId);
 
     if (!person) {
