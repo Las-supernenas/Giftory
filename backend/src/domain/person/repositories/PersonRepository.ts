@@ -1,4 +1,4 @@
-import { Interest } from '../Interest';
+import { Interest } from '../../shared/Interest';
 import { Person } from '../Person';
 
 export interface CreatePersonData {
