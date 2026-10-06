@@ -3,9 +3,14 @@ import { healthRouter } from './shared/routes/health-route';
 import { notFoundMiddleware } from './shared/middlewares/not-found-middleware';
 import { errorHandlerMiddleware } from './shared/middlewares/error-handler-middleware';
 import { createUserRouter } from './user/user-router';
+import { createPersonRouter } from './person/person-router';
 import { LoginUserUseCase } from '../domain/user/use-cases/LoginUserUseCase';
 import { RegisterUserUseCase } from '../domain/user/use-cases/RegisterUserUseCase';
 import type { RequestHandler } from 'express';
+import { CreatePersonUseCase } from '../domain/person/use-cases/CreatePersonUseCase';
+import { DeletePersonUseCase } from '../domain/person/use-cases/DeletePersonUseCase';
+import { ListPeopleUseCase } from '../domain/person/use-cases/ListPeopleUseCase';
+import { UpdatePersonUseCase } from '../domain/person/use-cases/UpdatePersonUseCase';
 
 // All the use cases the HTTP layer needs. Created in index.ts and passed to the routers.
 // When a new use case is added, add it here too.
@@ -14,6 +19,10 @@ export interface ApiDependencies {
   registerUserUseCase: RegisterUserUseCase;
   loginUserUseCase: LoginUserUseCase;
   authenticationMiddleware: RequestHandler;
+  listPeopleUseCase: ListPeopleUseCase;
+  createPersonUseCase: CreatePersonUseCase;
+  updatePersonUseCase: UpdatePersonUseCase;
+  deletePersonUseCase: DeletePersonUseCase;
 }
 
 export const createApi = (dependencies: ApiDependencies) => {
@@ -23,6 +32,7 @@ export const createApi = (dependencies: ApiDependencies) => {
 
   api.use('/api', healthRouter);
   api.use('/api/users', createUserRouter(dependencies));
+  api.use('/api/people', createPersonRouter(dependencies));
 
   api.get('/', (req, res) => {
     res.json({ message: 'Server is running' });

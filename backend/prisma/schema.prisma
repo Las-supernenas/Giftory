@@ -95,6 +95,9 @@ model Person {
   userId    Int
   interests Interest[]
 
+  // Soft deletion: null = active, date = deleted
+  deletedAt DateTime?
+
   user       User        @relation(fields: [userId], references: [id])
   events     Event[]
   savedItems SavedIdea[]

@@ -165,6 +165,10 @@ Domain errors are translated to HTTP status codes in `ui/shared/middlewares/erro
 | `GET` | `/api/health` | `200 { "status": "ok" }` |
 | `POST` | `/api/users/register` | `201 { id, name, email }` · `400` invalid data · `409` email already registered |
 | `POST` | `/api/users/login` | `200 { accessToken, user: { id, name, email } }` · `400` invalid data · `401` invalid credentials |
+| `GET` | `/api/people` | `200` list of the user's people · `401` no token |
+| `POST` | `/api/people` | `201 { id, name, interests }` · `400` invalid data · `401` no token |
+| `PATCH` | `/api/people/:id` | `200 { id, name, interests }` · `400` invalid data · `404` not found · `401` no token |
+| `DELETE` | `/api/people/:id` | `204` · `404` not found · `401` no token |
 
 #### Authentication
 
@@ -176,6 +180,13 @@ Authorization: Bearer <accessToken>
 
 Wrong password and unknown email return the same `401` error, so the API does not reveal which emails are registered.
 
+#### People
+
+All `/api/people` routes require the `Authorization: Bearer <accessToken>` header.
+
+- A user only sees and modifies their own people. Accessing another user's person returns `404`, so the API does not reveal whether it exists.
+- `DELETE` is a soft delete: the person is kept in the database with `deletedAt` set, and is no longer returned by the API.
+- `interests` must be values of the `Interest` enum in `prisma/schema.prisma` (e.g. `TRAVEL`, `COOKING`).
 ---
 
 ## Frontend
