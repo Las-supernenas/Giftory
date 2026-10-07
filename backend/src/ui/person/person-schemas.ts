@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { INTERESTS } from '../../domain/person/Interest';
+import { INTERESTS } from '../../domain/shared/Interest';
 import { Person } from '../../domain/person/Person';
 
 // Zod schemas for the People endpoints

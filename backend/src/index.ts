@@ -10,6 +10,10 @@ import { ListPeopleUseCase } from './domain/person/use-cases/ListPeopleUseCase';
 import { CreatePersonUseCase } from './domain/person/use-cases/CreatePersonUseCase';
 import { UpdatePersonUseCase } from './domain/person/use-cases/UpdatePersonUseCase';
 import { DeletePersonUseCase } from './domain/person/use-cases/DeletePersonUseCase';
+import { PrismaGiftIdeaRepository } from './infrastructure/giftidea/repositories/PrismaGiftIdeaRepository';
+import { CreateGiftIdeaUseCase } from './domain/giftidea/use-cases/CreateGiftIdeaUseCase';
+import { GetGiftIdeaUseCase } from './domain/giftidea/use-cases/GetGiftIdeaUseCase';
+import { ListGiftIdeaUseCase } from './domain/giftidea/use-cases/ListGiftIdeaUseCase';
 
 environmentService.load();
 const { PORT, JWT_SECRET } = environmentService.get();
@@ -18,6 +22,7 @@ const { PORT, JWT_SECRET } = environmentService.get();
 
 const userRepository = new PrismaUserRepository();
 const personRepository = new PrismaPersonRepository();
+const giftIdeaRepository = new PrismaGiftIdeaRepository();
 const securityService = new SecurityServiceImplementation(JWT_SECRET);
 const authenticationMiddleware = createAuthenticationMiddleware(securityService);
 
@@ -29,6 +34,11 @@ const createPersonUseCase = new CreatePersonUseCase(personRepository);
 const updatePersonUseCase = new UpdatePersonUseCase(personRepository);
 const deletePersonUseCase = new DeletePersonUseCase(personRepository);
 
+const createGiftIdeaUseCase = new CreateGiftIdeaUseCase(giftIdeaRepository);
+const getGiftIdeaUseCase = new GetGiftIdeaUseCase(giftIdeaRepository);
+const listGiftIdeaUseCase = new ListGiftIdeaUseCase(giftIdeaRepository);
+
+
 const api = createApi({
   registerUserUseCase,
   loginUserUseCase,
@@ -37,6 +47,9 @@ const api = createApi({
   createPersonUseCase,
   updatePersonUseCase,
   deletePersonUseCase,
+  createGiftIdeaUseCase,
+  getGiftIdeaUseCase,
+  listGiftIdeaUseCase,
 });
 
 api.listen(PORT, '0.0.0.0', () => {

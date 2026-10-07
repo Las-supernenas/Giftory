@@ -1,4 +1,4 @@
-import { Interest } from './Interest';
+import { Interest } from '../shared/Interest';
 
 interface PersonProps {
   id: number;

@@ -1,6 +1,6 @@
 import { EntityNotFoundError } from '../../errors/EntityNotFoundError';
 import { ValidationError } from '../../errors/ValidationError';
-import { Interest } from '../Interest';
+import { Interest } from '../../shared/Interest';
 import { Person } from '../Person';
 import { PersonRepository, UpdatePersonData } from '../repositories/PersonRepository';
 
