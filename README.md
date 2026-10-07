@@ -169,6 +169,9 @@ Domain errors are translated to HTTP status codes in `ui/shared/middlewares/erro
 | `POST` | `/api/people` | `201 { id, name, interests }` · `400` invalid data · `401` no token |
 | `PATCH` | `/api/people/:id` | `200 { id, name, interests }` · `400` invalid data · `404` not found · `401` no token |
 | `DELETE` | `/api/people/:id` | `204` · `404` not found · `401` no token |
+| `GET` | `/api/giftideas` | `200` list of public gift ideas |
+| `POST` | `/api/giftideas` | `201` created; `400` invalid data; `401` no token |
+| `GET` | `/api/giftideas/:id` | `200 { id, name, price, interests }` � `400` invalid id � `404` not found |
 
 #### Authentication
 
@@ -182,11 +185,16 @@ Wrong password and unknown email return the same `401` error, so the API does no
 
 #### People
 
-All `/api/people` routes require the `Authorization: Bearer <accessToken>` header.
+All `/api/people` routes require the `Authorization: Bearer <accessToken>` header. Creating a gift idea also requires authentication; listing and retrieving gift ideas are public.
 
 - A user only sees and modifies their own people. Accessing another user's person returns `404`, so the API does not reveal whether it exists.
 - `DELETE` is a soft delete: the person is kept in the database with `deletedAt` set, and is no longer returned by the API.
 - `interests` must be values of the `Interest` enum in `prisma/schema.prisma` (e.g. `TRAVEL`, `COOKING`).
+
+#### Gift ideas
+
+- All active gift ideas are public and can be listed or retrieved without authentication.
+- A gift idea requires a non-empty name and a non-negative price. Interests are optional and must be values of the `Interest` enum in `prisma/schema.prisma`.
 ---
 
 ## Frontend

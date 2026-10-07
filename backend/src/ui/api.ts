@@ -4,6 +4,7 @@ import { notFoundMiddleware } from './shared/middlewares/not-found-middleware';
 import { errorHandlerMiddleware } from './shared/middlewares/error-handler-middleware';
 import { createUserRouter } from './user/user-router';
 import { createPersonRouter } from './person/person-router';
+import { createGiftIdeaRouter } from './giftidea/giftidea-router';
 import { LoginUserUseCase } from '../domain/user/use-cases/LoginUserUseCase';
 import { RegisterUserUseCase } from '../domain/user/use-cases/RegisterUserUseCase';
 import type { RequestHandler } from 'express';
@@ -11,6 +12,9 @@ import { CreatePersonUseCase } from '../domain/person/use-cases/CreatePersonUseC
 import { DeletePersonUseCase } from '../domain/person/use-cases/DeletePersonUseCase';
 import { ListPeopleUseCase } from '../domain/person/use-cases/ListPeopleUseCase';
 import { UpdatePersonUseCase } from '../domain/person/use-cases/UpdatePersonUseCase';
+import { CreateGiftIdeaUseCase } from '../domain/giftidea/use-cases/CreateGiftIdeaUseCase';
+import { GetGiftIdeaUseCase } from '../domain/giftidea/use-cases/GetGiftIdeaUseCase';
+import { ListGiftIdeaUseCase } from '../domain/giftidea/use-cases/ListGiftIdeaUseCase';
 
 // All the use cases the HTTP layer needs. Created in index.ts and passed to the routers.
 // When a new use case is added, add it here too.
@@ -23,6 +27,9 @@ export interface ApiDependencies {
   createPersonUseCase: CreatePersonUseCase;
   updatePersonUseCase: UpdatePersonUseCase;
   deletePersonUseCase: DeletePersonUseCase;
+  createGiftIdeaUseCase: CreateGiftIdeaUseCase;
+  getGiftIdeaUseCase: GetGiftIdeaUseCase;
+  listGiftIdeaUseCase: ListGiftIdeaUseCase;
 }
 
 export const createApi = (dependencies: ApiDependencies) => {
@@ -33,6 +40,7 @@ export const createApi = (dependencies: ApiDependencies) => {
   api.use('/api', healthRouter);
   api.use('/api/users', createUserRouter(dependencies));
   api.use('/api/people', createPersonRouter(dependencies));
+  api.use('/api/giftideas', createGiftIdeaRouter(dependencies));
 
   api.get('/', (req, res) => {
     res.json({ message: 'Server is running' });

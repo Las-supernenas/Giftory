@@ -7,6 +7,4 @@ export class ListGiftIdeaUseCase {
   async execute(): Promise<GiftIdea[]> {
     return this.giftIdeaRepository.findAll();
   }
-
-  
 }
