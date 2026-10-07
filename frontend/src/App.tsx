@@ -5,6 +5,16 @@ import LoginPage from "./LoginPage";
 
 function App() {
   const [apiStatus, setApiStatus] = useState("Comprobando API...");
+  const [accessToken, setAccessToken] = useState<string | null>(() =>
+    sessionStorage.getItem("giftoryAccessToken"),
+  );
+
+  const isAuthenticated = Boolean(accessToken);
+
+  function handleLogin(token: string) {
+    sessionStorage.setItem("giftoryAccessToken", token);
+    setAccessToken(token);
+  }
 
   useEffect(() => {
     async function checkApi() {
@@ -36,11 +46,12 @@ function App() {
                 Giftory
               </h1>
               <p>{apiStatus}</p>
+              <p>{isAuthenticated ? "Sesión iniciada" : "Sin sesión"}</p>
             </div>
           }
         />
 
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
 
         <Route path="/register" element={<RegisterPage />} />
 

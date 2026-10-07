@@ -1,6 +1,10 @@
 import { useState } from "react";
 
-function LoginPage() {
+type LoginPageProps = {
+  onLogin: (token: string) => void;
+};
+
+function LoginPage({ onLogin }: LoginPageProps) {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -33,6 +37,7 @@ function LoginPage() {
               const data = await response.json();
 
               if (data.accessToken) {
+                onLogin(data.accessToken);
                 setSuccessMessage("Inicio de sesión correcto.");
               }
             } else if (response.status === 401) {
