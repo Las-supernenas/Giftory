@@ -171,7 +171,7 @@ Domain errors are translated to HTTP status codes in `ui/shared/middlewares/erro
 | `DELETE` | `/api/people/:id` | `204` · `404` not found · `401` no token |
 | `GET` | `/api/giftideas` | `200` list of public gift ideas |
 | `POST` | `/api/giftideas` | `201` created; `400` invalid data; `401` no token |
-| `GET` | `/api/giftideas/:id` | `200 { id, name, price, interests }` � `400` invalid id � `404` not found |
+| `GET` | `/api/giftideas/:id` | `200 { id, name, price, interests }` � `400` invalid id � `404` not found |
 
 #### Authentication
 
@@ -220,6 +220,43 @@ VITE_API_URL=http://localhost:3000
 Vite loads `.env.local` automatically. This file is local and must not be committed to Git; `frontend/.env.example` must be included in the repository. If you change the variable, restart Vite.
 
 ---
+### Structure
+
+The frontend is organized by feature. Each feature has its own folder with its pages and, when it calls the API, its services.
+
+```
+frontend/src/
+├── features/
+│   ├── auth/
+│   │   └── pages/               LoginPage, RegisterPage
+│   ├── people/
+│   │   ├── pages/               PeoplePage
+│   │   └── services/            people-service.ts: requests to /api/people
+│   └── shared/
+│       └── types/               person.ts: Person type, interests and their labels
+├── App.tsx                      Routes, session (access token) and route protection
+├── main.tsx                     Entry point: mounts App inside BrowserRouter
+└── index.css                    Tailwind import
+```
+
+#### Rules
+
+- Requests to the API go through the Vite proxy using relative URLs (`/api/...`), never `http://localhost:3000`.
+- When a page needs several requests to the same resource, they go in a service file inside its feature (`features/<feature>/services/`).
+- The access token is stored in `sessionStorage` under `giftoryAccessToken`. Services read it from there to send the `Authorization: Bearer <token>` header.
+- The interest keys in `features/shared/types/person.ts` must match the `Interest` enum in `backend/prisma/schema.prisma`. If you add or remove an interest in the backend, update this file too.
+
+### Pages
+
+| Route | Page | Access |
+|---|---|---|
+| `/` | Home: shows the API status | Public |
+| `/login` | Login form | Public |
+| `/register` | Registration form | Public |
+| `/people` | List, create, edit and delete the user's people | Private |
+| `/library` | Placeholder (title only) | Private |
+
+Private routes redirect to `/login` when there is no session.
 
 ## Notes
 
