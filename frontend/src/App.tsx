@@ -2,6 +2,7 @@ import { Route, Routes, useNavigate, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import RegisterPage from "./RegisterPage";
 import LoginPage from "./LoginPage";
+import LibraryPage from "./LibraryPage";
 
 function App() {
   const [apiStatus, setApiStatus] = useState("Comprobando API...");
@@ -65,12 +66,8 @@ function App() {
         <Route
           path="/library"
           element={
-            isAuthenticated ? (
-              <div className="min-h-screen flex items-start justify-center pt-8">
-                <h1 className="font-sans text-2xl font-medium tracking-wide">
-                  Library
-                </h1>
-              </div>
+            accessToken ? (
+              <LibraryPage accessToken={accessToken} />
             ) : (
               <Navigate to="/login" replace />
             )

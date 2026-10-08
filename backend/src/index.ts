@@ -14,6 +14,10 @@ import { PrismaGiftIdeaRepository } from './infrastructure/giftidea/repositories
 import { CreateGiftIdeaUseCase } from './domain/giftidea/use-cases/CreateGiftIdeaUseCase';
 import { GetGiftIdeaUseCase } from './domain/giftidea/use-cases/GetGiftIdeaUseCase';
 import { ListGiftIdeaUseCase } from './domain/giftidea/use-cases/ListGiftIdeaUseCase';
+import { PrismaLibraryItemRepository } from './infrastructure/library/repositories/PrismaLibraryItemRepository';
+import { ListLibraryItemsUseCase } from './domain/library/use-cases/ListLibraryItemsUseCase';
+import { AddLibraryItemUseCase } from './domain/library/use-cases/AddLibraryItemUseCase';
+import { DeleteLibraryItemUseCase } from './domain/library/use-cases/DeleteLibraryItemUseCase';
 
 environmentService.load();
 const { PORT, JWT_SECRET } = environmentService.get();
@@ -23,6 +27,7 @@ const { PORT, JWT_SECRET } = environmentService.get();
 const userRepository = new PrismaUserRepository();
 const personRepository = new PrismaPersonRepository();
 const giftIdeaRepository = new PrismaGiftIdeaRepository();
+const libraryItemRepository = new PrismaLibraryItemRepository();
 const securityService = new SecurityServiceImplementation(JWT_SECRET);
 const authenticationMiddleware = createAuthenticationMiddleware(securityService);
 
@@ -38,6 +43,9 @@ const createGiftIdeaUseCase = new CreateGiftIdeaUseCase(giftIdeaRepository);
 const getGiftIdeaUseCase = new GetGiftIdeaUseCase(giftIdeaRepository);
 const listGiftIdeaUseCase = new ListGiftIdeaUseCase(giftIdeaRepository);
 
+const listLibraryItemsUseCase = new ListLibraryItemsUseCase(libraryItemRepository);
+const addLibraryItemUseCase = new AddLibraryItemUseCase(libraryItemRepository, giftIdeaRepository);
+const deleteLibraryItemUseCase = new DeleteLibraryItemUseCase(libraryItemRepository);
 
 const api = createApi({
   registerUserUseCase,
@@ -50,6 +58,9 @@ const api = createApi({
   createGiftIdeaUseCase,
   getGiftIdeaUseCase,
   listGiftIdeaUseCase,
+  listLibraryItemsUseCase,
+  addLibraryItemUseCase,
+  deleteLibraryItemUseCase,
 });
 
 api.listen(PORT, '0.0.0.0', () => {
