@@ -1,7 +1,8 @@
 import { Route, Routes, useNavigate, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import RegisterPage from "./RegisterPage";
-import LoginPage from "./LoginPage";
+import RegisterPage from "./features/auth/pages/RegisterPage";
+import LoginPage from "./features/auth/pages/LoginPage";
+import PeoplePage from "./features/people/pages/PeoplePage";
 
 function App() {
   const [apiStatus, setApiStatus] = useState("Comprobando API...");
@@ -81,10 +82,8 @@ function App() {
           path="/people"
           element={
             isAuthenticated ? (
-              <div className="min-h-screen flex items-start justify-center pt-8">
-                <h1 className="font-sans text-2xl font-medium tracking-wide text-slate-800">
-                  People
-                </h1>
+              <div>
+                <PeoplePage />
               </div>
             ) : (
               <Navigate to="/login" replace />
