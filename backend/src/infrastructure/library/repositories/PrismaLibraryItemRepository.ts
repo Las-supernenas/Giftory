@@ -72,4 +72,11 @@ export class PrismaLibraryItemRepository implements LibraryItemRepository {
       giftIdea,
     });
   }
+
+  async deleteByIdAndUserId(id: number, userId: number): Promise<boolean> {
+    const result = await this.prisma.libraryItem.deleteMany({
+      where: { id, userId },
+    });
+    return result.count > 0;
+  }
 }
