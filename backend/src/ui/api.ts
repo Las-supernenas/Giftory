@@ -18,6 +18,7 @@ import { ListGiftIdeaUseCase } from '../domain/giftidea/use-cases/ListGiftIdeaUs
 import { createLibraryRouter } from './library/library-router';
 import { ListLibraryItemsUseCase } from '../domain/library/use-cases/ListLibraryItemsUseCase';
 import { AddLibraryItemUseCase } from '../domain/library/use-cases/AddLibraryItemUseCase';
+import { DeleteLibraryItemUseCase } from '../domain/library/use-cases/DeleteLibraryItemUseCase';
 
 // All the use cases the HTTP layer needs. Created in index.ts and passed to the routers.
 // When a new use case is added, add it here too.
@@ -35,6 +36,7 @@ export interface ApiDependencies {
   listGiftIdeaUseCase: ListGiftIdeaUseCase;
   listLibraryItemsUseCase: ListLibraryItemsUseCase;
   addLibraryItemUseCase: AddLibraryItemUseCase;
+  deleteLibraryItemUseCase: DeleteLibraryItemUseCase;
 }
 
 export const createApi = (dependencies: ApiDependencies) => {

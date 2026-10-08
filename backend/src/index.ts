@@ -17,6 +17,7 @@ import { ListGiftIdeaUseCase } from './domain/giftidea/use-cases/ListGiftIdeaUse
 import { PrismaLibraryItemRepository } from './infrastructure/library/repositories/PrismaLibraryItemRepository';
 import { ListLibraryItemsUseCase } from './domain/library/use-cases/ListLibraryItemsUseCase';
 import { AddLibraryItemUseCase } from './domain/library/use-cases/AddLibraryItemUseCase';
+import { DeleteLibraryItemUseCase } from './domain/library/use-cases/DeleteLibraryItemUseCase';
 
 environmentService.load();
 const { PORT, JWT_SECRET } = environmentService.get();
@@ -44,6 +45,7 @@ const listGiftIdeaUseCase = new ListGiftIdeaUseCase(giftIdeaRepository);
 
 const listLibraryItemsUseCase = new ListLibraryItemsUseCase(libraryItemRepository);
 const addLibraryItemUseCase = new AddLibraryItemUseCase(libraryItemRepository, giftIdeaRepository);
+const deleteLibraryItemUseCase = new DeleteLibraryItemUseCase(libraryItemRepository);
 
 const api = createApi({
   registerUserUseCase,
@@ -58,6 +60,7 @@ const api = createApi({
   listGiftIdeaUseCase,
   listLibraryItemsUseCase,
   addLibraryItemUseCase,
+  deleteLibraryItemUseCase,
 });
 
 api.listen(PORT, '0.0.0.0', () => {
