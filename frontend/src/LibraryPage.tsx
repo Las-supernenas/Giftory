@@ -39,6 +39,26 @@ function LibraryPage({ accessToken }: LibraryPageProps) {
     }
     void loadLibrary();
   }, [accessToken]);
+
+  async function removeLibraryItem(itemId: number) {
+    try {
+      const response = await fetch(`/api/library/${itemId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!response.ok) {
+        setErrorMessage("No se pudo quitar la idea de la biblioteca.");
+        return;
+      }
+      setErrorMessage(null);
+      setLibraryItems((currentItems) =>
+        currentItems.filter((item) => item.id !== itemId),
+      );
+    } catch {
+      setErrorMessage("No se pudo contactar con el servidor.");
+    }
+  }
+
   return (
     <main>
       <h1>Library</h1>
@@ -47,12 +67,18 @@ function LibraryPage({ accessToken }: LibraryPageProps) {
       {!isLoading && !errorMessage && libraryItems.length === 0 && (
         <p>Tu biblioteca está vacía.</p>
       )}
-      {!isLoading && !errorMessage && libraryItems.length > 0 && (
+      {!isLoading && libraryItems.length > 0 && (
         <ul>
           {libraryItems.map((item) => (
             <li key={item.id}>
               {item.giftIdea.name} — {item.giftIdea.price} €
               <div>Intereses: {item.giftIdea.interests.join(", ")}</div>
+              <button
+                type="button"
+                onClick={() => void removeLibraryItem(item.id)}
+              >
+                Eliminar de la biblioteca
+              </button>
             </li>
           ))}
         </ul>
