@@ -28,4 +28,48 @@ export class PrismaLibraryItemRepository implements LibraryItemRepository {
       });
     });
   }
+  async findByUserIdAndGiftIdeaId(userId: number, giftIdeaId: number): Promise<LibraryItem | null> {
+    const row = await this.prisma.libraryItem.findFirst({
+      where: { userId, giftIdeaId },
+      include: { giftIdea: true },
+    });
+    if (!row) {
+      return null;
+    }
+    const giftIdea = new GiftIdea({
+      id: row.giftIdea.id,
+      name: row.giftIdea.name,
+      price: row.giftIdea.price.toNumber(),
+      interests: row.giftIdea.interests,
+      userId: row.giftIdea.userId,
+      deletedAt: row.giftIdea.deletedAt,
+    });
+    return new LibraryItem({
+      id: row.id,
+      userId: row.userId,
+      giftIdeaId: row.giftIdeaId,
+      giftIdea,
+    });
+  }
+
+  async create(userId: number, giftIdeaId: number): Promise<LibraryItem> {
+    const row = await this.prisma.libraryItem.create({
+      data: { userId, giftIdeaId },
+      include: { giftIdea: true },
+    });
+    const giftIdea = new GiftIdea({
+      id: row.giftIdea.id,
+      name: row.giftIdea.name,
+      price: row.giftIdea.price.toNumber(),
+      interests: row.giftIdea.interests,
+      userId: row.giftIdea.userId,
+      deletedAt: row.giftIdea.deletedAt,
+    });
+    return new LibraryItem({
+      id: row.id,
+      userId: row.userId,
+      giftIdeaId: row.giftIdeaId,
+      giftIdea,
+    });
+  }
 }
