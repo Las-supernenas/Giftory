@@ -233,7 +233,8 @@ frontend/src/
 │   │   ├── pages/               PeoplePage
 │   │   └── services/            people-service.ts: requests to /api/people
 │   └── shared/
-│       └── types/               person.ts: Person type, interests and their labels
+│       ├── services/            interests-service.ts: request to /api/interests
+│       └── types/               person.ts: Person type and interest labels
 ├── App.tsx                      Routes, session (access token) and route protection
 ├── main.tsx                     Entry point: mounts App inside BrowserRouter
 └── index.css                    Tailwind import
@@ -244,7 +245,8 @@ frontend/src/
 - Requests to the API go through the Vite proxy using relative URLs (`/api/...`), never `http://localhost:3000`.
 - When a page needs several requests to the same resource, they go in a service file inside its feature (`features/<feature>/services/`).
 - The access token is stored in `sessionStorage` under `giftoryAccessToken`. Services read it from there to send the `Authorization: Bearer <token>` header.
-- The interest keys in `features/shared/types/person.ts` must match the `Interest` enum in `backend/prisma/schema.prisma`. If you add or remove an interest in the backend, update this file too.
+- The list of available interests is loaded from `GET /api/interests`; the backend is the source of truth. `features/shared/types/person.ts` only keeps the Spanish labels (`INTEREST_LABELS`). If an interest has no label, the UI shows its key.
+
 
 ### Pages
 
