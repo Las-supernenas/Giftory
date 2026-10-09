@@ -1,12 +1,12 @@
 import { Route, Routes, useNavigate, Navigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import RegisterPage from "./features/auth/pages/RegisterPage";
 import LoginPage from "./features/auth/pages/LoginPage";
 import PeoplePage from "./features/people/pages/PeoplePage";
 import LibraryPage from "./features/library/pages/LibraryPage";
+import DiscoveryPage from "./features/giftideas/pages/DiscoveryPage";
 
 function App() {
-  const [apiStatus, setApiStatus] = useState("Comprobando API...");
   const [accessToken, setAccessToken] = useState<string | null>(() =>
     sessionStorage.getItem("giftoryAccessToken"),
   );
@@ -24,41 +24,11 @@ function App() {
     navigate("/login");
   }
 
-  useEffect(() => {
-    async function checkApi() {
-      try {
-        const response = await fetch("/api/health");
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const data: { status: string } = await response.json();
-        setApiStatus(`API: ${data.status}`);
-      } catch {
-        setApiStatus("No se pudo conectar con la API.");
-      }
-    }
-
-    void checkApi();
-  }, []);
-
   return (
     <>
       {isAuthenticated && <button onClick={handleLogout}>Cerrar sesión</button>}
       <Routes>
-        <Route
-          path="/"
-          element={
-            <div className="min-h-screen flex items-start justify-center pt-8">
-              <h1 className="font-serif text-4xl font-semibold tracking-tight">
-                Giftory
-              </h1>
-              <p>{apiStatus}</p>
-              <p>{isAuthenticated ? "Sesión iniciada" : "Sin sesión"}</p>
-            </div>
-          }
-        />
+        <Route path="/" element={<DiscoveryPage accessToken={accessToken}/>} />
 
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
 
