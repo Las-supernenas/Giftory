@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import RegisterPage from "./features/auth/pages/RegisterPage";
 import LoginPage from "./features/auth/pages/LoginPage";
 import PeoplePage from "./features/people/pages/PeoplePage";
-import LibraryPage from "./LibraryPage";
+import LibraryPage from "./features/library/pages/LibraryPage";
 
 function App() {
   const [apiStatus, setApiStatus] = useState("Comprobando API...");
