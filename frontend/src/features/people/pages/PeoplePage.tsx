@@ -52,6 +52,9 @@ function PeoplePage() {
       setPeople((currentPeople) =>
         currentPeople.filter((p) => p.id !== person.id),
       );
+      if (editingPerson?.id === person.id) {
+        setEditingPerson(null);
+      }
       setSuccessMessage("Persona eliminada.");
     } catch {
       setErrorMessage("No se pudo eliminar la persona.");
