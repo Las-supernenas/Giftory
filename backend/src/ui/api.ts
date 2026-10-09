@@ -19,6 +19,7 @@ import { createLibraryRouter } from './library/library-router';
 import { ListLibraryItemsUseCase } from '../domain/library/use-cases/ListLibraryItemsUseCase';
 import { AddLibraryItemUseCase } from '../domain/library/use-cases/AddLibraryItemUseCase';
 import { DeleteLibraryItemUseCase } from '../domain/library/use-cases/DeleteLibraryItemUseCase';
+import { interestsRouter } from './shared/routes/interests-route';
 
 // All the use cases the HTTP layer needs. Created in index.ts and passed to the routers.
 // When a new use case is added, add it here too.
@@ -45,6 +46,7 @@ export const createApi = (dependencies: ApiDependencies) => {
   api.use(express.json());
 
   api.use('/api', healthRouter);
+  api.use('/api', interestsRouter);
   api.use('/api/users', createUserRouter(dependencies));
   api.use('/api/people', createPersonRouter(dependencies));
   api.use('/api/giftideas', createGiftIdeaRouter(dependencies));
