@@ -254,7 +254,7 @@ frontend/src/
 | `/login` | Login form | Public |
 | `/register` | Registration form | Public |
 | `/people` | List, create, edit and delete the user's people | Private |
-| `/library` | Placeholder (title only) | Private |
+| `/library` | View and remove items from the user's library | Private |
 
 Private routes redirect to `/login` when there is no session.
 
