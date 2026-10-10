@@ -33,13 +33,6 @@ export async function getGiftIdea(id: number): Promise<GiftIdea> {
   return (await response.json()) as GiftIdea;
 }
 
-export async function getInterests(): Promise<Interest[]> {
-  const response = await fetch("/api/interests");
-  await checkResponse(response);
-
-  return (await response.json()) as Interest[];
-}
-
 export async function createGiftIdea(
   input: CreateGiftIdeaInput,
   accessToken: string,

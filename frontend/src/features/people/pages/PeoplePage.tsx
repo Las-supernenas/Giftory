@@ -5,8 +5,8 @@ import {
   getPeople,
   updatePerson,
 } from "../services/people-service";
+import { getInterests } from "../../shared/services/interests-service";
 import {
-  INTERESTS,
   INTEREST_LABELS,
   type Interest,
   type Person,
@@ -18,11 +18,20 @@ function PeoplePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
+  // Available interests, loaded from the backend
+  const [interests, setInterests] = useState<Interest[]>([]);
+  const [isLoadingInterests, setIsLoadingInterests] = useState(true);
+  const [interestsError, setInterestsError] = useState("");
+
   // Form and states
   const [editingPerson, setEditingPerson] = useState<Person | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+
+  // When editing a person, no new interests would send []
+  //deleting previous saved interests
+  const canSave = !isLoadingInterests && !interestsError;
 
   useEffect(() => {
     async function loadPeople() {
@@ -37,6 +46,21 @@ function PeoplePage() {
     }
 
     void loadPeople();
+  }, []);
+
+  useEffect(() => {
+    async function loadInterests() {
+      try {
+        const data = await getInterests();
+        setInterests(data);
+      } catch {
+        setInterestsError("No se pudieron cargar los intereses.");
+      } finally {
+        setIsLoadingInterests(false);
+      }
+    }
+
+    void loadInterests();
   }, []);
 
   async function handleDelete(person: Person) {
@@ -123,7 +147,12 @@ function PeoplePage() {
 
         <fieldset>
           <legend>Intereses</legend>
-          {INTERESTS.map((interest) => (
+
+          {isLoadingInterests && <p role="status">Cargando intereses...</p>}
+
+          {interestsError && <p role="alert">{interestsError}</p>}
+
+          {interests.map((interest) => (
             <label key={interest}>
               <input
                 type="checkbox"
@@ -131,12 +160,12 @@ function PeoplePage() {
                 value={interest}
                 defaultChecked={editingPerson?.interests.includes(interest)}
               />
-              {INTEREST_LABELS[interest]}
+              {INTEREST_LABELS[interest] ?? interest}
             </label>
           ))}
         </fieldset>
 
-        <button type="submit" disabled={isSaving}>
+        <button type="submit" disabled={isSaving || !canSave}>
           {isSaving
             ? "Guardando..."
             : editingPerson
@@ -170,7 +199,9 @@ function PeoplePage() {
             <li key={person.id}>
               <strong>{person.name}</strong>{" "}
               {person.interests.length > 0
-                ? person.interests.map((i) => INTEREST_LABELS[i]).join(", ")
+                ? person.interests
+                    .map((i) => INTEREST_LABELS[i] ?? i)
+                    .join(", ")
                 : "Sin intereses"}
               <button type="button" onClick={() => setEditingPerson(person)}>
                 Editar

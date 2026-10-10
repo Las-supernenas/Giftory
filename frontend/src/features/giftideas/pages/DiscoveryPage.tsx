@@ -2,11 +2,11 @@
 import { useEffect, useState, type FormEvent } from "react";
 import {
   getGiftIdeas,
-  getInterests,
   createGiftIdea,
   type GiftIdea,
   type Interest,
 } from "../../../api/giftidea";
+import { getInterests } from "../../shared/services/interests-service";
 
 type DiscoveryPageProps = {
   accessToken: string | null;
@@ -142,6 +142,7 @@ export default function DiscoveryPage({
 
       // Add the new idea to the discovery list
       setGiftIdeas((current) => [createdIdea, ...current]);
+      setError(null);
 
       // Reset the form
       setName("");

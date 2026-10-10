@@ -1,7 +1,8 @@
-// Interests a person can have
-// The keys must match the Interest enum in backend/prisma/schema.prisma.
+// Spanish labels for the interests.
+// The list of available interests comes from the backend (GET /api/interests).
+// If an interest has no label here, the UI shows its key instead.
 
-export const INTEREST_LABELS = {
+export const INTEREST_LABELS: Record<string, string> = {
   TECHNOLOGY: "Tecnología",
   GAMING: "Videojuegos",
   PHOTOGRAPHY: "Fotografía",
@@ -37,12 +38,10 @@ export const INTEREST_LABELS = {
   COLLECTIBLES: "Coleccionismo",
   CARS_AND_MOTORSPORTS: "Coches y motor",
   BOARD_GAMES_AND_PUZZLES: "Juegos de mesa y puzles",
-} as const;
+};
 
-export type Interest = keyof typeof INTEREST_LABELS;
-
-// List of all interests, used to draw the checkboxes
-export const INTERESTS = Object.keys(INTEREST_LABELS) as Interest[];
+// An interest key as the backend returns it (example: "TECHNOLOGY")
+export type Interest = string;
 
 // A person as the backend returns it
 export type Person = {
