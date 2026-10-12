@@ -5,7 +5,7 @@ type ButtonProps = ComponentProps<"button"> & {
 };
 
 const baseClasses =
-  "inline-flex min-h-11 items-center justify-center rounded-xl px-4 py-2 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50";
+  "border-0 inline-flex min-h-11 items-center justify-center rounded-xl px-4 py-2 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50";
 const variantClasses = {
   primary: "bg-primary text-white",
   accent: "bg-accent-peach text-foreground",
