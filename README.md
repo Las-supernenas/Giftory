@@ -247,6 +247,13 @@ frontend/src/
 - The access token is stored in `sessionStorage` under `giftoryAccessToken`. Services read it from there to send the `Authorization: Bearer <token>` header.
 - The list of available interests is loaded from `GET /api/interests`; the backend is the source of truth. `features/shared/types/person.ts` only keeps the Spanish labels (`INTEREST_LABELS`). If an interest has no label, the UI shows its key.
 
+### Shared UI
+
+The components in `frontend/src/features/shared/components/` provide a small UI foundation:
+
+- `Button` for actions (primary, accent or secondary); `Input` for labeled fields and validation errors; `Card` for grouped content.
+- `LoadingState` while loading; `ErrorState` for errors; `EmptyState` when there is no content. Pass a `message` to the error and empty states.
+- Use the color tokens in `frontend/src/index.css`, the system font and Tailwind's spacing scale. Build for small screens first, then add responsive variants where needed. Keep labels, keyboard focus and readable contrast.
 
 ### Pages
 
