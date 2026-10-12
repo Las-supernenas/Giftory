@@ -5,4 +5,11 @@
   --color-accent-lavender: #b39ddb;
   --color-background: #fff8f1;
   --color-surface: #ffffff;
+  --color-foreground: #1f2937;
+  --color-muted: #6b7280;
+}
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: system-ui, sans-serif;
 }
