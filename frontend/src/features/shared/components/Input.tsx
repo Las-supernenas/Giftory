@@ -21,7 +21,7 @@ export function Input({
       <input
         id={id}
         {...inputProps}
-        className={`block w-full min-h-11 rounded-xl border ${error ? "border-error" : "border-muted"} bg-surface px-3 py-2.5 text-foreground placeholder:text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+        className={`block w-full min-h-11 rounded-xl border border-solid ${error ? "border-error" : "border-muted"} bg-surface px-3 py-2.5 text-foreground placeholder:text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
         aria-invalid={Boolean(error)}
         aria-describedby={
           error ? `${id}-error` : inputProps["aria-describedby"]
