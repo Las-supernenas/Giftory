@@ -172,6 +172,11 @@ Domain errors are translated to HTTP status codes in `ui/shared/middlewares/erro
 | `GET` | `/api/giftideas` | `200` list of public gift ideas |
 | `POST` | `/api/giftideas` | `201` created; `400` invalid data; `401` no token |
 | `GET` | `/api/giftideas/:id` | `200 { id, name, price, interests }` � `400` invalid id � `404` not found |
+| `GET` | `/api/people/:personId/events` | `200` list of the person's events · `400` invalid id · `404` person not found · `401` no token |
+| `POST` | `/api/people/:personId/events` | `201 { id, name, date }` · `400` invalid data · `404` person not found · `401` no token |
+| `PATCH` | `/api/events/:id` | `200 { id, name, date }` · `400` invalid data · `404` not found · `401` no token |
+| `DELETE` | `/api/events/:id` | `204` · `404` not found · `401` no token |
+
 
 #### Authentication
 
@@ -190,6 +195,16 @@ All `/api/people` routes require the `Authorization: Bearer <accessToken>` heade
 - A user only sees and modifies their own people. Accessing another user's person returns `404`, so the API does not reveal whether it exists.
 - `DELETE` is a soft delete: the person is kept in the database with `deletedAt` set, and is no longer returned by the API.
 - `interests` must be values of the `Interest` enum in `prisma/schema.prisma` (e.g. `TRAVEL`, `COOKING`).
+
+#### Events
+
+All Event routes require the `Authorization: Bearer <accessToken>` header.
+
+- An event belongs to a person, and ownership is checked through that person: a user only sees and modifies events of their own (not deleted) people. Otherwise the API returns `404`.
+- `date` is a calendar day in `YYYY-MM-DD` format (e.g. `2026-10-23`), both in requests and responses. It must be a real date; past dates are allowed.
+- `name` is required, trimmed, 1–100 characters.
+- `DELETE` is a hard delete: the event is removed from the database.
+- Events are returned ordered by date.
 
 #### Gift ideas
 
