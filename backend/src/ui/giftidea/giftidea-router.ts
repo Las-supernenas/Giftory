@@ -25,7 +25,7 @@ export const createGiftIdeaRouter = ({
   giftIdeaRouter.post(
     '/',
     authenticationMiddleware,
-    createCreateGiftIdeaController(createGiftIdeaUseCase)
+    createCreateGiftIdeaController(createGiftIdeaUseCase),
   );
   giftIdeaRouter.get('/:id', createGetGiftIdeaController(getGiftIdeaUseCase));
 
