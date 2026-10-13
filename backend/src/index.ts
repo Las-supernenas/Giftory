@@ -18,6 +18,11 @@ import { PrismaLibraryItemRepository } from './infrastructure/library/repositori
 import { ListLibraryItemsUseCase } from './domain/library/use-cases/ListLibraryItemsUseCase';
 import { AddLibraryItemUseCase } from './domain/library/use-cases/AddLibraryItemUseCase';
 import { DeleteLibraryItemUseCase } from './domain/library/use-cases/DeleteLibraryItemUseCase';
+import { PrismaEventRepository } from './infrastructure/event/repositories/PrismaEventRepository';
+import { ListEventsUseCase } from './domain/event/use-cases/ListEventsUseCase';
+import { CreateEventUseCase } from './domain/event/use-cases/CreateEventUseCase';
+import { UpdateEventUseCase } from './domain/event/use-cases/UpdateEventUseCase';
+import { DeleteEventUseCase } from './domain/event/use-cases/DeleteEventUseCase';
 
 environmentService.load();
 const { PORT, JWT_SECRET } = environmentService.get();
@@ -28,6 +33,7 @@ const userRepository = new PrismaUserRepository();
 const personRepository = new PrismaPersonRepository();
 const giftIdeaRepository = new PrismaGiftIdeaRepository();
 const libraryItemRepository = new PrismaLibraryItemRepository();
+const eventRepository = new PrismaEventRepository();
 const securityService = new SecurityServiceImplementation(JWT_SECRET);
 const authenticationMiddleware = createAuthenticationMiddleware(securityService);
 
@@ -47,6 +53,11 @@ const listLibraryItemsUseCase = new ListLibraryItemsUseCase(libraryItemRepositor
 const addLibraryItemUseCase = new AddLibraryItemUseCase(libraryItemRepository, giftIdeaRepository);
 const deleteLibraryItemUseCase = new DeleteLibraryItemUseCase(libraryItemRepository);
 
+const listEventsUseCase = new ListEventsUseCase(eventRepository, personRepository);
+const createEventUseCase = new CreateEventUseCase(eventRepository, personRepository);
+const updateEventUseCase = new UpdateEventUseCase(eventRepository);
+const deleteEventUseCase = new DeleteEventUseCase(eventRepository);
+
 const api = createApi({
   registerUserUseCase,
   loginUserUseCase,
@@ -61,6 +72,10 @@ const api = createApi({
   listLibraryItemsUseCase,
   addLibraryItemUseCase,
   deleteLibraryItemUseCase,
+  listEventsUseCase,
+  createEventUseCase,
+  updateEventUseCase,
+  deleteEventUseCase,
 });
 
 api.listen(PORT, '0.0.0.0', () => {
