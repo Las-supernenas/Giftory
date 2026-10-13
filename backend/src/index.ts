@@ -23,6 +23,10 @@ import { ListEventsUseCase } from './domain/event/use-cases/ListEventsUseCase';
 import { CreateEventUseCase } from './domain/event/use-cases/CreateEventUseCase';
 import { UpdateEventUseCase } from './domain/event/use-cases/UpdateEventUseCase';
 import { DeleteEventUseCase } from './domain/event/use-cases/DeleteEventUseCase';
+import { PrismaSavedIdeaRepository } from './infrastructure/savedidea/repositories/PrismaSavedIdeaRepository';
+import { ListSavedIdeasUseCase } from './domain/savedidea/use-cases/ListSavedIdeasUseCase';
+import { AddSavedIdeaUseCase } from './domain/savedidea/use-cases/AddSavedIdeaUseCase';
+import { DeleteSavedIdeaUseCase } from './domain/savedidea/use-cases/DeleteSavedIdeaUseCase';
 
 environmentService.load();
 const { PORT, JWT_SECRET } = environmentService.get();
@@ -36,6 +40,7 @@ const libraryItemRepository = new PrismaLibraryItemRepository();
 const eventRepository = new PrismaEventRepository();
 const securityService = new SecurityServiceImplementation(JWT_SECRET);
 const authenticationMiddleware = createAuthenticationMiddleware(securityService);
+const savedIdeaRepository = new PrismaSavedIdeaRepository();
 
 const registerUserUseCase = new RegisterUserUseCase(userRepository, securityService);
 const loginUserUseCase = new LoginUserUseCase(userRepository, securityService);
@@ -58,6 +63,14 @@ const createEventUseCase = new CreateEventUseCase(eventRepository, personReposit
 const updateEventUseCase = new UpdateEventUseCase(eventRepository);
 const deleteEventUseCase = new DeleteEventUseCase(eventRepository);
 
+const listSavedIdeasUseCase = new ListSavedIdeasUseCase(personRepository, savedIdeaRepository);
+const addSavedIdeaUseCase = new AddSavedIdeaUseCase(
+  personRepository,
+  savedIdeaRepository,
+  giftIdeaRepository,
+);
+const deleteSavedIdeaUseCase = new DeleteSavedIdeaUseCase(personRepository, savedIdeaRepository);
+
 const api = createApi({
   registerUserUseCase,
   loginUserUseCase,
@@ -76,6 +89,9 @@ const api = createApi({
   createEventUseCase,
   updateEventUseCase,
   deleteEventUseCase,
+  listSavedIdeasUseCase,
+  addSavedIdeaUseCase,
+  deleteSavedIdeaUseCase,
 });
 
 api.listen(PORT, '0.0.0.0', () => {
