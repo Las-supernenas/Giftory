@@ -20,6 +20,11 @@ import { ListLibraryItemsUseCase } from '../domain/library/use-cases/ListLibrary
 import { AddLibraryItemUseCase } from '../domain/library/use-cases/AddLibraryItemUseCase';
 import { DeleteLibraryItemUseCase } from '../domain/library/use-cases/DeleteLibraryItemUseCase';
 import { interestsRouter } from './shared/routes/interests-route';
+import { createEventRouter } from './event/event-router';
+import { ListEventsUseCase } from '../domain/event/use-cases/ListEventsUseCase';
+import { CreateEventUseCase } from '../domain/event/use-cases/CreateEventUseCase';
+import { UpdateEventUseCase } from '../domain/event/use-cases/UpdateEventUseCase';
+import { DeleteEventUseCase } from '../domain/event/use-cases/DeleteEventUseCase';
 
 // All the use cases the HTTP layer needs. Created in index.ts and passed to the routers.
 // When a new use case is added, add it here too.
@@ -38,6 +43,10 @@ export interface ApiDependencies {
   listLibraryItemsUseCase: ListLibraryItemsUseCase;
   addLibraryItemUseCase: AddLibraryItemUseCase;
   deleteLibraryItemUseCase: DeleteLibraryItemUseCase;
+  listEventsUseCase: ListEventsUseCase;
+  createEventUseCase: CreateEventUseCase;
+  updateEventUseCase: UpdateEventUseCase;
+  deleteEventUseCase: DeleteEventUseCase;
 }
 
 export const createApi = (dependencies: ApiDependencies) => {
@@ -51,6 +60,7 @@ export const createApi = (dependencies: ApiDependencies) => {
   api.use('/api/people', createPersonRouter(dependencies));
   api.use('/api/giftideas', createGiftIdeaRouter(dependencies));
   api.use('/api/library', createLibraryRouter(dependencies));
+  api.use('/api', createEventRouter(dependencies));
 
   api.get('/', (req, res) => {
     res.json({ message: 'Server is running' });
