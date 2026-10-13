@@ -13,7 +13,9 @@ const nameSchema = z
 
 // Date: a real calendar day in "YYYY-MM-DD" format (e.g. 2026-02-30 is rejected).
 // Past dates are allowed.
-const dateSchema = z.iso.date({ error: 'La fecha debe ser una fecha válida en formato YYYY-MM-DD.' });
+const dateSchema = z.iso.date({
+  error: 'La fecha debe ser una fecha válida en formato YYYY-MM-DD.',
+});
 
 // POST /api/people/:personId/events: name and date are required
 export const createEventSchema = z.object({
