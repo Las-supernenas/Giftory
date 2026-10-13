@@ -13,7 +13,7 @@ export const createListGiftIdeaController =
           name: giftIdea.name,
           price: giftIdea.price,
           interests: giftIdea.interests,
-        }))
+        })),
       );
     } catch (error) {
       next(error);
