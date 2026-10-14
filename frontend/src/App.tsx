@@ -28,7 +28,7 @@ function App() {
     <>
       {isAuthenticated && <button onClick={handleLogout}>Cerrar sesión</button>}
       <Routes>
-        <Route path="/" element={<DiscoveryPage accessToken={accessToken}/>} />
+        <Route path="/" element={<DiscoveryPage accessToken={accessToken} />} />
 
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
 

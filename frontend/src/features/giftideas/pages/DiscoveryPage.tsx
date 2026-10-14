@@ -1,4 +1,3 @@
-
 import { useEffect, useState, type FormEvent } from "react";
 import {
   getGiftIdeas,
@@ -13,9 +12,7 @@ type DiscoveryPageProps = {
   accessToken: string | null;
 };
 
-export default function DiscoveryPage({
-  accessToken,
-}: DiscoveryPageProps) {
+export default function DiscoveryPage({ accessToken }: DiscoveryPageProps) {
   const [giftIdeas, setGiftIdeas] = useState<GiftIdea[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -116,7 +113,12 @@ export default function DiscoveryPage({
 
     const parsedPrice = Number(price);
 
-    if (!name.trim() || !price.trim() || !Number.isFinite(parsedPrice) || parsedPrice < 0) {
+    if (
+      !name.trim() ||
+      !price.trim() ||
+      !Number.isFinite(parsedPrice) ||
+      parsedPrice < 0
+    ) {
       setCreateError("Introduce un nombre y un precio válidos.");
       return;
     }
@@ -151,9 +153,7 @@ export default function DiscoveryPage({
 
   return (
     <main className="mx-auto max-w-5xl p-6">
-      <h1 className="mb-2 text-3xl font-bold">
-        Descubre ideas de regalo
-      </h1>
+      <h1 className="mb-2 text-3xl font-bold">Descubre ideas de regalo</h1>
 
       <p className="mb-8 text-gray-600">
         Encuentra inspiración para tu próximo regalo.
@@ -199,9 +199,7 @@ export default function DiscoveryPage({
             </div>
 
             <fieldset>
-              <legend className="mb-2 font-medium">
-                Intereses (opcional)
-              </legend>
+              <legend className="mb-2 font-medium">Intereses (opcional)</legend>
 
               {interestsLoading ? (
                 <p role="status">Cargando intereses...</p>
@@ -214,10 +212,7 @@ export default function DiscoveryPage({
               ) : (
                 <div className="flex flex-wrap gap-3">
                   {interests.map((interest) => (
-                    <label
-                      key={interest}
-                      className="flex items-center gap-2"
-                    >
+                    <label key={interest} className="flex items-center gap-2">
                       <input
                         type="checkbox"
                         checked={selectedInterests.includes(interest)}
@@ -255,9 +250,7 @@ export default function DiscoveryPage({
 
       {/* Public discovery list */}
       <section>
-        <h2 className="mb-4 text-2xl font-semibold">
-          Ideas de regalo
-        </h2>
+        <h2 className="mb-4 text-2xl font-semibold">Ideas de regalo</h2>
 
         {loading ? (
           <p role="status">Cargando ideas de regalo...</p>
@@ -274,13 +267,9 @@ export default function DiscoveryPage({
                 key={idea.id}
                 className="rounded-lg border border-gray-200 p-5 shadow-sm"
               >
-                <h3 className="mb-2 text-xl font-semibold">
-                  {idea.name}
-                </h3>
+                <h3 className="mb-2 text-xl font-semibold">{idea.name}</h3>
 
-                <p className="mb-3 font-medium">
-                  {idea.price.toFixed(2)} €
-                </p>
+                <p className="mb-3 font-medium">{idea.price.toFixed(2)} €</p>
 
                 <div className="flex flex-wrap gap-2">
                   {idea.interests.map((interest) => (
@@ -300,4 +289,3 @@ export default function DiscoveryPage({
     </main>
   );
 }
-
