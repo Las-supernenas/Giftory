@@ -26,6 +26,45 @@ jobs:
     timeout-minutes: 30
 
     steps:
+      # TEMPORARY: Diagnose the GitHub OIDC identity sent to AWS.
+      # Remove this step after fixing the IAM trust policy.
+      - name: Inspect GitHub OIDC identity
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os
+          import json
+          import base64
+          import urllib.parse
+          import urllib.request
+
+          url = os.environ["ACTIONS_ID_TOKEN_REQUEST_URL"]
+          token = os.environ["ACTIONS_ID_TOKEN_REQUEST_TOKEN"]
+
+          separator = "&" if "?" in url else "?"
+          request_url = url + separator + urllib.parse.urlencode({
+              "audience": "sts.amazonaws.com"
+          })
+
+          request = urllib.request.Request(
+              request_url,
+              headers={"Authorization": "Bearer " + token}
+          )
+
+          with urllib.request.urlopen(request) as response:
+              jwt = json.load(response)["value"]
+
+          payload = jwt.split(".")[1]
+          payload += "=" * (-len(payload) % 4)
+          claims = json.loads(base64.urlsafe_b64decode(payload))
+
+          print("OIDC subject:", claims.get("sub"))
+          print("OIDC audience:", claims.get("aud"))
+          print("Repository:", claims.get("repository"))
+          print("Ref:", claims.get("ref"))
+          print("Event:", claims.get("event_name"))
+          PY
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -125,7 +164,7 @@ jobs:
           echo "Deployment successful: $DEPLOY_SHA"
           SCRIPT
 
-          # Encode the script for transport through AWS SSM.
+          # Encode the deployment script for transport through AWS SSM.
           SCRIPT_B64=$(base64 -w 0 deployment.sh)
 
           jq -n \
