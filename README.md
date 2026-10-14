@@ -244,6 +244,10 @@ frontend/src/
 ├── features/
 │   ├── auth/
 │   │   └── pages/               LoginPage, RegisterPage
+│   ├── events/
+│   │   ├── components/          EventsSection: list, create, edit and delete a person's events
+│   │   ├── services/            events-service.ts: requests to the Event endpoints
+│   │   └── types/               event.ts: PersonEvent and EventInput types
 │   ├── people/
 │   │   ├── pages/               PeoplePage
 │   │   └── services/            people-service.ts: requests to /api/people
