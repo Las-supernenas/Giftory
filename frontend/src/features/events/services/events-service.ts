@@ -10,10 +10,21 @@ function getHeaders() {
   };
 }
 
+// fetch() itself fails when the request cannot be sent (no connection, server down, blocked request).
+// Its error message is in English ("Failed to fetch"), so we replace it with a Spanish one.
+
+async function sendRequest(url: string, options: RequestInit): Promise<Response> {
+  try {
+    return await fetch(url, options);
+  } catch {
+    throw new Error("No se pudo conectar con el servidor.");
+  }
+}
+
 // Errors
 
 export async function getEvents(personId: number): Promise<PersonEvent[]> {
-  const response = await fetch(`/api/people/${personId}/events`, {
+  const response = await sendRequest(`/api/people/${personId}/events`, {
     headers: getHeaders(),
   });
 
@@ -30,7 +41,7 @@ export async function createEvent(
   personId: number,
   event: EventInput,
 ): Promise<PersonEvent> {
-  const response = await fetch(`/api/people/${personId}/events`, {
+  const response = await sendRequest(`/api/people/${personId}/events`, {
     method: "POST",
     headers: getHeaders(),
     body: JSON.stringify(event),
@@ -54,7 +65,7 @@ export async function updateEvent(
   id: number,
   event: EventInput,
 ): Promise<PersonEvent> {
-  const response = await fetch(`/api/events/${id}`, {
+  const response = await sendRequest(`/api/events/${id}`, {
     method: "PATCH",
     headers: getHeaders(),
     body: JSON.stringify(event),
@@ -78,7 +89,7 @@ export async function updateEvent(
 //Hard delete: returns 204 with no  body
 
 export async function deleteEvent(id: number): Promise<void> {
-  const response = await fetch(`/api/events/${id}`, {
+  const response = await sendRequest(`/api/events/${id}`, {
     method: "DELETE",
     headers: getHeaders(),
   });
