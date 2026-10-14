@@ -13,7 +13,10 @@ function getHeaders() {
 // fetch() itself fails when the request cannot be sent (no connection, server down, blocked request).
 // Its error message is in English ("Failed to fetch"), so we replace it with a Spanish one.
 
-async function sendRequest(url: string, options: RequestInit): Promise<Response> {
+async function sendRequest(
+  url: string,
+  options: RequestInit,
+): Promise<Response> {
   try {
     return await fetch(url, options);
   } catch {
