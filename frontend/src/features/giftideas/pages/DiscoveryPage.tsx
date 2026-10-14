@@ -7,6 +7,7 @@ import {
   type Interest,
 } from "../../../api/giftidea";
 import { getInterests } from "../../shared/services/interests-service";
+import { INTEREST_LABELS } from "../../shared/types/person";
 
 type DiscoveryPageProps = {
   accessToken: string | null;
@@ -45,13 +46,9 @@ export default function DiscoveryPage({
         if (!cancelled) {
           setGiftIdeas(ideas);
         }
-      } catch (err) {
+      } catch {
         if (!cancelled) {
-          setError(
-            err instanceof Error
-              ? err.message
-              : "Could not load gift ideas",
-          );
+          setError("No se pudieron cargar las ideas de regalo.");
         }
       } finally {
         if (!cancelled) {
@@ -83,13 +80,9 @@ export default function DiscoveryPage({
         if (!cancelled) {
           setInterests(availableInterests);
         }
-      } catch (err) {
+      } catch {
         if (!cancelled) {
-          setInterestsError(
-            err instanceof Error
-              ? err.message
-              : "Could not load interests",
-          );
+          setInterestsError("No se pudieron cargar los intereses.");
         }
       } finally {
         if (!cancelled) {
@@ -124,7 +117,7 @@ export default function DiscoveryPage({
     const parsedPrice = Number(price);
 
     if (!name.trim() || !price.trim() || !Number.isFinite(parsedPrice) || parsedPrice < 0) {
-      setCreateError("Please enter a valid name and price.");
+      setCreateError("Introduce un nombre y un precio válidos.");
       return;
     }
 
@@ -149,12 +142,8 @@ export default function DiscoveryPage({
       setPrice("");
       setSelectedInterests([]);
       setCreateSuccess(true);
-    } catch (err) {
-      setCreateError(
-        err instanceof Error
-          ? err.message
-          : "Could not create gift idea",
-      );
+    } catch {
+      setCreateError("No se pudo crear la idea de regalo.");
     } finally {
       setCreating(false);
     }
@@ -163,24 +152,24 @@ export default function DiscoveryPage({
   return (
     <main className="mx-auto max-w-5xl p-6">
       <h1 className="mb-2 text-3xl font-bold">
-        Discover Gift Ideas
+        Descubre ideas de regalo
       </h1>
 
       <p className="mb-8 text-gray-600">
-        Find inspiration for your next gift.
+        Encuentra inspiración para tu próximo regalo.
       </p>
 
       {/* Creation form — authenticated users only */}
       {accessToken && (
         <section className="mb-10 rounded-lg border border-gray-200 p-5">
           <h2 className="mb-4 text-2xl font-semibold">
-            Create a Gift Idea
+            Crear una idea de regalo
           </h2>
 
           <form onSubmit={handleCreate} className="space-y-4">
             <div>
               <label htmlFor="gift-name" className="mb-1 block">
-                Name
+                Nombre
               </label>
               <input
                 id="gift-name"
@@ -195,7 +184,7 @@ export default function DiscoveryPage({
 
             <div>
               <label htmlFor="gift-price" className="mb-1 block">
-                Price (€)
+                Precio (€)
               </label>
               <input
                 id="gift-price"
@@ -211,17 +200,17 @@ export default function DiscoveryPage({
 
             <fieldset>
               <legend className="mb-2 font-medium">
-                Interests (optional)
+                Intereses (opcional)
               </legend>
 
               {interestsLoading ? (
-                <p role="status">Loading interests...</p>
+                <p role="status">Cargando intereses...</p>
               ) : interestsError ? (
                 <p role="alert" className="text-red-600">
                   {interestsError}
                 </p>
               ) : interests.length === 0 ? (
-                <p>No interests available.</p>
+                <p>No hay intereses disponibles.</p>
               ) : (
                 <div className="flex flex-wrap gap-3">
                   {interests.map((interest) => (
@@ -234,7 +223,7 @@ export default function DiscoveryPage({
                         checked={selectedInterests.includes(interest)}
                         onChange={() => toggleInterest(interest)}
                       />
-                      {interest.replaceAll("_", " ")}
+                      {INTEREST_LABELS[interest] ?? interest}
                     </label>
                   ))}
                 </div>
@@ -249,7 +238,7 @@ export default function DiscoveryPage({
 
             {createSuccess && (
               <p role="status" className="text-green-700">
-                Gift idea created successfully!
+                ¡Idea de regalo creada correctamente!
               </p>
             )}
 
@@ -258,7 +247,7 @@ export default function DiscoveryPage({
               disabled={creating}
               className="rounded bg-slate-800 px-4 py-2 text-white disabled:opacity-50"
             >
-              {creating ? "Creating..." : "Create Gift Idea"}
+              {creating ? "Creando..." : "Crear idea de regalo"}
             </button>
           </form>
         </section>
@@ -267,17 +256,17 @@ export default function DiscoveryPage({
       {/* Public discovery list */}
       <section>
         <h2 className="mb-4 text-2xl font-semibold">
-          Gift Ideas
+          Ideas de regalo
         </h2>
 
         {loading ? (
-          <p role="status">Loading gift ideas...</p>
+          <p role="status">Cargando ideas de regalo...</p>
         ) : error ? (
           <p role="alert" className="text-red-600">
             {error}
           </p>
         ) : giftIdeas.length === 0 ? (
-          <p>No gift ideas available yet.</p>
+          <p>Todavía no hay ideas de regalo.</p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {giftIdeas.map((idea) => (
@@ -299,7 +288,7 @@ export default function DiscoveryPage({
                       key={interest}
                       className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700"
                     >
-                      {interest.replaceAll("_", " ")}
+                      {INTEREST_LABELS[interest] ?? interest}
                     </span>
                   ))}
                 </div>

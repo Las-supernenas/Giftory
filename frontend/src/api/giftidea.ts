@@ -15,7 +15,7 @@ export type CreateGiftIdeaInput = {
 
 async function checkResponse(response: Response): Promise<void> {
   if (!response.ok) {
-    throw new Error(`Gift idea request failed (HTTP ${response.status})`);
+    throw new Error("Ha ocurrido un error. Inténtalo de nuevo.");
   }
 }
 

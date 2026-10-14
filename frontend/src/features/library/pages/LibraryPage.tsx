@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { INTEREST_LABELS } from "../../shared/types/person";
 
 type LibraryPageProps = {
   accessToken: string;
@@ -25,7 +26,7 @@ function LibraryPage({ accessToken }: LibraryPageProps) {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
         if (!response.ok) {
-          setErrorMessage("No se pudo cargar la biblioteca");
+          setErrorMessage("No se pudo cargar la biblioteca.");
           setIsLoading(false);
           return;
         }
@@ -33,7 +34,7 @@ function LibraryPage({ accessToken }: LibraryPageProps) {
         setLibraryItems(items);
         setIsLoading(false);
       } catch {
-        setErrorMessage("No se puede contactar con el servidor.");
+        setErrorMessage("No se pudo conectar con el servidor.");
         setIsLoading(false);
       }
     }
@@ -55,13 +56,13 @@ function LibraryPage({ accessToken }: LibraryPageProps) {
         currentItems.filter((item) => item.id !== itemId),
       );
     } catch {
-      setErrorMessage("No se pudo contactar con el servidor.");
+      setErrorMessage("No se pudo conectar con el servidor.");
     }
   }
 
   return (
     <main>
-      <h1>Library</h1>
+      <h1>Biblioteca</h1>
       {isLoading && <p>Cargando biblioteca...</p>}
       {errorMessage && <p role="alert">{errorMessage}</p>}
       {!isLoading && !errorMessage && libraryItems.length === 0 && (
@@ -72,7 +73,12 @@ function LibraryPage({ accessToken }: LibraryPageProps) {
           {libraryItems.map((item) => (
             <li key={item.id}>
               {item.giftIdea.name} — {item.giftIdea.price} €
-              <div>Intereses: {item.giftIdea.interests.join(", ")}</div>
+              <div>
+                Intereses:{" "}
+                {item.giftIdea.interests
+                  .map((interest) => INTEREST_LABELS[interest] ?? interest)
+                  .join(", ")}
+              </div>
               <button
                 type="button"
                 onClick={() => void removeLibraryItem(item.id)}

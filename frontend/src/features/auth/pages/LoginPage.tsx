@@ -41,12 +41,12 @@ function LoginPage({ onLogin }: LoginPageProps) {
                 setSuccessMessage("Inicio de sesión correcto.");
               }
             } else if (response.status === 401) {
-              setErrorMessage("Email o contraseña incorrectos");
+              setErrorMessage("Email o contraseña incorrectos.");
             } else if (response.status === 400) {
-              setErrorMessage("Revisa el email y la contraseña");
+              setErrorMessage("Revisa el email y la contraseña.");
             } else {
               setErrorMessage(
-                "No se pudo completar el inicio de sesión. Inténtalo más tarde",
+                "No se pudo completar el inicio de sesión. Inténtalo más tarde.",
               );
             }
           } catch {
