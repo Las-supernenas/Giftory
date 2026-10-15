@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
 import type { SavedIdea } from "../types/saved-idea";
 import {
   addSavedIdea,
   deleteSavedIdea,
   getSavedIdeas,
+  updateSavedIdeaPrivateNote,
 } from "../services/savedideas-service";
 import { LoadingState } from "../../shared/components/LoadingState";
 import { ErrorState } from "../../shared/components/ErrorState";
@@ -11,6 +11,7 @@ import { EmptyState } from "../../shared/components/EmptyState";
 import { Card } from "../../shared/components/Card";
 import { Button } from "../../shared/components/Button";
 import { getGiftIdeas, type GiftIdea } from "../../../api/giftidea";
+import { useEffect, useState, type FormEvent } from "react";
 
 type SavedIdeasSectionProps = { personId: number };
 
@@ -19,6 +20,7 @@ export function SavedIdeasSection({ personId }: SavedIdeasSectionProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [savingNoteId, setSavingNoteId] = useState<number | null>(null);
   const [actionError, setActionError] = useState("");
   const [giftIdeas, setGiftIdeas] = useState<GiftIdea[]>([]);
   const [isLoadingGiftIdeas, setIsLoadingGiftIdeas] = useState(true);
@@ -94,6 +96,35 @@ export function SavedIdeasSection({ personId }: SavedIdeasSectionProps) {
     }
   }
 
+  async function handleSaveNote(
+    savedIdeaId: number,
+    event: FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    const privateNote =
+      String(
+        new FormData(event.currentTarget).get("privateNote") ?? "",
+      ).trim() || null;
+    setSavingNoteId(savedIdeaId);
+    setActionError("");
+    try {
+      const updated = await updateSavedIdeaPrivateNote(
+        personId,
+        savedIdeaId,
+        privateNote,
+      );
+
+      setSavedIdeas((current) =>
+        current.map((idea) => (idea.id === savedIdeaId ? updated : idea)),
+      );
+    } catch {
+      setActionError("No se pudo guardar la nota.");
+    } finally {
+      setSavingNoteId(null);
+    }
+  }
+
   return (
     <section>
       <h2>Ideas guardadas de la persona {personId}</h2>
@@ -147,6 +178,23 @@ export function SavedIdeasSection({ personId }: SavedIdeasSectionProps) {
               <Card>
                 <h3>{savedIdea.giftIdea.name}</h3>
                 <p>{savedIdea.giftIdea.price} €</p>
+                <form
+                  onSubmit={(event) => void handleSaveNote(savedIdea.id, event)}
+                >
+                  <label className="block">
+                    Nota privada
+                    <textarea
+                      name="privateNote"
+                      defaultValue={savedIdea.privateNote ?? ""}
+                      className="mt-1 block w-full rounded-xl border p-3"
+                    />
+                  </label>
+                  <Button type="submit" disabled={savingNoteId !== null}>
+                    {savingNoteId === savedIdea.id
+                      ? "Guardando nota..."
+                      : "Guardar nota"}
+                  </Button>
+                </form>
                 <Button
                   variant="secondary"
                   disabled={deletingId !== null}

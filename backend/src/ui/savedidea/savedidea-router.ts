@@ -5,12 +5,15 @@ import { DeleteSavedIdeaUseCase } from '../../domain/savedidea/use-cases/DeleteS
 import { createListSavedIdeasController } from './controllers/list-saved-ideas-controller';
 import { createAddSavedIdeaController } from './controllers/add-saved-idea-controller';
 import { createDeleteSavedIdeaController } from './controllers/delete-saved-idea-controller';
+import { UpdateSavedIdeaPrivateNoteUseCase } from '../../domain/savedidea/use-cases/UpdateSavedIdeaPrivateNoteUseCase';
+import { createUpdateSavedIdeaPrivateNoteController } from './controllers/update-saved-idea-private-note-controller';
 
 export interface SavedIdeaRouterDependencies {
   authenticationMiddleware: RequestHandler;
   listSavedIdeasUseCase: ListSavedIdeasUseCase;
   addSavedIdeaUseCase: AddSavedIdeaUseCase;
   deleteSavedIdeaUseCase: DeleteSavedIdeaUseCase;
+  updatePrivateNoteUseCase: UpdateSavedIdeaPrivateNoteUseCase;
 }
 
 export function createSavedIdeaRouter(savedIdeaRouterDependencies: SavedIdeaRouterDependencies) {
@@ -24,6 +27,13 @@ export function createSavedIdeaRouter(savedIdeaRouterDependencies: SavedIdeaRout
     '/people/:personId/savedideas',
     savedIdeaRouterDependencies.authenticationMiddleware,
     createAddSavedIdeaController(savedIdeaRouterDependencies.addSavedIdeaUseCase),
+  );
+  savedIdeaRouter.patch(
+    '/people/:personId/savedideas/:id',
+    savedIdeaRouterDependencies.authenticationMiddleware,
+    createUpdateSavedIdeaPrivateNoteController(
+      savedIdeaRouterDependencies.updatePrivateNoteUseCase,
+    ),
   );
   savedIdeaRouter.delete(
     '/people/:personId/savedideas/:id',

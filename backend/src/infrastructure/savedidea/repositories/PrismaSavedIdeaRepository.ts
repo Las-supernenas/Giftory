@@ -7,6 +7,39 @@ import { BusinessConflictError } from '../../../domain/errors/BusinessConflictEr
 
 export class PrismaSavedIdeaRepository implements SavedIdeaRepository {
   private readonly prisma = prisma;
+  async updatePrivateNoteByIdAndPersonId(
+    savedIdeaId: number,
+    personId: number,
+    privateNote: string | null,
+  ): Promise<SavedIdea | null> {
+    try {
+      const row = await this.prisma.savedIdea.update({
+        where: { id: savedIdeaId, personId },
+        data: { privateNote },
+        include: { giftIdea: true },
+      });
+      const giftIdea = new GiftIdea({
+        id: row.giftIdea.id,
+        name: row.giftIdea.name,
+        price: row.giftIdea.price.toNumber(),
+        interests: row.giftIdea.interests,
+        userId: row.giftIdea.userId,
+        deletedAt: row.giftIdea.deletedAt,
+      });
+      return new SavedIdea({
+        id: row.id,
+        personId: row.personId,
+        giftIdeaId: row.giftIdeaId,
+        giftIdea,
+        privateNote: row.privateNote,
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        return null;
+      }
+      throw error;
+    }
+  }
   async deleteByIdAndPersonId(savedIdeaId: number, personId: number): Promise<boolean> {
     const result = await this.prisma.savedIdea.deleteMany({ where: { id: savedIdeaId, personId } });
     return result.count > 0;
@@ -31,6 +64,7 @@ export class PrismaSavedIdeaRepository implements SavedIdeaRepository {
         personId: row.personId,
         giftIdeaId: row.giftIdeaId,
         giftIdea,
+        privateNote: row.privateNote,
       });
     });
   }
@@ -59,6 +93,7 @@ export class PrismaSavedIdeaRepository implements SavedIdeaRepository {
       personId: row.personId,
       giftIdeaId: row.giftIdeaId,
       giftIdea,
+      privateNote: row.privateNote,
     });
   }
 
@@ -82,6 +117,7 @@ export class PrismaSavedIdeaRepository implements SavedIdeaRepository {
         personId: row.personId,
         giftIdeaId: row.giftIdeaId,
         giftIdea,
+        privateNote: row.privateNote,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {

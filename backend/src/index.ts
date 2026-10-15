@@ -27,6 +27,7 @@ import { PrismaSavedIdeaRepository } from './infrastructure/savedidea/repositori
 import { ListSavedIdeasUseCase } from './domain/savedidea/use-cases/ListSavedIdeasUseCase';
 import { AddSavedIdeaUseCase } from './domain/savedidea/use-cases/AddSavedIdeaUseCase';
 import { DeleteSavedIdeaUseCase } from './domain/savedidea/use-cases/DeleteSavedIdeaUseCase';
+import { UpdateSavedIdeaPrivateNoteUseCase } from './domain/savedidea/use-cases/UpdateSavedIdeaPrivateNoteUseCase';
 
 environmentService.load();
 const { PORT, JWT_SECRET } = environmentService.get();
@@ -70,6 +71,10 @@ const addSavedIdeaUseCase = new AddSavedIdeaUseCase(
   giftIdeaRepository,
 );
 const deleteSavedIdeaUseCase = new DeleteSavedIdeaUseCase(personRepository, savedIdeaRepository);
+const updatePrivateNoteUseCase = new UpdateSavedIdeaPrivateNoteUseCase(
+  personRepository,
+  savedIdeaRepository,
+);
 
 const api = createApi({
   registerUserUseCase,
@@ -92,6 +97,7 @@ const api = createApi({
   listSavedIdeasUseCase,
   addSavedIdeaUseCase,
   deleteSavedIdeaUseCase,
+  updatePrivateNoteUseCase,
 });
 
 api.listen(PORT, '0.0.0.0', () => {
