@@ -28,7 +28,7 @@ function App() {
     <>
       {isAuthenticated && <button onClick={handleLogout}>Cerrar sesión</button>}
       <Routes>
-        <Route path="/" element={<DiscoveryPage accessToken={accessToken}/>} />
+        <Route path="/" element={<DiscoveryPage accessToken={accessToken} />} />
 
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
 
@@ -63,7 +63,7 @@ function App() {
           element={
             <div className="min-h-screen flex items-start justify-center pt-8">
               <h1 className="font-sans text-2xl font-medium tracking-wide text-slate-800">
-                Pagina no encontrada
+                Página no encontrada
               </h1>
             </div>
           }
