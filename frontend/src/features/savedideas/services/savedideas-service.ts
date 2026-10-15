@@ -16,14 +16,19 @@ export async function addSavedIdea(
   giftIdeaId: number,
 ): Promise<SavedIdea> {
   const token = sessionStorage.getItem("giftoryAccessToken");
-  const response = await fetch(`/api/people/${personId}/savedideas`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ giftIdeaId }),
-  });
+  let response: Response;
+  try {
+    response = await fetch(`/api/people/${personId}/savedideas`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ giftIdeaId }),
+    });
+  } catch {
+    throw new Error("No se pudo conectar con el servidor.");
+  }
   if (response.status === 409) {
     throw new Error("Esta idea ya está guardada para esta persona.");
   }

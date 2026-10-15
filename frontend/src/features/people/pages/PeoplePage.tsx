@@ -11,12 +11,15 @@ import {
   type Interest,
   type Person,
 } from "../../shared/types/person";
+import EventsSection from "../../events/components/EventsSection";
+import { SavedIdeasSection } from "../../savedideas/components/SavedIdeasSection";
 
 function PeoplePage() {
   // List and status of the initial load
   const [people, setPeople] = useState<Person[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [selectedPersonId, setSelectedPersonId] = useState<number | null>(null);
 
   // Available interests, loaded from the backend
   const [interests, setInterests] = useState<Interest[]>([]);
@@ -76,6 +79,9 @@ function PeoplePage() {
       setPeople((currentPeople) =>
         currentPeople.filter((p) => p.id !== person.id),
       );
+      if (selectedPersonId === person.id) {
+        setSelectedPersonId(null);
+      }
       if (editingPerson?.id === person.id) {
         setEditingPerson(null);
       }
@@ -203,6 +209,12 @@ function PeoplePage() {
                     .map((i) => INTEREST_LABELS[i] ?? i)
                     .join(", ")
                 : "Sin intereses"}
+              <button
+                type="button"
+                onClick={() => setSelectedPersonId(person.id)}
+              >
+                Ver ideas y eventos
+              </button>
               <button type="button" onClick={() => setEditingPerson(person)}>
                 Editar
               </button>
@@ -212,6 +224,12 @@ function PeoplePage() {
             </li>
           ))}
         </ul>
+      )}
+      {selectedPersonId !== null && (
+        <div key={selectedPersonId}>
+          <EventsSection personId={selectedPersonId} />
+          <SavedIdeasSection personId={selectedPersonId} />
+        </div>
       )}
     </main>
   );
