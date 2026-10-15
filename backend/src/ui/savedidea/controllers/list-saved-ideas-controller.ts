@@ -20,6 +20,7 @@ export const createListSavedIdeasController =
       res.status(200).json(
         savedIdeas.map((item) => ({
           id: item.id,
+          privateNote: item.privateNote,
           giftIdea: {
             id: item.giftIdea.id,
             name: item.giftIdea.name,

@@ -27,6 +27,7 @@ export const createAddSavedIdeaController =
       });
       res.status(201).json({
         id: savedIdea.id,
+        privateNote: savedIdea.privateNote,
         giftIdea: {
           id: savedIdea.giftIdea.id,
           name: savedIdea.giftIdea.name,

@@ -54,3 +54,26 @@ export async function deleteSavedIdea(
     throw new Error("No se pudo quitar la idea guardada.");
   }
 }
+
+export async function updateSavedIdeaPrivateNote(
+  personId: number,
+  savedIdeaId: number,
+  privateNote: string | null,
+): Promise<SavedIdea> {
+  const token = sessionStorage.getItem("giftoryAccessToken");
+  const response = await fetch(
+    `/api/people/${personId}/savedideas/${savedIdeaId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ privateNote }),
+    },
+  );
+  if (!response.ok) {
+    throw new Error("No se pudo guardar la nota.");
+  }
+  return response.json();
+}

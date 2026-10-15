@@ -29,6 +29,7 @@ import { createSavedIdeaRouter } from './savedidea/savedidea-router';
 import { ListSavedIdeasUseCase } from '../domain/savedidea/use-cases/ListSavedIdeasUseCase';
 import { AddSavedIdeaUseCase } from '../domain/savedidea/use-cases/AddSavedIdeaUseCase';
 import { DeleteSavedIdeaUseCase } from '../domain/savedidea/use-cases/DeleteSavedIdeaUseCase';
+import { UpdateSavedIdeaPrivateNoteUseCase } from '../domain/savedidea/use-cases/UpdateSavedIdeaPrivateNoteUseCase';
 
 // All the use cases the HTTP layer needs. Created in index.ts and passed to the routers.
 // When a new use case is added, add it here too.
@@ -54,6 +55,7 @@ export interface ApiDependencies {
   listSavedIdeasUseCase: ListSavedIdeasUseCase;
   addSavedIdeaUseCase: AddSavedIdeaUseCase;
   deleteSavedIdeaUseCase: DeleteSavedIdeaUseCase;
+  updatePrivateNoteUseCase: UpdateSavedIdeaPrivateNoteUseCase;
 }
 
 export const createApi = (dependencies: ApiDependencies) => {
