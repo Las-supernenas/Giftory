@@ -1,12 +1,8 @@
 import type { EventInput, PersonEvent } from "../types/event";
 
-// Same headers as people-service: JSON body and the session token
 function getHeaders() {
-  const token = sessionStorage.getItem("giftoryAccessToken");
-
   return {
     "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
   };
 }
 

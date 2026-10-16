@@ -1,5 +1,5 @@
 import { Route, Routes, useNavigate, Navigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import RegisterPage from "./features/auth/pages/RegisterPage";
 import LoginPage from "./features/auth/pages/LoginPage";
 import PeoplePage from "./features/people/pages/PeoplePage";
@@ -7,28 +7,44 @@ import LibraryPage from "./features/library/pages/LibraryPage";
 import DiscoveryPage from "./features/giftideas/pages/DiscoveryPage";
 
 function App() {
-  const [accessToken, setAccessToken] = useState<string | null>(() =>
-    sessionStorage.getItem("giftoryAccessToken"),
-  );
-  const isAuthenticated = Boolean(accessToken);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const navigate = useNavigate();
+  useEffect(() => {
+    fetch("/api/users/session")
+      .then((response) => setIsAuthenticated(response.ok))
+      .catch(() => setIsAuthenticated(false));
+    sessionStorage.removeItem("giftoryAccessToken");
+  }, []);
 
-  function handleLogin(token: string) {
-    sessionStorage.setItem("giftoryAccessToken", token);
-    setAccessToken(token);
+  function handleLogin() {
+    setIsAuthenticated(true);
   }
 
-  function handleLogout() {
-    sessionStorage.removeItem("giftoryAccessToken");
-    setAccessToken(null);
-    navigate("/login");
+  async function handleLogout() {
+    try {
+      const response = await fetch("/api/users/logout", { method: "POST" });
+      if (!response.ok) {
+        throw new Error("Logout failed");
+      }
+      setIsAuthenticated(false);
+      navigate("/login");
+    } catch {
+      window.alert("No se pudo cerrar sesión. Inténtalo de nuevo.");
+    }
+  }
+
+  if (isAuthenticated === null) {
+    return <p>Comprobando sesión...</p>;
   }
 
   return (
     <>
       {isAuthenticated && <button onClick={handleLogout}>Cerrar sesión</button>}
       <Routes>
-        <Route path="/" element={<DiscoveryPage accessToken={accessToken} />} />
+        <Route
+          path="/"
+          element={<DiscoveryPage isAuthenticated={isAuthenticated} />}
+        />
 
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
 
@@ -37,11 +53,7 @@ function App() {
         <Route
           path="/library"
           element={
-            accessToken ? (
-              <LibraryPage accessToken={accessToken} />
-            ) : (
-              <Navigate to="/login" replace />
-            )
+            isAuthenticated ? <LibraryPage /> : <Navigate to="/login" replace />
           }
         />
 
