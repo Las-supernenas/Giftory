@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
 import { INTEREST_LABELS } from "../../shared/types/person";
 
-type LibraryPageProps = {
-  accessToken: string;
-};
-
 type LibraryItemResponse = {
   id: number;
   giftIdea: {
@@ -15,16 +11,14 @@ type LibraryItemResponse = {
   };
 };
 
-function LibraryPage({ accessToken }: LibraryPageProps) {
+function LibraryPage() {
   const [libraryItems, setLibraryItems] = useState<LibraryItemResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   useEffect(() => {
     async function loadLibrary() {
       try {
-        const response = await fetch("/api/library", {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
+        const response = await fetch("/api/library");
         if (!response.ok) {
           setErrorMessage("No se pudo cargar la biblioteca.");
           setIsLoading(false);
@@ -39,13 +33,12 @@ function LibraryPage({ accessToken }: LibraryPageProps) {
       }
     }
     void loadLibrary();
-  }, [accessToken]);
+  }, []);
 
   async function removeLibraryItem(itemId: number) {
     try {
       const response = await fetch(`/api/library/${itemId}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${accessToken}` },
       });
       if (!response.ok) {
         setErrorMessage("No se pudo quitar la idea de la biblioteca.");

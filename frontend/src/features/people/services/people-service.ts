@@ -3,11 +3,8 @@ import type { Person, PersonInput } from "../../shared/types/person";
 const API_URL = "/api/people";
 
 function getHeaders() {
-  const token = sessionStorage.getItem("giftoryAccessToken");
-
   return {
     "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
   };
 }
 

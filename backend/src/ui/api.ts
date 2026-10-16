@@ -1,4 +1,5 @@
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import { healthRouter } from './shared/routes/health-route';
 import { notFoundMiddleware } from './shared/middlewares/not-found-middleware';
 import { errorHandlerMiddleware } from './shared/middlewares/error-handler-middleware';
@@ -38,6 +39,7 @@ export interface ApiDependencies {
   registerUserUseCase: RegisterUserUseCase;
   loginUserUseCase: LoginUserUseCase;
   authenticationMiddleware: RequestHandler;
+  cookieSecure: boolean;
   listPeopleUseCase: ListPeopleUseCase;
   createPersonUseCase: CreatePersonUseCase;
   updatePersonUseCase: UpdatePersonUseCase;
@@ -62,6 +64,7 @@ export const createApi = (dependencies: ApiDependencies) => {
   const api = express();
 
   api.use(express.json());
+  api.use(cookieParser());
 
   api.use('/api', healthRouter);
   api.use('/api', interestsRouter);

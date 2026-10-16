@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 type LoginPageProps = {
-  onLogin: (token: string) => void;
+  onLogin: () => void;
 };
 
 function LoginPage({ onLogin }: LoginPageProps) {
@@ -34,12 +34,8 @@ function LoginPage({ onLogin }: LoginPageProps) {
             });
 
             if (response.ok) {
-              const data = await response.json();
-
-              if (data.accessToken) {
-                onLogin(data.accessToken);
-                setSuccessMessage("Inicio de sesión correcto.");
-              }
+              onLogin();
+              setSuccessMessage("Inicio de sesión correcto.");
             } else if (response.status === 401) {
               setErrorMessage("Email o contraseña incorrectos.");
             } else if (response.status === 400) {

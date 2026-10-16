@@ -9,10 +9,10 @@ import { getInterests } from "../../shared/services/interests-service";
 import { INTEREST_LABELS } from "../../shared/types/person";
 
 type DiscoveryPageProps = {
-  accessToken: string | null;
+  isAuthenticated: boolean;
 };
 
-export default function DiscoveryPage({ accessToken }: DiscoveryPageProps) {
+export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
   const [giftIdeas, setGiftIdeas] = useState<GiftIdea[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,7 +63,7 @@ export default function DiscoveryPage({ accessToken }: DiscoveryPageProps) {
 
   // Fetch interests only when authenticated
   useEffect(() => {
-    if (!accessToken) return;
+    if (!isAuthenticated) return;
 
     let cancelled = false;
 
@@ -93,7 +93,7 @@ export default function DiscoveryPage({ accessToken }: DiscoveryPageProps) {
     return () => {
       cancelled = true;
     };
-  }, [accessToken]);
+  }, [isAuthenticated]);
 
   function toggleInterest(interest: Interest) {
     setSelectedInterests((current) =>
@@ -106,7 +106,7 @@ export default function DiscoveryPage({ accessToken }: DiscoveryPageProps) {
   async function handleCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!accessToken || creating) return;
+    if (!isAuthenticated || creating) return;
 
     setCreateError(null);
     setCreateSuccess(false);
@@ -126,14 +126,11 @@ export default function DiscoveryPage({ accessToken }: DiscoveryPageProps) {
     setCreating(true);
 
     try {
-      const createdIdea = await createGiftIdea(
-        {
-          name: name.trim(),
-          price: parsedPrice,
-          interests: selectedInterests,
-        },
-        accessToken,
-      );
+      const createdIdea = await createGiftIdea({
+        name: name.trim(),
+        price: parsedPrice,
+        interests: selectedInterests,
+      });
 
       // Add the new idea to the discovery list
       setGiftIdeas((current) => [createdIdea, ...current]);
@@ -160,7 +157,7 @@ export default function DiscoveryPage({ accessToken }: DiscoveryPageProps) {
       </p>
 
       {/* Creation form — authenticated users only */}
-      {accessToken && (
+      {isAuthenticated && (
         <section className="mb-10 rounded-lg border border-gray-200 p-5">
           <h2 className="mb-4 text-2xl font-semibold">
             Crear una idea de regalo

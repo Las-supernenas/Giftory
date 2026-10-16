@@ -30,7 +30,7 @@ import { DeleteSavedIdeaUseCase } from './domain/savedidea/use-cases/DeleteSaved
 import { UpdateSavedIdeaPrivateNoteUseCase } from './domain/savedidea/use-cases/UpdateSavedIdeaPrivateNoteUseCase';
 
 environmentService.load();
-const { PORT, JWT_SECRET } = environmentService.get();
+const { PORT, JWT_SECRET, COOKIE_SECURE } = environmentService.get();
 
 // composition root: here we create the real implementatios
 
@@ -80,6 +80,7 @@ const api = createApi({
   registerUserUseCase,
   loginUserUseCase,
   authenticationMiddleware,
+  cookieSecure: COOKIE_SECURE,
   listPeopleUseCase,
   createPersonUseCase,
   updatePersonUseCase,

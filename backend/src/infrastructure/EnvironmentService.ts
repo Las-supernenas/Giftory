@@ -5,6 +5,10 @@ const environmentVariablesValidator = z.object({
   PORT: z.coerce.number().default(3000),
   DATABASE_URL: z.string({ error: 'DATABASE_URL is required' }).min(1, 'DATABASE_URL is required'),
   JWT_SECRET: z.string({ error: 'JWT_SECRET is required' }).min(1, 'JWT_SECRET is required'),
+  COOKIE_SECURE: z
+    .string()
+    .optional()
+    .transform((value) => value === 'true'),
 });
 
 type EnvironmentVariables = z.infer<typeof environmentVariablesValidator>;

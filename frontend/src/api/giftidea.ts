@@ -35,13 +35,11 @@ export async function getGiftIdea(id: number): Promise<GiftIdea> {
 
 export async function createGiftIdea(
   input: CreateGiftIdeaInput,
-  accessToken: string,
 ): Promise<GiftIdea> {
   const response = await fetch("/api/giftideas", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
     },
     body: JSON.stringify(input),
   });
