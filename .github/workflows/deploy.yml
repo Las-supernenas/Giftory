@@ -152,9 +152,10 @@ jobs:
           echo "Waiting for application..."
           HEALTHY=0
 
-          for attempt in $(seq 1 30); do
-            if curl -fsS http://127.0.0.1/ -o /dev/null &&
-               curl -fsS http://127.0.0.1/api/giftideas -o /dev/null; then
+          if curl -fsS --resolve giftory.duckdns.org:443:127.0.0.1 \
+              https://giftory.duckdns.org/ -o /dev/null &&
+            curl -fsS --resolve giftory.duckdns.org:443:127.0.0.1 \
+              https://giftory.duckdns.org/api/giftideas -o /dev/null; then
               HEALTHY=1
               break
             fi
