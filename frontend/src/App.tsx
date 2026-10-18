@@ -5,6 +5,7 @@ import LoginPage from "./features/auth/pages/LoginPage";
 import PeoplePage from "./features/people/pages/PeoplePage";
 import LibraryPage from "./features/library/pages/LibraryPage";
 import DiscoveryPage from "./features/giftideas/pages/DiscoveryPage";
+import { AppNavigation } from "./features/shared/components/AppNavigation";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -18,6 +19,7 @@ function App() {
 
   function handleLogin() {
     setIsAuthenticated(true);
+    navigate("/");
   }
 
   async function handleLogout() {
@@ -39,7 +41,10 @@ function App() {
 
   return (
     <>
-      {isAuthenticated && <button onClick={handleLogout}>Cerrar sesión</button>}
+      <AppNavigation
+        isAuthenticated={isAuthenticated}
+        onLogout={handleLogout}
+      />
       <Routes>
         <Route
           path="/"
