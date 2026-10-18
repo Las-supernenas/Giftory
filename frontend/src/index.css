@@ -3,14 +3,15 @@
 @import "tailwindcss/utilities.css" layer(utilities);
 
 @theme {
-  --color-primary: #24534d;
-  --color-accent-peach: #f4a896;
+  --color-primary: #263b59;
+  --color-accent-dusty-pink: #e98bc7;
   --color-accent-lavender: #b39ddb;
-  --color-background: #fff8f1;
+  --color-background: #f8f6fb;
   --color-surface: #ffffff;
   --color-foreground: #1f2937;
   --color-muted: #6b7280;
   --color-error: #dc2626;
+  --color-success: #16a34a;
 }
 body {
   background-color: var(--color-background);
