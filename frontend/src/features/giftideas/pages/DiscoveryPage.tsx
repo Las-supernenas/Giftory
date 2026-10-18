@@ -9,10 +9,12 @@ import { getInterests } from "../../shared/services/interests-service";
 import { INTEREST_LABELS } from "../../shared/types/person";
 import { Button } from "../../shared/components/Button";
 import { ErrorState } from "../../shared/components/ErrorState";
+import { EmptyState } from "../../shared/components/EmptyState";
 import {
   addToLibrary,
   getLibraryItems,
 } from "../../library/services/library-service";
+import { Input } from "../../shared/components/Input";
 
 type DiscoveryPageProps = {
   isAuthenticated: boolean;
@@ -231,108 +233,107 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
   }
 
   return (
-    <main className="mx-auto max-w-5xl p-6">
-      <h1 className="mb-2 text-3xl font-bold">Descubre ideas de regalo</h1>
+    <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+      <h1 className="mb-2 text-3xl font-semibold tracking-tight text-primary">
+        Descubre ideas de regalo
+      </h1>
 
-      <p className="mb-8 text-gray-600">
+      <p className="mb-8 text-muted">
         Encuentra inspiración para tu próximo regalo.
       </p>
 
       {/* Creation form — authenticated users only */}
       {isAuthenticated && (
-        <section className="mb-10 rounded-lg border border-gray-200 p-5">
-          <h2 className="mb-4 text-2xl font-semibold">
+        <section className="mb-10 rounded-2xl border border-solid border-foreground/10 bg-surface p-5 shadow-sm">
+          <h2 className="mb-4 text-xl font-semibold text-primary">
             Crear una idea de regalo
           </h2>
 
           <form onSubmit={handleCreate} className="space-y-4">
-            <div>
-              <label htmlFor="gift-name" className="mb-1 block">
-                Nombre
-              </label>
-              <input
-                id="gift-name"
-                type="text"
-                maxLength={100}
-                required
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                className="w-full rounded border p-2"
-              />
-            </div>
+            <Input
+              id="gift-name"
+              label="Nombre"
+              type="text"
+              maxLength={100}
+              required
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+            />
 
-            <div>
-              <label htmlFor="gift-price" className="mb-1 block">
-                Precio (€)
-              </label>
-              <input
-                id="gift-price"
-                type="number"
-                min="0"
-                step="0.01"
-                required
-                value={price}
-                onChange={(event) => setPrice(event.target.value)}
-                className="w-full rounded border p-2"
-              />
-            </div>
+            <Input
+              id="gift-price"
+              label="Precio (€)"
+              type="number"
+              min="0"
+              step="0.01"
+              required
+              value={price}
+              onChange={(event) => setPrice(event.target.value)}
+            />
 
-            <fieldset>
-              <legend className="mb-2 font-medium">Intereses (opcional)</legend>
+            <fieldset className="min-w-0 border-0 p-0">
+              <legend className="mb-3 text-sm font-medium text-foreground">
+                Intereses (opcional)
+              </legend>
 
               {interestsLoading ? (
-                <p role="status">Cargando intereses...</p>
-              ) : interestsError ? (
-                <p role="alert" className="text-red-600">
-                  {interestsError}
+                <p role="status" className="text-sm text-muted">
+                  Cargando intereses...
                 </p>
+              ) : interestsError ? (
+                <ErrorState message={interestsError} />
               ) : interests.length === 0 ? (
-                <p>No hay intereses disponibles.</p>
+                <EmptyState message="No hay intereses disponibles." />
               ) : (
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-2">
                   {interests.map((interest) => (
-                    <label key={interest} className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={selectedInterests.includes(interest)}
-                        onChange={() => toggleInterest(interest)}
-                      />
+                    <button
+                      key={interest}
+                      type="button"
+                      aria-pressed={selectedInterests.includes(interest)}
+                      onClick={() => toggleInterest(interest)}
+                      className={`min-h-11 rounded-full border border-primary px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                        selectedInterests.includes(interest)
+                          ? "bg-accent-lavender text-foreground"
+                          : "bg-surface text-foreground"
+                      }`}
+                    >
                       {INTEREST_LABELS[interest] ?? interest}
-                    </label>
+                    </button>
                   ))}
                 </div>
               )}
             </fieldset>
 
-            {createError && (
-              <p role="alert" className="text-red-600">
-                {createError}
-              </p>
-            )}
+            {createError && <ErrorState message={createError} />}
 
             {createSuccess && (
-              <p role="status" className="text-green-700">
+              <p
+                role="status"
+                className="rounded-xl border-l-4 border-success bg-surface px-4 py-3 text-sm text-foreground"
+              >
                 ¡Idea de regalo creada correctamente!
               </p>
             )}
 
-            <button
-              type="submit"
-              disabled={creating}
-              className="rounded bg-slate-800 px-4 py-2 text-white disabled:opacity-50"
-            >
+            <Button type="submit" disabled={creating}>
               {creating ? "Creando..." : "Crear idea de regalo"}
-            </button>
+            </Button>
           </form>
         </section>
       )}
 
       {/* Public discovery list */}
       <section>
-        <h2 className="mb-4 text-2xl font-semibold">Ideas de regalo</h2>
+        <h2 className="mb-4 text-xl font-semibold text-primary">
+          Ideas de regalo
+        </h2>
         {/* Result of saving to the Library: shown above the list, never instead of it */}
         {saveMessage && (
-          <p role="status" className="mb-4 text-green-700">
+          <p
+            role="status"
+            className="mb-4 rounded-xl border-l-4 border-success bg-surface px-4 py-3 text-sm text-foreground"
+          >
             {saveMessage}
           </p>
         )}
@@ -342,13 +343,13 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
           </div>
         )}
         {loading ? (
-          <p role="status">Cargando ideas de regalo...</p>
-        ) : error ? (
-          <p role="alert" className="text-red-600">
-            {error}
+          <p role="status" className="text-sm text-muted">
+            Cargando ideas de regalo...
           </p>
+        ) : error ? (
+          <ErrorState message={error} />
         ) : giftIdeas.length === 0 ? (
-          <p>Todavía no hay ideas de regalo.</p>
+          <EmptyState message="Todavía no hay ideas de regalo." />
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {giftIdeas.map((idea) => {
@@ -357,17 +358,21 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
               return (
                 <article
                   key={idea.id}
-                  className="rounded-lg border border-gray-200 p-5 shadow-sm"
+                  className="rounded-2xl border border-solid border-foreground/10 bg-surface p-5 shadow-sm flex flex-col"
                 >
-                  <h3 className="mb-2 text-xl font-semibold">{idea.name}</h3>
+                  <h3 className="mb-2 text-xl font-semibold text-primary">
+                    {idea.name}
+                  </h3>
 
-                  <p className="mb-3 font-medium">{idea.price.toFixed(2)} €</p>
+                  <p className="mb-3 font-medium text-muted">
+                    {idea.price.toFixed(2)} €
+                  </p>
 
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 pb-4">
                     {idea.interests.map((interest) => (
                       <span
                         key={interest}
-                        className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700"
+                        className="rounded-full bg-accent-lavender/30 px-3 py-1 text-sm text-primary"
                       >
                         {INTEREST_LABELS[interest] ?? interest}
                       </span>
@@ -378,7 +383,7 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
                   {isAuthenticated && (
                     <Button
                       variant="secondary"
-                      className="mt-4 w-full sm:w-auto"
+                      className="mt-auto w-full sm:w-auto"
                       disabled={
                         libraryLoading || savingGiftIdeaId !== null || isSaved
                       }
