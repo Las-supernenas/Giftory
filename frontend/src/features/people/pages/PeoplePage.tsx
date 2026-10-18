@@ -28,6 +28,7 @@ function PeoplePage() {
 
   // Form and states
   const [editingPerson, setEditingPerson] = useState<Person | null>(null);
+  const [selectedInterests, setSelectedInterests] = useState<Interest[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -66,6 +67,15 @@ function PeoplePage() {
     void loadInterests();
   }, []);
 
+  function toggleInterest(interest: Interest) {
+    setSelectedInterests((current) => {
+      if (current.includes(interest)) {
+        return current.filter((selected) => selected !== interest);
+      }
+      return [...current, interest];
+    });
+  }
+
   async function handleDelete(person: Person) {
     if (!window.confirm(`¿Eliminar a ${person.name}?`)) {
       return;
@@ -84,6 +94,7 @@ function PeoplePage() {
       }
       if (editingPerson?.id === person.id) {
         setEditingPerson(null);
+        setSelectedInterests([]);
       }
       setSuccessMessage("Persona eliminada.");
     } catch {
@@ -110,7 +121,7 @@ function PeoplePage() {
 
           const personInput = {
             name: String(formData.get("name")),
-            interests: formData.getAll("interests") as Interest[],
+            interests: selectedInterests,
           };
 
           setIsSaving(true);
@@ -127,11 +138,13 @@ function PeoplePage() {
                 ),
               );
               setEditingPerson(null);
+              setSelectedInterests([]);
               setSuccessMessage("Persona actualizada.");
             } else {
               const newPerson = await createPerson(personInput);
               setPeople((currentPeople) => [...currentPeople, newPerson]);
               form.reset();
+              setSelectedInterests([]);
               setSuccessMessage("Persona creada.");
             }
           } catch {
@@ -158,17 +171,23 @@ function PeoplePage() {
 
           {interestsError && <p role="alert">{interestsError}</p>}
 
-          {interests.map((interest) => (
-            <label key={interest}>
-              <input
-                type="checkbox"
-                name="interests"
-                value={interest}
-                defaultChecked={editingPerson?.interests.includes(interest)}
-              />
-              {INTEREST_LABELS[interest] ?? interest}
-            </label>
-          ))}
+          <div className="flex flex-wrap gap-2">
+            {interests.map((interest) => (
+              <button
+                key={interest}
+                type="button"
+                aria-pressed={selectedInterests.includes(interest)}
+                onClick={() => toggleInterest(interest)}
+                className={`min-h-11 rounded-full border border-primary px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                  selectedInterests.includes(interest)
+                    ? "bg-primary text-white"
+                    : "bg-surface text-foreground"
+                }`}
+              >
+                {INTEREST_LABELS[interest] ?? interest}
+              </button>
+            ))}
+          </div>
         </fieldset>
 
         <button type="submit" disabled={isSaving || !canSave}>
@@ -180,7 +199,13 @@ function PeoplePage() {
         </button>
 
         {editingPerson && (
-          <button type="button" onClick={() => setEditingPerson(null)}>
+          <button
+            type="button"
+            onClick={() => {
+              setEditingPerson(null);
+              setSelectedInterests([]);
+            }}
+          >
             Cancelar
           </button>
         )}
@@ -215,7 +240,13 @@ function PeoplePage() {
               >
                 Ver ideas y eventos
               </button>
-              <button type="button" onClick={() => setEditingPerson(person)}>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingPerson(person);
+                  setSelectedInterests([...person.interests]);
+                }}
+              >
                 Editar
               </button>
               <button type="button" onClick={() => void handleDelete(person)}>
