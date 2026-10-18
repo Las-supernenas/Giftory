@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { INTEREST_LABELS } from "../../shared/types/person";
+import { Card } from "../../shared/components/Card";
+import { EmptyState } from "../../shared/components/EmptyState";
+import { ErrorState } from "../../shared/components/ErrorState";
 
 type LibraryItemResponse = {
   id: number;
@@ -54,30 +57,44 @@ function LibraryPage() {
   }
 
   return (
-    <main>
-      <h1>Biblioteca</h1>
-      {isLoading && <p>Cargando biblioteca...</p>}
-      {errorMessage && <p role="alert">{errorMessage}</p>}
+    <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+      <h1 className="mb-8 text-3xl font-semibold tracking-tight text-primary">
+        Biblioteca
+      </h1>
+      {isLoading && (
+        <p role="status" className="text-sm text-muted">
+          Cargando biblioteca...
+        </p>
+      )}
+      {errorMessage && <ErrorState message={errorMessage} />}
       {!isLoading && !errorMessage && libraryItems.length === 0 && (
-        <p>Tu biblioteca está vacía.</p>
+        <EmptyState message="Tu biblioteca está vacía." />
       )}
       {!isLoading && libraryItems.length > 0 && (
-        <ul>
+        <ul className="m-0 list-none space-y-3 p-0">
           {libraryItems.map((item) => (
             <li key={item.id}>
-              {item.giftIdea.name} — {item.giftIdea.price} €
-              <div>
-                Intereses:{" "}
-                {item.giftIdea.interests
-                  .map((interest) => INTEREST_LABELS[interest] ?? interest)
-                  .join(", ")}
-              </div>
-              <button
-                type="button"
-                onClick={() => void removeLibraryItem(item.id)}
-              >
-                Eliminar de la biblioteca
-              </button>
+              <Card>
+                <h2 className="mt-0 mb-2 text-lg font-semibold text-primary">
+                  {item.giftIdea.name}
+                </h2>
+                <p className="mt-0 mb-2 text-sm text-muted">
+                  {item.giftIdea.price} €
+                </p>
+                <p className="mt-0 mb-4 text-sm text-muted">
+                  Intereses:{" "}
+                  {item.giftIdea.interests
+                    .map((interest) => INTEREST_LABELS[interest] ?? interest)
+                    .join(", ")}
+                </p>
+                <button
+                  type="button"
+                  className="min-h-11 rounded-xl border border-error bg-surface px-4 py-2 font-medium text-error focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error"
+                  onClick={() => void removeLibraryItem(item.id)}
+                >
+                  Eliminar de la biblioteca
+                </button>
+              </Card>
             </li>
           ))}
         </ul>
