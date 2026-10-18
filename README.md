@@ -285,18 +285,22 @@ The components in `frontend/src/features/shared/components/` provide a small UI 
 - `Button` for actions (primary, accent or secondary); `Input` for labeled fields and validation errors; `Card` for grouped content.
 - `LoadingState` while loading; `ErrorState` for errors; `EmptyState` when there is no content. Pass a `message` to the error and empty states.
 - Use the color tokens in `frontend/src/index.css`, the system font and Tailwind's spacing scale. Build for small screens first, then add responsive variants where needed. Keep labels, keyboard focus and readable contrast.
+- `AppNavigation` for the main navigation: receives `isAuthenticated` and `onLogout` from `App`, uses `NavLink` to highlight the current page.
 
 ### Pages
 
 | Route | Page | Access |
 |---|---|---|
-| `/` | Home: shows the API status | Public |
+| `/` | Discovery: public gift ideas; authenticated users can create ideas and save them to their library | Public |
 | `/login` | Login form | Public |
 | `/register` | Registration form | Public |
 | `/people` | List, create, edit and delete the user's people | Private |
 | `/library` | View and remove items from the user's library | Private |
 
 Private routes redirect to `/login` when there is no session.
+After login, the user is redirected to Discovery (`/`).
+The main navigation (`AppNavigation`) is shown on every page. With a session it links to Discovery, People and Library and shows the logout button; without a session it links to Discovery, Login and Register. The current page is highlighted.
+
 
 ## Notes
 
