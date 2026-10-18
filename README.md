@@ -176,7 +176,9 @@ Domain errors are translated to HTTP status codes in `ui/shared/middlewares/erro
 | `POST` | `/api/people/:personId/events` | `201 { id, name, date }` · `400` invalid data · `404` person not found · `401` no token |
 | `PATCH` | `/api/events/:id` | `200 { id, name, date }` · `400` invalid data · `404` not found · `401` no token |
 | `DELETE` | `/api/events/:id` | `204` · `404` not found · `401` no token |
-
+| `GET` | `/api/library` | `200` list of the user's library items `[{ id, giftIdea: { id, name, price, interests } }]` · `401` not authenticated |
+| `POST` | `/api/library` | `201 { id, giftIdea }` · `400` invalid data · `404` gift idea not found · `409` already in the library · `401` not authenticated |
+| `DELETE` | `/api/library/:id` | `204` · `400` invalid id · `404` not found · `401` not authenticated |
 
 #### Authentication
 
@@ -205,6 +207,16 @@ All Event routes require the `Authorization: Bearer <accessToken>` header.
 - `name` is required, trimmed, 1–100 characters.
 - `DELETE` is a hard delete: the event is removed from the database.
 - Events are returned ordered by date.
+
+#### Library
+
+All `/api/library` routes require authentication.
+
+- The Library is the user's private collection of existing public gift ideas.
+- `POST` receives `{ giftIdeaId }`. It does not create a new gift idea: it only links the existing idea to the authenticated user. The `userId` is never sent by the frontend; it comes from the session.
+- A gift idea can be in a user's library only once: saving it again returns `409`.
+- `DELETE /api/library/:id` uses the **library item id** (the `id` returned by `GET`/`POST`), not the gift idea id. It only removes the idea from the library; the public gift idea is not deleted.
+- A user only sees and removes their own library items. Another user's item returns `404`, so the API does not reveal whether it exists.
 
 #### Gift ideas
 

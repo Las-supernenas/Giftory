@@ -7,6 +7,12 @@ import {
 } from "../../../api/giftidea";
 import { getInterests } from "../../shared/services/interests-service";
 import { INTEREST_LABELS } from "../../shared/types/person";
+import { Button } from "../../shared/components/Button";
+import { ErrorState } from "../../shared/components/ErrorState";
+import {
+  addToLibrary,
+  getLibraryItems,
+} from "../../library/services/library-service";
 
 type DiscoveryPageProps = {
   isAuthenticated: boolean;
@@ -31,6 +37,14 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [createSuccess, setCreateSuccess] = useState(false);
+
+  // Library state: ids of the gift ideas already saved by the user.
+  // Kept apart from `error` so a failed save never hides the Discovery List.
+  const [savedGiftIdeaIds, setSavedGiftIdeaIds] = useState<number[]>([]);
+  const [libraryLoading, setLibraryLoading] = useState(false);
+  const [savingGiftIdeaId, setSavingGiftIdeaId] = useState<number | null>(null);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Fetch public GiftIdeas
   useEffect(() => {
@@ -95,6 +109,44 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
     };
   }, [isAuthenticated]);
 
+  // fetch the users Library only when authenticated, to know which ideas are already saved
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    let cancelled = false;
+
+    async function loadLibrary() {
+      setLibraryLoading(true);
+
+      try {
+        const items = await getLibraryItems();
+
+        if (!cancelled) {
+          setSavedGiftIdeaIds(items.map((item) => item.giftIdea.id));
+        }
+      } catch (err) {
+        // the list stays usable: saving an already saved idea is handled by the 409
+        if (!cancelled) {
+          setSaveError(
+            err instanceof Error
+              ? err.message
+              : "No se pudo cargar tu biblioteca.",
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setLibraryLoading(false);
+        }
+      }
+    }
+
+    void loadLibrary();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated]);
+
   function toggleInterest(interest: Interest) {
     setSelectedInterests((current) =>
       current.includes(interest)
@@ -145,6 +197,36 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
       setCreateError("No se pudo crear la idea de regalo.");
     } finally {
       setCreating(false);
+    }
+  }
+
+  async function handleSaveToLibrary(idea: GiftIdea) {
+    if (savingGiftIdeaId !== null) return;
+
+    //Clear the previous result so an old error never stays after a new attempt
+    setSaveMessage(null);
+    setSaveError(null);
+    setSavingGiftIdeaId(idea.id);
+
+    try {
+      const result = await addToLibrary(idea.id);
+
+      setSavedGiftIdeaIds((current) =>
+        current.includes(idea.id) ? current : [...current, idea.id],
+      );
+      setSaveMessage(
+        result === "added"
+          ? `«${idea.name}» se ha guardado en tu biblioteca.`
+          : `«${idea.name}» ya estaba en tu biblioteca.`,
+      );
+    } catch (err) {
+      setSaveError(
+        err instanceof Error
+          ? err.message
+          : "No se pudo guardar la idea en tu biblioteca.",
+      );
+    } finally {
+      setSavingGiftIdeaId(null);
     }
   }
 
@@ -248,7 +330,17 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
       {/* Public discovery list */}
       <section>
         <h2 className="mb-4 text-2xl font-semibold">Ideas de regalo</h2>
-
+        {/* Result of saving to the Library: shown above the list, never instead of it */}
+        {saveMessage && (
+          <p role="status" className="mb-4 text-green-700">
+            {saveMessage}
+          </p>
+        )}
+        {saveError && (
+          <div className="mb-4">
+            <ErrorState message={saveError} />
+          </div>
+        )}
         {loading ? (
           <p role="status">Cargando ideas de regalo...</p>
         ) : error ? (
@@ -259,27 +351,49 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
           <p>Todavía no hay ideas de regalo.</p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {giftIdeas.map((idea) => (
-              <article
-                key={idea.id}
-                className="rounded-lg border border-gray-200 p-5 shadow-sm"
-              >
-                <h3 className="mb-2 text-xl font-semibold">{idea.name}</h3>
+            {giftIdeas.map((idea) => {
+              const isSaved = savedGiftIdeaIds.includes(idea.id);
 
-                <p className="mb-3 font-medium">{idea.price.toFixed(2)} €</p>
+              return (
+                <article
+                  key={idea.id}
+                  className="rounded-lg border border-gray-200 p-5 shadow-sm"
+                >
+                  <h3 className="mb-2 text-xl font-semibold">{idea.name}</h3>
 
-                <div className="flex flex-wrap gap-2">
-                  {idea.interests.map((interest) => (
-                    <span
-                      key={interest}
-                      className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700"
+                  <p className="mb-3 font-medium">{idea.price.toFixed(2)} €</p>
+
+                  <div className="flex flex-wrap gap-2">
+                    {idea.interests.map((interest) => (
+                      <span
+                        key={interest}
+                        className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700"
+                      >
+                        {INTEREST_LABELS[interest] ?? interest}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Save to Library — authenticated users only */}
+                  {isAuthenticated && (
+                    <Button
+                      variant="secondary"
+                      className="mt-4 w-full sm:w-auto"
+                      disabled={
+                        libraryLoading || savingGiftIdeaId !== null || isSaved
+                      }
+                      onClick={() => void handleSaveToLibrary(idea)}
                     >
-                      {INTEREST_LABELS[interest] ?? interest}
-                    </span>
-                  ))}
-                </div>
-              </article>
-            ))}
+                      {savingGiftIdeaId === idea.id
+                        ? "Guardando..."
+                        : isSaved
+                          ? "En tu biblioteca"
+                          : "Guardar en biblioteca"}
+                    </Button>
+                  )}
+                </article>
+              );
+            })}
           </div>
         )}
       </section>
