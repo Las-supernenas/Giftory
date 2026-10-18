@@ -5,7 +5,6 @@ type LoginPageProps = {
 };
 
 function LoginPage({ onLogin }: LoginPageProps) {
-  const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   return (
@@ -16,7 +15,6 @@ function LoginPage({ onLogin }: LoginPageProps) {
         onSubmit={async (event) => {
           event.preventDefault();
 
-          setSuccessMessage("");
           setErrorMessage("");
 
           const formData = new FormData(event.currentTarget);
@@ -35,7 +33,6 @@ function LoginPage({ onLogin }: LoginPageProps) {
 
             if (response.ok) {
               onLogin();
-              setSuccessMessage("Inicio de sesión correcto.");
             } else if (response.status === 401) {
               setErrorMessage("Email o contraseña incorrectos.");
             } else if (response.status === 400) {
@@ -62,7 +59,6 @@ function LoginPage({ onLogin }: LoginPageProps) {
           {isLoading ? "Iniciando sesión..." : "Iniciar sesión"}
         </button>
       </form>
-      <p>{successMessage}</p>
       <p>{errorMessage}</p>
     </main>
   );
