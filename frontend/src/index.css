@@ -6,6 +6,8 @@
   --color-primary: #263b59;
   --color-accent-dusty-pink: #e98bc7;
   --color-accent-lavender: #b39ddb;
+  --color-accent-gold: #d4af37;
+  --color-accent-nature: #16a34a;
   --color-background: #f8f6fb;
   --color-surface: #ffffff;
   --color-foreground: #1f2937;
@@ -15,6 +17,50 @@
 }
 body {
   background-color: var(--color-background);
+  background-image:
+    radial-gradient(
+      ellipse 28rem 8rem at 24% 9%,
+      var(--color-background) 18%,
+      transparent 100%
+    ),
+    url("/giftory-night-frame.png"),
+    radial-gradient(
+      circle at 5% 0%,
+      color-mix(in srgb, var(--color-accent-lavender) 20%, transparent),
+      transparent 28rem
+    ),
+    radial-gradient(
+      circle at 95% 100%,
+      color-mix(in srgb, var(--color-accent-dusty-pink) 12%, transparent),
+      transparent 24rem
+    );
+  background-size:
+    auto,
+    100% 100vh,
+    auto,
+    auto;
+  background-attachment: fixed, fixed, scroll, scroll;
+  background-repeat: no-repeat;
+
   color: var(--color-foreground);
   font-family: system-ui, sans-serif;
+}
+
+@media (max-width: 640px) {
+  body {
+    background-image:
+      url("/giftory-night-frame-mobile.png"),
+      radial-gradient(
+        circle at 5% 0%,
+        color-mix(in srgb, var(--color-accent-lavender) 20%, transparent),
+        transparent 28rem
+      ),
+      radial-gradient(
+        circle at 95% 100%,
+        color-mix(in srgb, var(--color-accent-dusty-pink) 12%, transparent),
+        transparent 24rem
+      );
+    background-size: 100% 100svh, auto, auto;
+    background-attachment: fixed, scroll, scroll;
+  }
 }

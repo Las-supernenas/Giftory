@@ -15,6 +15,7 @@ import {
   getLibraryItems,
 } from "../../library/services/library-service";
 import { Input } from "../../shared/components/Input";
+import { getInterestColorStyle } from "../../shared/interest-colors";
 
 type DiscoveryPageProps = {
   isAuthenticated: boolean;
@@ -234,7 +235,7 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
-      <h1 className="mb-2 text-3xl font-semibold tracking-tight text-primary">
+      <h1 className="mb-2 font-serif text-3xl font-bold leading-tight tracking-tight text-primary sm:text-4xl">
         Descubre ideas de regalo
       </h1>
 
@@ -245,14 +246,26 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
       {/* Creation form — authenticated users only */}
       {isAuthenticated && (
         <section className="mb-10 rounded-2xl border border-solid border-foreground/10 bg-surface p-5 shadow-sm">
-          <h2 className="mb-4 text-xl font-semibold text-primary">
+          <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-primary">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="size-6 shrink-0 text-accent-dusty-pink"
+            >
+              <path d="M3 10h18v3H3zM5 13v8h14v-8M12 10v11M12 10H8.5a2.5 2.5 0 1 1 2.5-2.5V10M12 10h3.5A2.5 2.5 0 1 0 13 7.5V10" />
+            </svg>
             Crear una idea de regalo
           </h2>
 
           <form onSubmit={handleCreate} className="space-y-4">
             <Input
               id="gift-name"
-              label="Nombre"
+              label="Nombre del regalo"
               type="text"
               maxLength={100}
               required
@@ -272,9 +285,7 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
             />
 
             <fieldset className="min-w-0 border-0 p-0">
-              <legend className="mb-3 text-sm font-medium text-foreground">
-                Intereses (opcional)
-              </legend>
+              <legend className="sr-only">Intereses (opcional)</legend>
 
               {interestsLoading ? (
                 <p role="status" className="text-sm text-muted">
@@ -285,23 +296,40 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
               ) : interests.length === 0 ? (
                 <EmptyState message="No hay intereses disponibles." />
               ) : (
-                <div className="flex flex-wrap gap-2">
-                  {interests.map((interest) => (
-                    <button
-                      key={interest}
-                      type="button"
-                      aria-pressed={selectedInterests.includes(interest)}
-                      onClick={() => toggleInterest(interest)}
-                      className={`min-h-11 rounded-full border border-primary px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
-                        selectedInterests.includes(interest)
-                          ? "bg-accent-lavender text-foreground"
-                          : "bg-surface text-foreground"
-                      }`}
+                <details className="group rounded-xl border border-solid border-foreground/10 bg-surface p-3">
+                  <summary className="flex cursor-pointer list-none items-center rounded-lg bg-accent-lavender/15 px-3 py-2 font-medium text-primary hover:bg-accent-lavender/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary [&::-webkit-details-marker]:hidden">
+                    Elige temática (opcional)
+                    {selectedInterests.length > 0 && (
+                      <span className="ml-2 rounded-full bg-surface px-2 py-0.5 text-xs text-primary">
+                        {selectedInterests.length}
+                      </span>
+                    )}
+                    <span
+                      aria-hidden="true"
+                      className="ml-auto inline-block transition-transform group-open:rotate-180"
                     >
-                      {INTEREST_LABELS[interest] ?? interest}
-                    </button>
-                  ))}
-                </div>
+                      ▾
+                    </span>
+                  </summary>
+
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {interests.map((interest) => (
+                      <button
+                        key={interest}
+                        type="button"
+                        aria-pressed={selectedInterests.includes(interest)}
+                        onClick={() => toggleInterest(interest)}
+                        className={`min-h-11 rounded-full border px-3 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                          selectedInterests.includes(interest)
+                            ? `border-primary ring-2 ring-primary/25 ${getInterestColorStyle(interest)}`
+                            : "border-primary/30 bg-surface text-foreground hover:border-primary"
+                        }`}
+                      >
+                        {INTEREST_LABELS[interest] ?? interest}
+                      </button>
+                    ))}
+                  </div>
+                </details>
               )}
             </fieldset>
 
@@ -358,7 +386,7 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
               return (
                 <article
                   key={idea.id}
-                  className="rounded-2xl border border-solid border-foreground/10 bg-surface p-5 shadow-sm flex flex-col"
+                  className="rounded-2xl border border-solid border-accent-gold/60 bg-surface p-5 shadow-sm flex flex-col"
                 >
                   <h3 className="mb-2 text-xl font-semibold text-primary">
                     {idea.name}
@@ -372,7 +400,7 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
                     {idea.interests.map((interest) => (
                       <span
                         key={interest}
-                        className="rounded-full bg-accent-lavender/30 px-3 py-1 text-sm text-primary"
+                        className={`rounded-full px-3 py-1 text-sm ${getInterestColorStyle(interest)}`}
                       >
                         {INTEREST_LABELS[interest] ?? interest}
                       </span>

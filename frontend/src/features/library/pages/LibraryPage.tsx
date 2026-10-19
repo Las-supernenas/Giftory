@@ -3,6 +3,7 @@ import { INTEREST_LABELS } from "../../shared/types/person";
 import { Card } from "../../shared/components/Card";
 import { EmptyState } from "../../shared/components/EmptyState";
 import { ErrorState } from "../../shared/components/ErrorState";
+import { getInterestColorStyle } from "../../shared/interest-colors";
 
 type LibraryItemResponse = {
   id: number;
@@ -58,7 +59,7 @@ function LibraryPage() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
-      <h1 className="mb-8 text-3xl font-semibold tracking-tight text-primary">
+      <h1 className="mb-8 font-serif text-3xl font-bold leading-tight tracking-tight text-primary sm:text-4xl">
         Biblioteca
       </h1>
       {isLoading && (
@@ -71,22 +72,26 @@ function LibraryPage() {
         <EmptyState message="Tu biblioteca está vacía." />
       )}
       {!isLoading && libraryItems.length > 0 && (
-        <ul className="m-0 list-none space-y-3 p-0">
+        <ul className="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
           {libraryItems.map((item) => (
             <li key={item.id}>
-              <Card>
+              <Card className="border-accent-gold/60!">
                 <h2 className="mt-0 mb-2 text-lg font-semibold text-primary">
                   {item.giftIdea.name}
                 </h2>
                 <p className="mt-0 mb-2 text-sm text-muted">
                   {item.giftIdea.price} €
                 </p>
-                <p className="mt-0 mb-4 text-sm text-muted">
-                  Intereses:{" "}
-                  {item.giftIdea.interests
-                    .map((interest) => INTEREST_LABELS[interest] ?? interest)
-                    .join(", ")}
-                </p>
+                <div className="mb-4 flex flex-wrap gap-2">
+                  {item.giftIdea.interests.map((interest) => (
+                    <span
+                      key={interest}
+                      className={`rounded-full px-3 py-1 text-sm ${getInterestColorStyle(interest)}`}
+                    >
+                      {INTEREST_LABELS[interest] ?? interest}
+                    </span>
+                  ))}
+                </div>
                 <button
                   type="button"
                   className="min-h-11 rounded-xl border border-error bg-surface px-4 py-2 font-medium text-error focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error"

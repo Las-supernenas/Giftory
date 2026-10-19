@@ -18,6 +18,7 @@ import { Input } from "../../shared/components/Input";
 import { Button } from "../../shared/components/Button";
 import { ErrorState } from "../../shared/components/ErrorState";
 import { EmptyState } from "../../shared/components/EmptyState";
+import { getInterestColorStyle } from "../../shared/interest-colors";
 
 function PeoplePage() {
   // List and status of the initial load
@@ -109,9 +110,14 @@ function PeoplePage() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
-      <h1 className="mb-8 text-3xl font-semibold tracking-tight text-primary">
-        Personas
-      </h1>
+      <div className="mb-8">
+        <h1 className="mb-1 font-serif text-3xl font-bold leading-tight tracking-tight text-primary sm:text-4xl">
+          Mis personas
+        </h1>
+        <p className="m-0 text-sm text-muted">
+          Estas son las personas especiales en tu vida
+        </p>
+      </div>
       <Card className="mb-8 shadow-sm">
         <h2 className="mb-4 text-xl font-semibold text-primary">
           {editingPerson ? "Editar persona" : "Nueva persona"}
@@ -175,9 +181,7 @@ function PeoplePage() {
           />
 
           <fieldset className="min-w-0 border-0 p-0">
-            <legend className="mb-3 text-sm font-medium text-foreground">
-              Intereses
-            </legend>
+            <legend className="sr-only">Intereses</legend>
 
             {isLoadingInterests && (
               <p className="text-sm text-muted" role="status">
@@ -186,24 +190,40 @@ function PeoplePage() {
             )}
 
             {interestsError && <ErrorState message={interestsError} />}
-
-            <div className="flex flex-wrap gap-2">
-              {interests.map((interest) => (
-                <button
-                  key={interest}
-                  type="button"
-                  aria-pressed={selectedInterests.includes(interest)}
-                  onClick={() => toggleInterest(interest)}
-                  className={`min-h-11 rounded-full border border-primary px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
-                    selectedInterests.includes(interest)
-                      ? "bg-accent-lavender text-foreground"
-                      : "bg-surface text-foreground"
-                  }`}
+            <details className="group rounded-xl border border-solid border-foreground/10 bg-surface p-3">
+              <summary className="flex cursor-pointer list-none items-center rounded-lg bg-accent-lavender/15 px-3 py-2 font-medium text-primary hover:bg-accent-lavender/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary [&::-webkit-details-marker]:hidden">
+                ¿Qué le gusta?
+                {selectedInterests.length > 0 && (
+                  <span className="ml-2 rounded-full bg-surface px-2 py-0.5 text-xs text-primary">
+                    {selectedInterests.length}
+                  </span>
+                )}
+                <span
+                  aria-hidden="true"
+                  className="ml-auto inline-block transition-transform group-open:rotate-180"
                 >
-                  {INTEREST_LABELS[interest] ?? interest}
-                </button>
-              ))}
-            </div>
+                  ▾
+                </span>
+              </summary>
+
+              <div className="flex flex-wrap gap-2 mt-3">
+                {interests.map((interest) => (
+                  <button
+                    key={interest}
+                    type="button"
+                    aria-pressed={selectedInterests.includes(interest)}
+                    onClick={() => toggleInterest(interest)}
+                    className={`min-h-11 rounded-full border px-3 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                      selectedInterests.includes(interest)
+                        ? `border-primary ring-2 ring-primary/25 ${getInterestColorStyle(interest)}`
+                        : "border-primary/30 bg-surface text-foreground hover:border-primary"
+                    }`}
+                  >
+                    {INTEREST_LABELS[interest] ?? interest}
+                  </button>
+                ))}
+              </div>
+            </details>
           </fieldset>
 
           <div className="flex flex-col gap-2 sm:flex-row">
@@ -241,7 +261,9 @@ function PeoplePage() {
       )}
       {errorMessage && <ErrorState message={errorMessage} />}
 
-      <h2 className="mb-4 text-xl font-semibold text-primary">Tus personas</h2>
+      <h2 className="mb-4 text-xl font-semibold text-primary">
+        Personas añadidas
+      </h2>
 
       {isLoading && (
         <p role="status" className="text-sm text-muted">
@@ -256,23 +278,50 @@ function PeoplePage() {
       )}
 
       {people.length > 0 && (
-        <ul className="m-0 list-none space-y-3 p-0">
+        <ul className="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
           {people.map((person) => (
             <li key={person.id}>
-              <Card>
-                <h3 className="m-0 text-lg font-semibold text-primary">
-                  {person.name}
-                </h3>
-                <p className="mt-1 mb-0 text-sm text-muted">
-                  {person.interests.length > 0
-                    ? person.interests
-                        .map((i) => INTEREST_LABELS[i] ?? i)
-                        .join(", ")
-                    : "Sin intereses"}
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2">
+              <Card
+                className={
+                  selectedPersonId === person.id
+                    ? "bg-accent-lavender/15! ring-2 ring-accent-lavender shadow-lg shadow-primary/20"
+                    : "shadow-sm"
+                }
+              >
+                <div className="flex items-start gap-3">
+                  <div
+                    aria-hidden="true"
+                    className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-accent-lavender/25 text-xl font-semibold text-primary"
+                  >
+                    {person.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="m-0 text-lg font-semibold text-primary">
+                      {person.name}
+                    </h3>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {person.interests.length > 0 ? (
+                        person.interests.map((interest) => (
+                          <span
+                            key={interest}
+                            className={`rounded-full px-2.5 py-1 text-xs ${getInterestColorStyle(interest)}`}
+                          >
+                            {INTEREST_LABELS[interest] ?? interest}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-sm text-muted">
+                          Sin intereses
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-2">
                   <Button
                     type="button"
+                    className="col-span-2"
                     onClick={() => setSelectedPersonId(person.id)}
                   >
                     Ver ideas y eventos
@@ -301,7 +350,10 @@ function PeoplePage() {
         </ul>
       )}
       {selectedPersonId !== null && (
-        <div key={selectedPersonId} className="mt-8 space-y-8">
+        <div
+          key={selectedPersonId}
+          className="mt-8 space-y-8 rounded-2xl border border-solid border-accent-lavender/50 bg-accent-lavender/10 p-4 sm:p-6"
+        >
           <EventsSection personId={selectedPersonId} />
           <SavedIdeasSection
             personId={selectedPersonId}
