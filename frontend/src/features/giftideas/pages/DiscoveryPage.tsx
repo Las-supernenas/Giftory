@@ -16,6 +16,13 @@ import {
 } from "../../library/services/library-service";
 import { Input } from "../../shared/components/Input";
 import { getInterestColorStyle } from "../../shared/interest-colors";
+import { GiftIdeaFilters } from "../../shared/components/GiftIdeaFilters";
+import {
+  EMPTY_GIFT_IDEA_FILTERS,
+  collectInterests,
+  matchesGiftIdeaFilters,
+  type GiftIdeaFilterValues,
+} from "../../shared/gift-idea-filters";
 
 type DiscoveryPageProps = {
   isAuthenticated: boolean;
@@ -48,6 +55,11 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
   const [savingGiftIdeaId, setSavingGiftIdeaId] = useState<number | null>(null);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Filters: kept apart from the loaded ideas. The visible list is derived from both
+  const [filters, setFilters] = useState<GiftIdeaFilterValues>(
+    EMPTY_GIFT_IDEA_FILTERS,
+  );
 
   // Fetch public GiftIdeas
   useEffect(() => {
@@ -233,6 +245,12 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
     }
   }
 
+  // Recalculated on every render: giftIdeas itself is never changed
+  const visibleIdeas = giftIdeas.filter((idea) =>
+    matchesGiftIdeaFilters(idea, filters),
+  );
+  const filterInterests = collectInterests(giftIdeas);
+
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
       <h1 className="mb-2 font-serif text-3xl font-bold leading-tight tracking-tight text-primary sm:text-4xl">
@@ -379,55 +397,62 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
         ) : giftIdeas.length === 0 ? (
           <EmptyState message="Todavía no hay ideas de regalo." />
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {giftIdeas.map((idea) => {
-              const isSaved = savedGiftIdeaIds.includes(idea.id);
+          <GiftIdeaFilters
+            filters={filters}
+            onFiltersChange={setFilters}
+            availableInterests={filterInterests}
+            resultCount={visibleIdeas.length}
+          >
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {visibleIdeas.map((idea) => {
+                const isSaved = savedGiftIdeaIds.includes(idea.id);
 
-              return (
-                <article
-                  key={idea.id}
-                  className="rounded-2xl border border-solid border-accent-gold/60 bg-surface p-5 shadow-sm flex flex-col"
-                >
-                  <h3 className="mb-2 text-xl font-semibold text-primary">
-                    {idea.name}
-                  </h3>
+                return (
+                  <article
+                    key={idea.id}
+                    className="rounded-2xl border border-solid border-accent-gold/60 bg-surface p-5 shadow-sm flex flex-col"
+                  >
+                    <h3 className="mb-2 text-xl font-semibold text-primary">
+                      {idea.name}
+                    </h3>
 
-                  <p className="mb-3 font-medium text-muted">
-                    {idea.price.toFixed(2)} €
-                  </p>
+                    <p className="mb-3 font-medium text-muted">
+                      {idea.price.toFixed(2)} €
+                    </p>
 
-                  <div className="flex flex-wrap gap-2 pb-4">
-                    {idea.interests.map((interest) => (
-                      <span
-                        key={interest}
-                        className={`rounded-full px-3 py-1 text-sm ${getInterestColorStyle(interest)}`}
+                    <div className="flex flex-wrap gap-2 pb-4">
+                      {idea.interests.map((interest) => (
+                        <span
+                          key={interest}
+                          className={`rounded-full px-3 py-1 text-sm ${getInterestColorStyle(interest)}`}
+                        >
+                          {INTEREST_LABELS[interest] ?? interest}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Save to Library — authenticated users only */}
+                    {isAuthenticated && (
+                      <Button
+                        variant="secondary"
+                        className="mt-auto w-full sm:w-auto"
+                        disabled={
+                          libraryLoading || savingGiftIdeaId !== null || isSaved
+                        }
+                        onClick={() => void handleSaveToLibrary(idea)}
                       >
-                        {INTEREST_LABELS[interest] ?? interest}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* Save to Library — authenticated users only */}
-                  {isAuthenticated && (
-                    <Button
-                      variant="secondary"
-                      className="mt-auto w-full sm:w-auto"
-                      disabled={
-                        libraryLoading || savingGiftIdeaId !== null || isSaved
-                      }
-                      onClick={() => void handleSaveToLibrary(idea)}
-                    >
-                      {savingGiftIdeaId === idea.id
-                        ? "Guardando..."
-                        : isSaved
-                          ? "En tu biblioteca"
-                          : "Guardar en biblioteca"}
-                    </Button>
-                  )}
-                </article>
-              );
-            })}
-          </div>
+                        {savingGiftIdeaId === idea.id
+                          ? "Guardando..."
+                          : isSaved
+                            ? "En tu biblioteca"
+                            : "Guardar en biblioteca"}
+                      </Button>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
+          </GiftIdeaFilters>
         )}
       </section>
     </main>
