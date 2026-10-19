@@ -11,6 +11,7 @@ import {
   matchesGiftIdeaFilters,
   type GiftIdeaFilterValues,
 } from "../../shared/gift-idea-filters";
+import { getInterests } from "../../shared/services/interests-service";
 
 type LibraryItemResponse = {
   id: number;
@@ -31,6 +32,32 @@ function LibraryPage() {
   const [filters, setFilters] = useState<GiftIdeaFilterValues>(
     EMPTY_GIFT_IDEA_FILTERS,
   );
+
+  // All the interests (official list from the API), to show the empty ones disabled in the filters.
+  // If it fails, the filters fall back to the interests of the saved ideas
+  const [allInterests, setAllInterests] = useState<string[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadAllInterests() {
+      try {
+        const interests = await getInterests();
+
+        if (!cancelled) {
+          setAllInterests(interests);
+        }
+      } catch {
+        // No message: the filters keep working with the interests of the saved ideas
+      }
+    }
+
+    void loadAllInterests();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     async function loadLibrary() {
@@ -97,6 +124,7 @@ function LibraryPage() {
           filters={filters}
           onFiltersChange={setFilters}
           availableInterests={filterInterests}
+          allInterests={allInterests}
           resultCount={visibleItems.length}
         >
           <ul className="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">

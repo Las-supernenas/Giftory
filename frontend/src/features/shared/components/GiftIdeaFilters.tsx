@@ -16,6 +16,9 @@ type GiftIdeaFiltersProps = {
   onFiltersChange: (filters: GiftIdeaFilterValues) => void;
   // Interest keys present in the loaded ideas: the options of the interest filter
   availableInterests: string[];
+  // All the interests from the API. The ones without ideas are shown disabled.
+  // Empty (not loaded or failed): only availableInterests are shown
+  allInterests: string[];
   //Number of ideas that match the filters
   resultCount: number;
   //The filtered list, rendered next to the filter panel
@@ -27,13 +30,17 @@ export function GiftIdeaFilters({
   filters,
   onFiltersChange,
   availableInterests,
+  allInterests,
   resultCount,
   children,
 }: GiftIdeaFiltersProps) {
   // mobile only: the panel starts collapsed. On desktop is always visible
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
-  const categories = groupInterestsByCategory(availableInterests);
+  const categories = groupInterestsByCategory(
+    allInterests.length > 0 ? allInterests : availableInterests,
+  );
+
   const panelFilterCount =
     filters.interests.length +
     (filters.minPrice.trim() ? 1 : 0) +
@@ -126,17 +133,33 @@ export function GiftIdeaFilters({
                         {category.interests.map((interest) => {
                           const isSelected =
                             filters.interests.includes(interest);
+                          // No idea has this interest yet. A selected one stays clickable so it can be removed
+                          const isEmpty =
+                            !availableInterests.includes(interest) &&
+                            !isSelected;
 
                           return (
                             <button
                               key={interest}
                               type="button"
                               aria-pressed={isSelected}
-                              onClick={() => toggleInterest(interest)}
-                              className={`min-h-11 rounded-full border border-solid px-3 py-1 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
-                                isSelected
-                                  ? `border-primary ring-2 ring-primary/25 ${getInterestColorStyle(interest)}`
-                                  : "border-primary/30 bg-surface text-foreground hover:border-primary"
+                              aria-disabled={isEmpty}
+                              title={
+                                isEmpty
+                                  ? "Aún no hay ideas con este interés"
+                                  : undefined
+                              }
+                              onClick={() => {
+                                if (!isEmpty) {
+                                  toggleInterest(interest);
+                                }
+                              }}
+                              className={`min-h-11 rounded-full border px-3 py-1 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                                isEmpty
+                                  ? "cursor-not-allowed border-dashed border-foreground/20 bg-surface text-muted"
+                                  : isSelected
+                                    ? `border-solid border-primary ring-2 ring-primary/25 ${getInterestColorStyle(interest)}`
+                                    : "border-solid border-primary/30 bg-surface text-foreground hover:border-primary"
                               }`}
                             >
                               {INTEREST_LABELS[interest] ?? interest}

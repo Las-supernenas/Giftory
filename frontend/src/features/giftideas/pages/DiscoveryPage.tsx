@@ -90,10 +90,8 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
     };
   }, []);
 
-  // Fetch interests only when authenticated
+  // Fetch interests always: used by the creation form and by the filters
   useEffect(() => {
-    if (!isAuthenticated) return;
-
     let cancelled = false;
 
     async function loadInterests() {
@@ -122,7 +120,7 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
     return () => {
       cancelled = true;
     };
-  }, [isAuthenticated]);
+  }, []);
 
   // fetch the users Library only when authenticated, to know which ideas are already saved
   useEffect(() => {
@@ -401,6 +399,7 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
             filters={filters}
             onFiltersChange={setFilters}
             availableInterests={filterInterests}
+            allInterests={interests}
             resultCount={visibleIdeas.length}
           >
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
