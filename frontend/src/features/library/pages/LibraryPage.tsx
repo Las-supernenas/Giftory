@@ -12,6 +12,13 @@ import {
   type GiftIdeaFilterValues,
 } from "../../shared/gift-idea-filters";
 import { getInterests } from "../../shared/services/interests-service";
+import { Pagination } from "../../shared/components/Pagination";
+import {
+  clampPage,
+  getPageItems,
+  getTotalPages,
+  scrollToResults,
+} from "../../shared/pagination";
 
 type LibraryItemResponse = {
   id: number;
@@ -32,6 +39,9 @@ function LibraryPage() {
   const [filters, setFilters] = useState<GiftIdeaFilterValues>(
     EMPTY_GIFT_IDEA_FILTERS,
   );
+
+  // Pagination: only the page number is stored, the page items are derived
+  const [currentPage, setCurrentPage] = useState(1);
 
   // All the interests (official list from the API), to show the empty ones disabled in the filters.
   // If it fails, the filters fall back to the interests of the saved ideas
@@ -105,6 +115,22 @@ function LibraryPage() {
     libraryItems.map((item) => item.giftIdea),
   );
 
+  const totalPages = getTotalPages(visibleItems.length);
+  // If the list got shorter (e.g. after removing an idea), show the last page that still exists
+  const page = clampPage(currentPage, totalPages);
+  const pageItems = getPageItems(visibleItems, page);
+
+  // A filter change shows the first page of the new results
+  function handleFiltersChange(newFilters: GiftIdeaFilterValues) {
+    setFilters(newFilters);
+    setCurrentPage(1);
+  }
+
+  function handlePageChange(newPage: number) {
+    setCurrentPage(newPage);
+    scrollToResults();
+  }
+
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
       <h1 className="mb-8 font-serif text-3xl font-bold leading-tight tracking-tight text-primary sm:text-4xl">
@@ -122,13 +148,13 @@ function LibraryPage() {
       {!isLoading && libraryItems.length > 0 && (
         <GiftIdeaFilters
           filters={filters}
-          onFiltersChange={setFilters}
+          onFiltersChange={handleFiltersChange}
           availableInterests={filterInterests}
           allInterests={allInterests}
           resultCount={visibleItems.length}
         >
           <ul className="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
-            {visibleItems.map((item) => (
+            {pageItems.map((item) => (
               <li key={item.id}>
                 <Card className="border-accent-gold/60!">
                   <h2 className="mt-0 mb-2 text-lg font-semibold text-primary">
@@ -158,6 +184,11 @@ function LibraryPage() {
               </li>
             ))}
           </ul>
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
         </GiftIdeaFilters>
       )}
     </main>

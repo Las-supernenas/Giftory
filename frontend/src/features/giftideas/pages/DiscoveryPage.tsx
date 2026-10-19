@@ -23,6 +23,13 @@ import {
   matchesGiftIdeaFilters,
   type GiftIdeaFilterValues,
 } from "../../shared/gift-idea-filters";
+import { Pagination } from "../../shared/components/Pagination";
+import {
+  clampPage,
+  getPageItems,
+  getTotalPages,
+  scrollToResults,
+} from "../../shared/pagination";
 
 type DiscoveryPageProps = {
   isAuthenticated: boolean;
@@ -60,6 +67,9 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
   const [filters, setFilters] = useState<GiftIdeaFilterValues>(
     EMPTY_GIFT_IDEA_FILTERS,
   );
+
+  // Pagination: only the page number is stored, the page items are derived
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Fetch public GiftIdeas
   useEffect(() => {
@@ -249,6 +259,22 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
   );
   const filterInterests = collectInterests(giftIdeas);
 
+  const totalPages = getTotalPages(visibleIdeas.length);
+  // If the list got shorter, show the last page that still exists
+  const page = clampPage(currentPage, totalPages);
+  const pageIdeas = getPageItems(visibleIdeas, page);
+
+  // A filter change shows the first page of the new results
+  function handleFiltersChange(newFilters: GiftIdeaFilterValues) {
+    setFilters(newFilters);
+    setCurrentPage(1);
+  }
+
+  function handlePageChange(newPage: number) {
+    setCurrentPage(newPage);
+    scrollToResults();
+  }
+
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
       <h1 className="mb-2 font-serif text-3xl font-bold leading-tight tracking-tight text-primary sm:text-4xl">
@@ -397,13 +423,13 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
         ) : (
           <GiftIdeaFilters
             filters={filters}
-            onFiltersChange={setFilters}
+            onFiltersChange={handleFiltersChange}
             availableInterests={filterInterests}
             allInterests={interests}
             resultCount={visibleIdeas.length}
           >
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {visibleIdeas.map((idea) => {
+              {pageIdeas.map((idea) => {
                 const isSaved = savedGiftIdeaIds.includes(idea.id);
 
                 return (
@@ -451,6 +477,11 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
                 );
               })}
             </div>
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
           </GiftIdeaFilters>
         )}
       </section>

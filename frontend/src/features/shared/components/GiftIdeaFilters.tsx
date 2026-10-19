@@ -213,7 +213,7 @@ export function GiftIdeaFilters({
           )}
         </aside>
 
-        <div className="min-w-0">
+        <div id="gift-idea-results" className="min-w-0">
           <p className="mt-0 mb-3 text-sm text-muted" aria-live="polite">
             {resultCount === 1 ? "1 idea" : `${resultCount} ideas`}
           </p>
