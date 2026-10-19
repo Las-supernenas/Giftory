@@ -60,3 +60,16 @@ export function getInterestColorStyle(interest: string): string {
   const color = INTEREST_COLORS[interest] ?? "neutral";
   return INTEREST_COLOR_STYLES[color];
 }
+
+const INTEREST_ACCENT_COLORS = {
+  lavender: "var(--color-accent-lavender)",
+  pink: "var(--color-accent-dusty-pink)",
+  navy: "var(--color-primary)",
+  neutral: "var(--color-muted)",
+  gold: "var(--color-accent-gold)",
+  nature: "var(--color-accent-nature)",
+} as const;
+
+export function getInterestAccentColor(interest: string): string {
+  return INTEREST_ACCENT_COLORS[INTEREST_COLORS[interest] ?? "neutral"];
+}

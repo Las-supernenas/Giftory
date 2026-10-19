@@ -48,6 +48,7 @@ export type Person = {
   id: number;
   name: string;
   interests: Interest[];
+  savedIdeasCount: number;
 };
 
 // Data we send to create or edit a person

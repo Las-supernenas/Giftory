@@ -36,6 +36,7 @@ export const createUpdateSavedIdeaPrivateNoteController =
       res.status(200).json({
         id: savedIdea.id,
         privateNote: savedIdea.privateNote,
+        canEditGiftIdea: savedIdea.giftIdea.userId === userId,
         giftIdea: {
           id: savedIdea.giftIdea.id,
           name: savedIdea.giftIdea.name,

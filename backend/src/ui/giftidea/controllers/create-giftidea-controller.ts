@@ -5,7 +5,7 @@ import { CreateGiftIdeaUseCase } from '../../../domain/giftidea/use-cases/Create
 import { INTERESTS } from '../../../domain/shared/Interest';
 import { getAuthenticatedUserId } from '../../shared/utils/get-authenticated-user-id';
 
-const createGiftIdeaSchema = z.object({
+export const createGiftIdeaSchema = z.object({
   name: z
     .string({ error: 'Name is required.' })
     .trim()

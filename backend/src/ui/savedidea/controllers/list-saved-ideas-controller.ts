@@ -21,6 +21,7 @@ export const createListSavedIdeasController =
         savedIdeas.map((item) => ({
           id: item.id,
           privateNote: item.privateNote,
+          canEditGiftIdea: item.giftIdea.userId === userId,
           giftIdea: {
             id: item.giftIdea.id,
             name: item.giftIdea.name,

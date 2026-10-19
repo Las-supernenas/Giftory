@@ -16,6 +16,7 @@ import { UpdatePersonUseCase } from '../domain/person/use-cases/UpdatePersonUseC
 import { CreateGiftIdeaUseCase } from '../domain/giftidea/use-cases/CreateGiftIdeaUseCase';
 import { GetGiftIdeaUseCase } from '../domain/giftidea/use-cases/GetGiftIdeaUseCase';
 import { ListGiftIdeaUseCase } from '../domain/giftidea/use-cases/ListGiftIdeaUseCase';
+import { UpdateGiftIdeaUseCase } from '../domain/giftidea/use-cases/UpdateGiftIdeaUseCase';
 import { createLibraryRouter } from './library/library-router';
 import { ListLibraryItemsUseCase } from '../domain/library/use-cases/ListLibraryItemsUseCase';
 import { AddLibraryItemUseCase } from '../domain/library/use-cases/AddLibraryItemUseCase';
@@ -47,6 +48,7 @@ export interface ApiDependencies {
   createGiftIdeaUseCase: CreateGiftIdeaUseCase;
   getGiftIdeaUseCase: GetGiftIdeaUseCase;
   listGiftIdeaUseCase: ListGiftIdeaUseCase;
+  updateGiftIdeaUseCase: UpdateGiftIdeaUseCase;
   listLibraryItemsUseCase: ListLibraryItemsUseCase;
   addLibraryItemUseCase: AddLibraryItemUseCase;
   deleteLibraryItemUseCase: DeleteLibraryItemUseCase;

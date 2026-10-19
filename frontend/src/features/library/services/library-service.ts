@@ -5,7 +5,7 @@ export type LibraryItem = {
     id: number;
     name: string;
     price: number;
-    interests: string;
+    interests: string[];
   };
 };
 

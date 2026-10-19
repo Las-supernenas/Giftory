@@ -3,7 +3,7 @@ import { ValidationError } from '../../../domain/errors/ValidationError';
 import { GetGiftIdeaUseCase } from '../../../domain/giftidea/use-cases/GetGiftIdeaUseCase';
 import { z } from 'zod';
 
-const giftIdeaIdSchema = z.coerce
+export const giftIdeaIdSchema = z.coerce
   .number({ error: 'Invalid gift idea id.' })
   .int('Invalid gift idea id.')
   .positive('Invalid gift idea id.');

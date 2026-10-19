@@ -47,3 +47,17 @@ export async function createGiftIdea(
 
   return (await response.json()) as GiftIdea;
 }
+
+export async function updateGiftIdea(
+  id: number,
+  input: CreateGiftIdeaInput,
+): Promise<GiftIdea> {
+  const response = await fetch(`/api/giftideas/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+
+  await checkResponse(response);
+  return (await response.json()) as GiftIdea;
+}

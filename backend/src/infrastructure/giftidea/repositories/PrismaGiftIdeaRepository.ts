@@ -3,6 +3,7 @@ import { GiftIdea } from '../../../domain/giftidea/GiftIdea';
 import type {
   CreateGiftIdeaData,
   GiftIdeaRepository,
+  UpdateGiftIdeaData,
 } from '../../../domain/giftidea/repositories/GiftIdeaRepository';
 import { prisma } from '../../prisma-client';
 
@@ -21,6 +22,19 @@ export class PrismaGiftIdeaRepository implements GiftIdeaRepository {
     });
 
     return this.restore(prismaGiftIdea);
+  }
+
+  async update(id: number, data: UpdateGiftIdeaData): Promise<GiftIdea> {
+    const row = await this.prisma.giftIdea.update({
+      where: { id },
+      data: {
+        name: data.name,
+        price: data.price,
+        interests: data.interests,
+      },
+    });
+
+    return this.restore(row);
   }
 
   async findAll(): Promise<GiftIdea[]> {
