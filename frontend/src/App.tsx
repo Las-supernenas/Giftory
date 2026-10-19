@@ -22,6 +22,11 @@ function App() {
     navigate("/");
   }
 
+  function handleRegister() {
+    // Registration does not log the user in: sends them to Login with a success notice
+    navigate("/login", { state: { registered: true } });
+  }
+
   async function handleLogout() {
     try {
       const response = await fetch("/api/users/logout", { method: "POST" });
@@ -53,7 +58,10 @@ function App() {
 
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
 
-        <Route path="/register" element={<RegisterPage />} />
+        <Route
+          path="/register"
+          element={<RegisterPage onRegister={handleRegister} />}
+        />
 
         <Route
           path="/library"

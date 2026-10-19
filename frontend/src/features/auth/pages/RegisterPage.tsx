@@ -1,7 +1,10 @@
 import { useState } from "react";
 
-function RegisterPage() {
-  const [successMessage, setSuccessMessage] = useState("");
+type RegisterPageProps = {
+  onRegister: () => void;
+};
+
+function RegisterPage({ onRegister }: RegisterPageProps) {
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -13,7 +16,6 @@ function RegisterPage() {
         onSubmit={async (event) => {
           event.preventDefault();
 
-          setSuccessMessage("");
           setErrorMessage("");
 
           const formData = new FormData(event.currentTarget);
@@ -37,7 +39,8 @@ function RegisterPage() {
             });
 
             if (response.ok) {
-              setSuccessMessage("Cuenta creada correctamente.");
+              // App sends the user to Login with the success message
+              onRegister();
             } else if (response.status === 409) {
               setErrorMessage("Ya existe una cuenta con ese email.");
             } else if (response.status === 400) {
@@ -84,7 +87,6 @@ function RegisterPage() {
         </button>
       </form>
 
-      {successMessage && <p role="status">{successMessage}</p>}
       {errorMessage && <p role="alert">{errorMessage}</p>}
     </main>
   );
