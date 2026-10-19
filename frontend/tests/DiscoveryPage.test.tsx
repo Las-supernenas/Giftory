@@ -10,6 +10,7 @@ import {
 import DiscoveryPage from "../src/features/giftideas/pages/DiscoveryPage";
 import { getGiftIdeas, createGiftIdea } from "../src/api/giftidea";
 import { getInterests } from "../src/features/shared/services/interests-service";
+import { getLibraryItems } from "../src/features/library/services/library-service";
 
 vi.mock("../src/api/giftidea", () => ({
   getGiftIdeas: vi.fn(),
@@ -20,15 +21,21 @@ vi.mock("../src/features/shared/services/interests-service", () => ({
   getInterests: vi.fn(),
 }));
 
+vi.mock("../src/features/library/services/library-service", () => ({
+  getLibraryItems: vi.fn(),
+}));
+
 const mockedGetGiftIdeas = vi.mocked(getGiftIdeas);
 const mockedCreateGiftIdea = vi.mocked(createGiftIdea);
 const mockedGetInterests = vi.mocked(getInterests);
+const mockedGetLibraryItems = vi.mocked(getLibraryItems);
 
 beforeEach(() => {
   vi.resetAllMocks();
 
   mockedGetGiftIdeas.mockResolvedValue([]);
   mockedGetInterests.mockResolvedValue([]);
+  mockedGetLibraryItems.mockResolvedValue([]);
 });
 
 afterEach(() => {
@@ -54,28 +61,20 @@ describe("DiscoveryPage", () => {
   });
 
   it("shows a loading message while gift ideas are being fetched", () => {
-    mockedGetGiftIdeas.mockImplementation(
-      () => new Promise(() => {}),
-    );
+    mockedGetGiftIdeas.mockImplementation(() => new Promise(() => {}));
 
     render(<DiscoveryPage isAuthenticated={false} />);
 
-    expect(
-      screen.getByText("Cargando ideas de regalo..."),
-    ).toBeTruthy();
+    expect(screen.getByText("Cargando ideas de regalo...")).toBeTruthy();
   });
 
   it("shows an error when gift ideas cannot be loaded", async () => {
-    mockedGetGiftIdeas.mockRejectedValue(
-      new Error("API unavailable"),
-    );
+    mockedGetGiftIdeas.mockRejectedValue(new Error("API unavailable"));
 
     render(<DiscoveryPage isAuthenticated={false} />);
 
     expect(
-      await screen.findByText(
-        "No se pudieron cargar las ideas de regalo.",
-      ),
+      await screen.findByText("No se pudieron cargar las ideas de regalo."),
     ).toBeTruthy();
   });
 
@@ -89,7 +88,7 @@ describe("DiscoveryPage", () => {
 
     render(<DiscoveryPage isAuthenticated={true} />);
 
-    fireEvent.change(screen.getByLabelText("Nombre"), {
+    fireEvent.change(screen.getByLabelText("Nombre del regalo"), {
       target: { value: "  Coffee Machine  " },
     });
 
@@ -118,4 +117,3 @@ describe("DiscoveryPage", () => {
     ).toBeTruthy();
   });
 });
-

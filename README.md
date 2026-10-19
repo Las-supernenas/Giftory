@@ -41,6 +41,7 @@ Other useful scripts:
 | `npm start` | Runs the compiled server (`npm run build` first) |
 | `npm run typecheck` | Checks types without compiling |
 | `npm run lint` | Runs ESLint |
+| `npm test` | Runs the backend unit tests without a database |
 | `npm run prettier:fix` | Formats the code |
 
 ### Database (Docker + Prisma)
@@ -235,6 +236,17 @@ npm run dev
 ```
 
 The app runs at `http://localhost:5173`.
+
+### Automated tests
+
+Run the frontend component tests with:
+
+```bash
+cd frontend
+npm test
+```
+
+The tests use mocked API calls and do not require a running backend or database.
 
 ### Environment variables
 
