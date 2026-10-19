@@ -4,6 +4,13 @@ import { Card } from "../../shared/components/Card";
 import { EmptyState } from "../../shared/components/EmptyState";
 import { ErrorState } from "../../shared/components/ErrorState";
 import { getInterestColorStyle } from "../../shared/interest-colors";
+import { GiftIdeaFilters } from "../../shared/components/GiftIdeaFilters";
+import {
+  EMPTY_GIFT_IDEA_FILTERS,
+  collectInterests,
+  matchesGiftIdeaFilters,
+  type GiftIdeaFilterValues,
+} from "../../shared/gift-idea-filters";
 
 type LibraryItemResponse = {
   id: number;
@@ -19,6 +26,12 @@ function LibraryPage() {
   const [libraryItems, setLibraryItems] = useState<LibraryItemResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Filters: kept apart from the loaded library items. The visible list is derived from both
+  const [filters, setFilters] = useState<GiftIdeaFilterValues>(
+    EMPTY_GIFT_IDEA_FILTERS,
+  );
+
   useEffect(() => {
     async function loadLibrary() {
       try {
@@ -57,6 +70,14 @@ function LibraryPage() {
     }
   }
 
+  // Only the users own library items are filtered. libraryItems itself is never changed
+  const visibleItems = libraryItems.filter((item) =>
+    matchesGiftIdeaFilters(item.giftIdea, filters),
+  );
+  const filterInterests = collectInterests(
+    libraryItems.map((item) => item.giftIdea),
+  );
+
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
       <h1 className="mb-8 font-serif text-3xl font-bold leading-tight tracking-tight text-primary sm:text-4xl">
@@ -72,37 +93,44 @@ function LibraryPage() {
         <EmptyState message="Tu biblioteca está vacía." />
       )}
       {!isLoading && libraryItems.length > 0 && (
-        <ul className="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
-          {libraryItems.map((item) => (
-            <li key={item.id}>
-              <Card className="border-accent-gold/60!">
-                <h2 className="mt-0 mb-2 text-lg font-semibold text-primary">
-                  {item.giftIdea.name}
-                </h2>
-                <p className="mt-0 mb-2 text-sm text-muted">
-                  {item.giftIdea.price} €
-                </p>
-                <div className="mb-4 flex flex-wrap gap-2">
-                  {item.giftIdea.interests.map((interest) => (
-                    <span
-                      key={interest}
-                      className={`rounded-full px-3 py-1 text-sm ${getInterestColorStyle(interest)}`}
-                    >
-                      {INTEREST_LABELS[interest] ?? interest}
-                    </span>
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  className="min-h-11 rounded-xl border border-error bg-surface px-4 py-2 font-medium text-error focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error"
-                  onClick={() => void removeLibraryItem(item.id)}
-                >
-                  Eliminar de la biblioteca
-                </button>
-              </Card>
-            </li>
-          ))}
-        </ul>
+        <GiftIdeaFilters
+          filters={filters}
+          onFiltersChange={setFilters}
+          availableInterests={filterInterests}
+          resultCount={visibleItems.length}
+        >
+          <ul className="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
+            {visibleItems.map((item) => (
+              <li key={item.id}>
+                <Card className="border-accent-gold/60!">
+                  <h2 className="mt-0 mb-2 text-lg font-semibold text-primary">
+                    {item.giftIdea.name}
+                  </h2>
+                  <p className="mt-0 mb-2 text-sm text-muted">
+                    {item.giftIdea.price} €
+                  </p>
+                  <div className="mb-4 flex flex-wrap gap-2">
+                    {item.giftIdea.interests.map((interest) => (
+                      <span
+                        key={interest}
+                        className={`rounded-full px-3 py-1 text-sm ${getInterestColorStyle(interest)}`}
+                      >
+                        {INTEREST_LABELS[interest] ?? interest}
+                      </span>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    className="min-h-11 rounded-xl border border-error bg-surface px-4 py-2 font-medium text-error focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error"
+                    onClick={() => void removeLibraryItem(item.id)}
+                  >
+                    Eliminar de la biblioteca
+                  </button>
+                </Card>
+              </li>
+            ))}
+          </ul>
+        </GiftIdeaFilters>
       )}
     </main>
   );
