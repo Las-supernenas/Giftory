@@ -1,15 +1,30 @@
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 
 type LoginPageProps = {
   onLogin: () => void;
 };
 
+// Data that can arrive with the navigation to /login (sent by the app after a successful registration)
+type LoginLocationState = {
+  registered?: boolean;
+} | null;
+
 function LoginPage({ onLogin }: LoginPageProps) {
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const location = useLocation();
+  const locationState = location.state as LoginLocationState;
+  const comesFromRegister = locationState?.registered === true;
+
   return (
     <main>
       <h1>Iniciar sesión</h1>
+
+      {comesFromRegister && (
+        <p role="status">Cuenta creada correctamente. Inicia sesión</p>
+      )}
 
       <form
         onSubmit={async (event) => {
