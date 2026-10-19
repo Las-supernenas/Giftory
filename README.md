@@ -298,6 +298,7 @@ The components in `frontend/src/features/shared/components/` provide a small UI 
 - `LoadingState` while loading; `ErrorState` for errors; `EmptyState` when there is no content. Pass a `message` to the error and empty states.
 - Use the color tokens in `frontend/src/index.css`, the system font and Tailwind's spacing scale. Build for small screens first, then add responsive variants where needed. Keep labels, keyboard focus and readable contrast.
 - `AppNavigation` for the main navigation: receives `isAuthenticated` and `onLogout` from `App`, uses `NavLink` to highlight the current page.
+- `GiftIdeaFilters` for the Discovery and Library filters: search by name on top, and a filter panel with interests grouped by category and a price range (sidebar on desktop, collapsible on mobile). The filtering rules live in `features/shared/gift-idea-filters.ts` and the interest groups in `features/shared/interest-categories.ts`.
 
 ### Pages
 
@@ -313,6 +314,7 @@ Private routes redirect to `/login` when there is no session.
 After login, the user is redirected to Discovery (`/`).
 After a successful registration, the user is redirected to Login with the message "Cuenta creada correctamente. Inicia sesión" Registration does not log the user in.
 The main navigation (`AppNavigation`) is shown on every page. With a session it links to Discovery, People and Library and shows the logout button; without a session it links to Discovery, Login and Register. The current page is highlighted.
+Discovery and Library can be filtered by name (case and accent insensitive), interests (an idea matches if it has ANY of the selected interests) and minimum/maximum price (both included). Filters combine: an idea must match all of them. Filtering is done in the browser on the loaded list, which is never modified. In Library, only the user's own saved ideas are filtered. All interest categories are always shown; a category with no matching ideas shows "Aún no hay ideas aquí.".
 
 ## Notes
 
