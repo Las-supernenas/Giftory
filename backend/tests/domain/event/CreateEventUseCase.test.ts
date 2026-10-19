@@ -146,3 +146,5 @@ test('rejects creating an event for a person not owned by the user', async () =>
 
   assert.equal(fake.getCreateCalls(), 0);
 });
+
+
