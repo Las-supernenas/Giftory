@@ -7,6 +7,15 @@ import {
 } from "../../../api/giftidea";
 import { getInterests } from "../../shared/services/interests-service";
 import { INTEREST_LABELS } from "../../shared/types/person";
+import { Button } from "../../shared/components/Button";
+import { ErrorState } from "../../shared/components/ErrorState";
+import { EmptyState } from "../../shared/components/EmptyState";
+import {
+  addToLibrary,
+  getLibraryItems,
+} from "../../library/services/library-service";
+import { Input } from "../../shared/components/Input";
+import { getInterestColorStyle } from "../../shared/interest-colors";
 
 type DiscoveryPageProps = {
   isAuthenticated: boolean;
@@ -31,6 +40,14 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [createSuccess, setCreateSuccess] = useState(false);
+
+  // Library state: ids of the gift ideas already saved by the user.
+  // Kept apart from `error` so a failed save never hides the Discovery List.
+  const [savedGiftIdeaIds, setSavedGiftIdeaIds] = useState<number[]>([]);
+  const [libraryLoading, setLibraryLoading] = useState(false);
+  const [savingGiftIdeaId, setSavingGiftIdeaId] = useState<number | null>(null);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Fetch public GiftIdeas
   useEffect(() => {
@@ -95,6 +112,44 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
     };
   }, [isAuthenticated]);
 
+  // fetch the users Library only when authenticated, to know which ideas are already saved
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    let cancelled = false;
+
+    async function loadLibrary() {
+      setLibraryLoading(true);
+
+      try {
+        const items = await getLibraryItems();
+
+        if (!cancelled) {
+          setSavedGiftIdeaIds(items.map((item) => item.giftIdea.id));
+        }
+      } catch (err) {
+        // the list stays usable: saving an already saved idea is handled by the 409
+        if (!cancelled) {
+          setSaveError(
+            err instanceof Error
+              ? err.message
+              : "No se pudo cargar tu biblioteca.",
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setLibraryLoading(false);
+        }
+      }
+    }
+
+    void loadLibrary();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated]);
+
   function toggleInterest(interest: Interest) {
     setSelectedInterests((current) =>
       current.includes(interest)
@@ -148,138 +203,230 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
     }
   }
 
-  return (
-    <main className="mx-auto max-w-5xl p-6">
-      <h1 className="mb-2 text-3xl font-bold">Descubre ideas de regalo</h1>
+  async function handleSaveToLibrary(idea: GiftIdea) {
+    if (savingGiftIdeaId !== null) return;
 
-      <p className="mb-8 text-gray-600">
+    //Clear the previous result so an old error never stays after a new attempt
+    setSaveMessage(null);
+    setSaveError(null);
+    setSavingGiftIdeaId(idea.id);
+
+    try {
+      const result = await addToLibrary(idea.id);
+
+      setSavedGiftIdeaIds((current) =>
+        current.includes(idea.id) ? current : [...current, idea.id],
+      );
+      setSaveMessage(
+        result === "added"
+          ? `«${idea.name}» se ha guardado en tu biblioteca.`
+          : `«${idea.name}» ya estaba en tu biblioteca.`,
+      );
+    } catch (err) {
+      setSaveError(
+        err instanceof Error
+          ? err.message
+          : "No se pudo guardar la idea en tu biblioteca.",
+      );
+    } finally {
+      setSavingGiftIdeaId(null);
+    }
+  }
+
+  return (
+    <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+      <h1 className="mb-2 font-serif text-3xl font-bold leading-tight tracking-tight text-primary sm:text-4xl">
+        Descubre ideas de regalo
+      </h1>
+
+      <p className="mb-8 text-muted">
         Encuentra inspiración para tu próximo regalo.
       </p>
 
       {/* Creation form — authenticated users only */}
       {isAuthenticated && (
-        <section className="mb-10 rounded-lg border border-gray-200 p-5">
-          <h2 className="mb-4 text-2xl font-semibold">
+        <section className="mb-10 rounded-2xl border border-solid border-foreground/10 bg-surface p-5 shadow-sm">
+          <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-primary">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="size-6 shrink-0 text-accent-dusty-pink"
+            >
+              <path d="M3 10h18v3H3zM5 13v8h14v-8M12 10v11M12 10H8.5a2.5 2.5 0 1 1 2.5-2.5V10M12 10h3.5A2.5 2.5 0 1 0 13 7.5V10" />
+            </svg>
             Crear una idea de regalo
           </h2>
 
           <form onSubmit={handleCreate} className="space-y-4">
-            <div>
-              <label htmlFor="gift-name" className="mb-1 block">
-                Nombre
-              </label>
-              <input
-                id="gift-name"
-                type="text"
-                maxLength={100}
-                required
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                className="w-full rounded border p-2"
-              />
-            </div>
+            <Input
+              id="gift-name"
+              label="Nombre del regalo"
+              type="text"
+              maxLength={100}
+              required
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+            />
 
-            <div>
-              <label htmlFor="gift-price" className="mb-1 block">
-                Precio (€)
-              </label>
-              <input
-                id="gift-price"
-                type="number"
-                min="0"
-                step="0.01"
-                required
-                value={price}
-                onChange={(event) => setPrice(event.target.value)}
-                className="w-full rounded border p-2"
-              />
-            </div>
+            <Input
+              id="gift-price"
+              label="Precio (€)"
+              type="number"
+              min="0"
+              step="0.01"
+              required
+              value={price}
+              onChange={(event) => setPrice(event.target.value)}
+            />
 
-            <fieldset>
-              <legend className="mb-2 font-medium">Intereses (opcional)</legend>
+            <fieldset className="min-w-0 border-0 p-0">
+              <legend className="sr-only">Intereses (opcional)</legend>
 
               {interestsLoading ? (
-                <p role="status">Cargando intereses...</p>
-              ) : interestsError ? (
-                <p role="alert" className="text-red-600">
-                  {interestsError}
+                <p role="status" className="text-sm text-muted">
+                  Cargando intereses...
                 </p>
+              ) : interestsError ? (
+                <ErrorState message={interestsError} />
               ) : interests.length === 0 ? (
-                <p>No hay intereses disponibles.</p>
+                <EmptyState message="No hay intereses disponibles." />
               ) : (
-                <div className="flex flex-wrap gap-3">
-                  {interests.map((interest) => (
-                    <label key={interest} className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={selectedInterests.includes(interest)}
-                        onChange={() => toggleInterest(interest)}
-                      />
-                      {INTEREST_LABELS[interest] ?? interest}
-                    </label>
-                  ))}
-                </div>
+                <details className="group rounded-xl border border-solid border-foreground/10 bg-surface p-3">
+                  <summary className="flex cursor-pointer list-none items-center rounded-lg bg-accent-lavender/15 px-3 py-2 font-medium text-primary hover:bg-accent-lavender/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary [&::-webkit-details-marker]:hidden">
+                    Elige temática (opcional)
+                    {selectedInterests.length > 0 && (
+                      <span className="ml-2 rounded-full bg-surface px-2 py-0.5 text-xs text-primary">
+                        {selectedInterests.length}
+                      </span>
+                    )}
+                    <span
+                      aria-hidden="true"
+                      className="ml-auto inline-block transition-transform group-open:rotate-180"
+                    >
+                      ▾
+                    </span>
+                  </summary>
+
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {interests.map((interest) => (
+                      <button
+                        key={interest}
+                        type="button"
+                        aria-pressed={selectedInterests.includes(interest)}
+                        onClick={() => toggleInterest(interest)}
+                        className={`min-h-11 rounded-full border px-3 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                          selectedInterests.includes(interest)
+                            ? `border-primary ring-2 ring-primary/25 ${getInterestColorStyle(interest)}`
+                            : "border-primary/30 bg-surface text-foreground hover:border-primary"
+                        }`}
+                      >
+                        {INTEREST_LABELS[interest] ?? interest}
+                      </button>
+                    ))}
+                  </div>
+                </details>
               )}
             </fieldset>
 
-            {createError && (
-              <p role="alert" className="text-red-600">
-                {createError}
-              </p>
-            )}
+            {createError && <ErrorState message={createError} />}
 
             {createSuccess && (
-              <p role="status" className="text-green-700">
+              <p
+                role="status"
+                className="rounded-xl border-l-4 border-success bg-surface px-4 py-3 text-sm text-foreground"
+              >
                 ¡Idea de regalo creada correctamente!
               </p>
             )}
 
-            <button
-              type="submit"
-              disabled={creating}
-              className="rounded bg-slate-800 px-4 py-2 text-white disabled:opacity-50"
-            >
+            <Button type="submit" disabled={creating}>
               {creating ? "Creando..." : "Crear idea de regalo"}
-            </button>
+            </Button>
           </form>
         </section>
       )}
 
       {/* Public discovery list */}
       <section>
-        <h2 className="mb-4 text-2xl font-semibold">Ideas de regalo</h2>
-
-        {loading ? (
-          <p role="status">Cargando ideas de regalo...</p>
-        ) : error ? (
-          <p role="alert" className="text-red-600">
-            {error}
+        <h2 className="mb-4 text-xl font-semibold text-primary">
+          Ideas de regalo
+        </h2>
+        {/* Result of saving to the Library: shown above the list, never instead of it */}
+        {saveMessage && (
+          <p
+            role="status"
+            className="mb-4 rounded-xl border-l-4 border-success bg-surface px-4 py-3 text-sm text-foreground"
+          >
+            {saveMessage}
           </p>
+        )}
+        {saveError && (
+          <div className="mb-4">
+            <ErrorState message={saveError} />
+          </div>
+        )}
+        {loading ? (
+          <p role="status" className="text-sm text-muted">
+            Cargando ideas de regalo...
+          </p>
+        ) : error ? (
+          <ErrorState message={error} />
         ) : giftIdeas.length === 0 ? (
-          <p>Todavía no hay ideas de regalo.</p>
+          <EmptyState message="Todavía no hay ideas de regalo." />
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {giftIdeas.map((idea) => (
-              <article
-                key={idea.id}
-                className="rounded-lg border border-gray-200 p-5 shadow-sm"
-              >
-                <h3 className="mb-2 text-xl font-semibold">{idea.name}</h3>
+            {giftIdeas.map((idea) => {
+              const isSaved = savedGiftIdeaIds.includes(idea.id);
 
-                <p className="mb-3 font-medium">{idea.price.toFixed(2)} €</p>
+              return (
+                <article
+                  key={idea.id}
+                  className="rounded-2xl border border-solid border-accent-gold/60 bg-surface p-5 shadow-sm flex flex-col"
+                >
+                  <h3 className="mb-2 text-xl font-semibold text-primary">
+                    {idea.name}
+                  </h3>
 
-                <div className="flex flex-wrap gap-2">
-                  {idea.interests.map((interest) => (
-                    <span
-                      key={interest}
-                      className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700"
+                  <p className="mb-3 font-medium text-muted">
+                    {idea.price.toFixed(2)} €
+                  </p>
+
+                  <div className="flex flex-wrap gap-2 pb-4">
+                    {idea.interests.map((interest) => (
+                      <span
+                        key={interest}
+                        className={`rounded-full px-3 py-1 text-sm ${getInterestColorStyle(interest)}`}
+                      >
+                        {INTEREST_LABELS[interest] ?? interest}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Save to Library — authenticated users only */}
+                  {isAuthenticated && (
+                    <Button
+                      variant="secondary"
+                      className="mt-auto w-full sm:w-auto"
+                      disabled={
+                        libraryLoading || savingGiftIdeaId !== null || isSaved
+                      }
+                      onClick={() => void handleSaveToLibrary(idea)}
                     >
-                      {INTEREST_LABELS[interest] ?? interest}
-                    </span>
-                  ))}
-                </div>
-              </article>
-            ))}
+                      {savingGiftIdeaId === idea.id
+                        ? "Guardando..."
+                        : isSaved
+                          ? "En tu biblioteca"
+                          : "Guardar en biblioteca"}
+                    </Button>
+                  )}
+                </article>
+              );
+            })}
           </div>
         )}
       </section>

@@ -5,6 +5,7 @@ import LoginPage from "./features/auth/pages/LoginPage";
 import PeoplePage from "./features/people/pages/PeoplePage";
 import LibraryPage from "./features/library/pages/LibraryPage";
 import DiscoveryPage from "./features/giftideas/pages/DiscoveryPage";
+import { AppNavigation } from "./features/shared/components/AppNavigation";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -18,6 +19,12 @@ function App() {
 
   function handleLogin() {
     setIsAuthenticated(true);
+    navigate("/");
+  }
+
+  function handleRegister() {
+    // Registration does not log the user in: sends them to Login with a success notice
+    navigate("/login", { state: { registered: true } });
   }
 
   async function handleLogout() {
@@ -39,7 +46,10 @@ function App() {
 
   return (
     <>
-      {isAuthenticated && <button onClick={handleLogout}>Cerrar sesión</button>}
+      <AppNavigation
+        isAuthenticated={isAuthenticated}
+        onLogout={handleLogout}
+      />
       <Routes>
         <Route
           path="/"
@@ -48,7 +58,10 @@ function App() {
 
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
 
-        <Route path="/register" element={<RegisterPage />} />
+        <Route
+          path="/register"
+          element={<RegisterPage onRegister={handleRegister} />}
+        />
 
         <Route
           path="/library"

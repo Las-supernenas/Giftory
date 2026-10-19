@@ -100,10 +100,10 @@ function EventsSection({ personId }: EventsSectionProps) {
 
   return (
     <section className="space-y-4">
-      <h2 className="text-xl font-semibold">Eventos</h2>
+      <h2 className="text-xl font-semibold text-primary">Eventos</h2>
 
       <Card>
-        <h3 className="mt-0 mb-3 font-medium">
+        <h3 className="mt-0 mb-3 font-semibold text-primary">
           {editingEvent ? "Editar evento" : "Nuevo evento"}
         </h3>
 
@@ -199,7 +199,10 @@ function EventsSection({ personId }: EventsSectionProps) {
       </Card>
 
       {successMessage && (
-        <p role="status" className="text-sm text-primary">
+        <p
+          role="status"
+          className="mb-4 rounded-xl border-l-4 border-success bg-surface px-4 py-3 text-sm text-foreground"
+        >
           {successMessage}
         </p>
       )}
@@ -225,19 +228,20 @@ function EventsSection({ personId }: EventsSectionProps) {
                   </p>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button
                     variant="secondary"
                     onClick={() => setEditingEvent(personEvent)}
                   >
                     Editar
                   </Button>
-                  <Button
-                    variant="accent"
+                  <button
+                    type="button"
+                    className="min-h-11 rounded-xl border border-error bg-surface px-4 py-2 font-medium text-error focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error"
                     onClick={() => void handleDelete(personEvent)}
                   >
                     Eliminar
-                  </Button>
+                  </button>
                 </div>
               </Card>
             </li>
