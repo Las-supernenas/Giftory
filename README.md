@@ -299,8 +299,8 @@ The components in `frontend/src/features/shared/components/` provide a small UI 
 
 Private routes redirect to `/login` when there is no session.
 After login, the user is redirected to Discovery (`/`).
+After a successful registration, the user is redirected to Login with the message "Cuenta creada correctamente. Inicia sesión" Registration does not log the user in.
 The main navigation (`AppNavigation`) is shown on every page. With a session it links to Discovery, People and Library and shows the logout button; without a session it links to Discovery, Login and Register. The current page is highlighted.
-
 
 ## Notes
 
