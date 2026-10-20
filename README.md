@@ -99,9 +99,15 @@ Requirement: Docker Desktop must be running.
 The seed only runs if you manually add `ALLOW_DEMO_SEED=true` to `backend/.env` when you intend to run it. It can be run multiple times without duplicating data. It creates:
 
 - Demo user: `demo@giftory.dev` / `giftory123`
+- Demo creators: `lucia@giftory.dev` and `marcos@giftory.dev` (same password), who own the public demo gift ideas
 - People: Laura (with interests) and Mamá (no interests, useful for testing empty states)
-- 3 gift ideas, 1 idea in the user's library and 1 idea saved for Laura with a private note
+- 3 gift ideas of the demo user, plus 38 public demo ideas covering every interest, with a wide range of prices, descriptions, product links and photos
+- 13 ideas in the demo user's library (two pages, to show pagination) and 1 idea saved for Laura with a private note
 - 2 events: Laura's birthday in 12 days and Mamá's birthday in 54 days (dates relative to the current day)
+
+Demo photos live in `backend/prisma/seed-images/` (committed to the repository; JPG, PNG or WebP). The seed copies them to `backend/uploads/giftideas/` with server-generated names; a missing photo only produces a warning. The seed fails if any interest has no demo idea. Running it again updates the demo ideas instead of duplicating them.
+
+Ideas owned by the demo creators (`lucia@giftory.dev`, `marcos@giftory.dev`) that are no longer in the seed list (for example, after renaming an idea in `seed.ts`) are soft-deleted, so Discovery always shows exactly the current demo ideas. This also applies to ideas created manually with those two accounts. Ideas created with any other account, including the demo user, are never touched.
 
 ### Architecture (hexagonal)
 
