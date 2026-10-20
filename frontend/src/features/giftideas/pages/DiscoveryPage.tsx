@@ -17,6 +17,20 @@ import {
 } from "../../library/services/library-service";
 import { Input } from "../../shared/components/Input";
 import { getInterestColorStyle } from "../../shared/interest-colors";
+import { GiftIdeaFilters } from "../../shared/components/GiftIdeaFilters";
+import {
+  EMPTY_GIFT_IDEA_FILTERS,
+  collectInterests,
+  matchesGiftIdeaFilters,
+  type GiftIdeaFilterValues,
+} from "../../shared/gift-idea-filters";
+import { Pagination } from "../../shared/components/Pagination";
+import {
+  clampPage,
+  getPageItems,
+  getTotalPages,
+  scrollToResults,
+} from "../../shared/pagination";
 
 type DiscoveryPageProps = {
   isAuthenticated: boolean;
@@ -52,6 +66,14 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  // Filters: kept apart from the loaded ideas. The visible list is derived from both
+  const [filters, setFilters] = useState<GiftIdeaFilterValues>(
+    EMPTY_GIFT_IDEA_FILTERS,
+  );
+
+  // Pagination: only the page number is stored, the page items are derived
+  const [currentPage, setCurrentPage] = useState(1);
+
   // Fetch public GiftIdeas
   useEffect(() => {
     let cancelled = false;
@@ -81,10 +103,8 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
     };
   }, []);
 
-  // Fetch interests only when authenticated
+  // Fetch interests always: used by the creation form and by the filters
   useEffect(() => {
-    if (!isAuthenticated) return;
-
     let cancelled = false;
 
     async function loadInterests() {
@@ -113,7 +133,7 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
     return () => {
       cancelled = true;
     };
-  }, [isAuthenticated]);
+  }, []);
 
   // fetch the users Library only when authenticated, to know which ideas are already saved
   useEffect(() => {
@@ -278,6 +298,28 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
     } finally {
       setSavingGiftIdeaId(null);
     }
+  }
+
+  // Recalculated on every render: giftIdeas itself is never changed
+  const visibleIdeas = giftIdeas.filter((idea) =>
+    matchesGiftIdeaFilters(idea, filters),
+  );
+  const filterInterests = collectInterests(giftIdeas);
+
+  const totalPages = getTotalPages(visibleIdeas.length);
+  // If the list got shorter, show the last page that still exists
+  const page = clampPage(currentPage, totalPages);
+  const pageIdeas = getPageItems(visibleIdeas, page);
+
+  // A filter change shows the first page of the new results
+  function handleFiltersChange(newFilters: GiftIdeaFilterValues) {
+    setFilters(newFilters);
+    setCurrentPage(1);
+  }
+
+  function handlePageChange(newPage: number) {
+    setCurrentPage(newPage);
+    scrollToResults();
   }
 
   return (
@@ -458,100 +500,129 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
         ) : giftIdeas.length === 0 ? (
           <EmptyState message="Todavía no hay ideas de regalo." />
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {giftIdeas.map((idea) => {
-              const isSaved = savedGiftIdeaIds.includes(idea.id);
+          <GiftIdeaFilters
+            filters={filters}
+            onFiltersChange={handleFiltersChange}
+            availableInterests={filterInterests}
+            allInterests={interests}
+            resultCount={visibleIdeas.length}
+          >
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {pageIdeas.map((idea) => {
+                const isSaved = savedGiftIdeaIds.includes(idea.id);
 
-              return (
-                <article
-                  key={idea.id}
-                  className="rounded-2xl border border-solid border-accent-gold/60 bg-surface p-5 shadow-sm flex flex-col"
-                >
-                  <h3 className="mb-2 text-xl font-semibold text-primary">
-                    {idea.name}
-                  </h3>
+                return (
+                  <article
+                    key={idea.id}
+                    className="rounded-2xl border border-solid border-accent-gold/60 bg-surface p-5 shadow-sm flex flex-col"
+                  >
+                    <h3 className="mb-2 text-xl font-semibold text-primary">
+                      {idea.name}
+                    </h3>
 
-                  {idea.imageFilename && (
-                    <img
-                      src={`/api/giftideas/images/${encodeURIComponent(idea.imageFilename)}`}
-                      alt={`Imagen de ${idea.name}`}
-                      loading="lazy"
-                      className="mb-3 aspect-video w-full rounded-xl object-cover"
-                    />
-                  )}
-                  {!idea.imageFilename && (
-                    <div className="mb-3 flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-xl bg-accent-lavender/20 text-sm text-muted">
-                      <svg
-                        aria-hidden="true"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.7"
-                        className="h-7 w-7 text-primary"
-                      >
-                        <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" />
-                        <circle cx="9" cy="10" r="1.5" className="text-accent-gold" />
-                        <path d="m5 17 4.5-4 3 2.5 2.5-2 4 3.5" className="text-accent-gold" />
-                      </svg>
-                      <span>Sin imagen</span>
-                    </div>
-                  )}
+                    {idea.imageFilename && (
+                      <img
+                        src={`/api/giftideas/images/${encodeURIComponent(idea.imageFilename)}`}
+                        alt={`Imagen de ${idea.name}`}
+                        loading="lazy"
+                        className="mb-3 aspect-video w-full rounded-xl object-cover"
+                      />
+                    )}
+                    {!idea.imageFilename && (
+                      <div className="mb-3 flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-xl bg-accent-lavender/20 text-sm text-muted">
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.7"
+                          className="h-7 w-7 text-primary"
+                        >
+                          <rect
+                            x="3.5"
+                            y="4.5"
+                            width="17"
+                            height="15"
+                            rx="2.5"
+                          />
+                          <circle
+                            cx="9"
+                            cy="10"
+                            r="1.5"
+                            className="text-accent-gold"
+                          />
+                          <path
+                            d="m5 17 4.5-4 3 2.5 2.5-2 4 3.5"
+                            className="text-accent-gold"
+                          />
+                        </svg>
+                        <span>Sin imagen</span>
+                      </div>
+                    )}
 
-                  <p className="mb-3 font-medium text-muted">
-                    {idea.price.toFixed(2)} €
-                  </p>
-
-                  {idea.description && (
-                    <p className="mb-3 whitespace-pre-wrap break-words text-sm text-foreground">
-                      {idea.description}
+                    <p className="mb-3 font-medium text-muted">
+                      {idea.price.toFixed(2)} €
                     </p>
-                  )}
 
-                  {idea.productUrl && (
-                    <a
-                      href={idea.productUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mb-3 flex min-h-11 w-fit max-w-full items-center gap-2 text-sm font-semibold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                    >
-                      <span aria-hidden="true">🎁</span>
-                      Dónde encontrarlo
-                      <span aria-hidden="true" className="text-accent-gold">↗</span>
-                    </a>
-                  )}
+                    {idea.description && (
+                      <p className="mb-3 whitespace-pre-wrap break-words text-sm text-foreground">
+                        {idea.description}
+                      </p>
+                    )}
 
-                  <div className="flex flex-wrap gap-2 pb-4">
-                    {idea.interests.map((interest) => (
-                      <span
-                        key={interest}
-                        className={`rounded-full px-3 py-1 text-sm ${getInterestColorStyle(interest)}`}
+                    {idea.productUrl && (
+                      <a
+                        href={idea.productUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mb-3 flex min-h-11 w-fit max-w-full items-center gap-2 text-sm font-semibold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                       >
-                        {INTEREST_LABELS[interest] ?? interest}
-                      </span>
-                    ))}
-                  </div>
+                        <span aria-hidden="true">🎁</span>
+                        Dónde encontrarlo
+                        <span aria-hidden="true" className="text-accent-gold">
+                          ↗
+                        </span>
+                      </a>
+                    )}
 
-                  {/* Save to Library — authenticated users only */}
-                  {isAuthenticated && (
-                    <Button
-                      variant="secondary"
-                      className="mt-auto w-full sm:w-auto"
-                      disabled={
-                        libraryLoading || savingGiftIdeaId !== null || isSaved
-                      }
-                      onClick={() => void handleSaveToLibrary(idea)}
-                    >
-                      {savingGiftIdeaId === idea.id
-                        ? "Guardando..."
-                        : isSaved
-                          ? "En tu biblioteca"
-                          : "Guardar en biblioteca"}
-                    </Button>
-                  )}
-                </article>
-              );
-            })}
-          </div>
+                    <div className="flex flex-wrap gap-2 pb-4">
+                      {idea.interests.map((interest) => (
+                        <span
+                          key={interest}
+                          className={`rounded-full px-3 py-1 text-sm ${getInterestColorStyle(interest)}`}
+                        >
+                          {INTEREST_LABELS[interest] ?? interest}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Save to Library — authenticated users only */}
+                    {isAuthenticated && (
+                      <Button
+                        variant="secondary"
+                        className="mt-auto w-full sm:w-auto"
+                        disabled={
+                          libraryLoading || savingGiftIdeaId !== null || isSaved
+                        }
+                        onClick={() => void handleSaveToLibrary(idea)}
+                      >
+                        {savingGiftIdeaId === idea.id
+                          ? "Guardando..."
+                          : isSaved
+                            ? "En tu biblioteca"
+                            : "Guardar en biblioteca"}
+                      </Button>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          </GiftIdeaFilters>
         )}
       </section>
     </main>

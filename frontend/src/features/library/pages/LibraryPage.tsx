@@ -17,6 +17,20 @@ import {
 } from "../../../api/giftidea";
 import { getPeople } from "../../people/services/people-service";
 import { addSavedIdea } from "../../savedideas/services/savedideas-service";
+import { GiftIdeaFilters } from "../../shared/components/GiftIdeaFilters";
+import {
+  EMPTY_GIFT_IDEA_FILTERS,
+  collectInterests,
+  matchesGiftIdeaFilters,
+  type GiftIdeaFilterValues,
+} from "../../shared/gift-idea-filters";
+import { Pagination } from "../../shared/components/Pagination";
+import {
+  clampPage,
+  getPageItems,
+  getTotalPages,
+  scrollToResults,
+} from "../../shared/pagination";
 
 type LibraryItemResponse = {
   id: number;
@@ -53,6 +67,11 @@ function LibraryPage() {
   const [isAssigning, setIsAssigning] = useState(false);
   const [assignmentError, setAssignmentError] = useState("");
   const [assignmentSuccess, setAssignmentSuccess] = useState("");
+
+  const [filters, setFilters] = useState<GiftIdeaFilterValues>(
+    EMPTY_GIFT_IDEA_FILTERS,
+  );
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     async function loadLibrary() {
@@ -224,6 +243,30 @@ function LibraryPage() {
     }
   }
 
+  // Only the users own library items are filtered. libraryItems itself is never changed
+  const visibleItems = libraryItems.filter((item) =>
+    matchesGiftIdeaFilters(item.giftIdea, filters),
+  );
+  const filterInterests = collectInterests(
+    libraryItems.map((item) => item.giftIdea),
+  );
+
+  const totalPages = getTotalPages(visibleItems.length);
+  // If the list got shorter (e.g. after removing an idea), show the last page that still exists
+  const page = clampPage(currentPage, totalPages);
+  const pageItems = getPageItems(visibleItems, page);
+
+  // A filter change shows the first page of the new results
+  function handleFiltersChange(newFilters: GiftIdeaFilterValues) {
+    setFilters(newFilters);
+    setCurrentPage(1);
+  }
+
+  function handlePageChange(newPage: number) {
+    setCurrentPage(newPage);
+    scrollToResults();
+  }
+
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
       <h1 className="mb-8 font-serif text-3xl font-bold leading-tight tracking-tight text-primary sm:text-4xl">
@@ -245,275 +288,305 @@ function LibraryPage() {
         <EmptyState message="Tu biblioteca está vacía." />
       )}
       {!isLoading && libraryItems.length > 0 && (
-        <ul className="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
-          {libraryItems.map((item) => (
-            <li key={item.id}>
-              <Card
-                className={`box-border flex flex-col border-accent-gold/60! ${editingGiftIdeaId === null ? "sm:h-full" : ""}`}
-              >
-                <h2 className="mt-0 mb-2 text-lg font-semibold text-primary">
-                  {item.giftIdea.name}
-                </h2>
-                {item.giftIdea.imageFilename && (
-                  <img
-                    src={`/api/giftideas/images/${encodeURIComponent(item.giftIdea.imageFilename)}`}
-                    alt={`Imagen de ${item.giftIdea.name}`}
-                    loading="lazy"
-                    className="mb-3 aspect-video w-full rounded-xl object-cover"
-                  />
-                )}
-                {!item.giftIdea.imageFilename && (
-                  <div className="mb-3 flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-xl bg-accent-lavender/20 text-sm text-muted">
-                    <svg
-                      aria-hidden="true"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.7"
-                      className="h-7 w-7 text-primary"
-                    >
-                      <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" />
-                      <circle cx="9" cy="10" r="1.5" className="text-accent-gold" />
-                      <path d="m5 17 4.5-4 3 2.5 2.5-2 4 3.5" className="text-accent-gold" />
-                    </svg>
-                    <span>Sin imagen</span>
-                  </div>
-                )}
-                <p className="mt-0 mb-2 text-sm text-muted">
-                  {item.giftIdea.price} €
-                </p>
-                {item.giftIdea.description && (
-                  <p className="mb-3 whitespace-pre-wrap break-words text-sm text-foreground">
-                    {item.giftIdea.description}
-                  </p>
-                )}
-                {item.giftIdea.productUrl && (
-                  <a
-                    href={item.giftIdea.productUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mb-3 flex min-h-11 w-fit max-w-full items-center self-start gap-2 text-sm font-semibold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                  >
-                    <span aria-hidden="true">🎁</span>
-                    Dónde encontrarlo
-                    <span aria-hidden="true" className="text-accent-gold">↗</span>
-                  </a>
-                )}
-                <div className="mb-4 flex flex-wrap gap-2">
-                  {item.giftIdea.interests.map((interest) => (
-                    <span
-                      key={interest}
-                      className={`rounded-full px-3 py-1 text-sm ${getInterestColorStyle(interest)}`}
-                    >
-                      {INTEREST_LABELS[interest] ?? interest}
-                    </span>
-                  ))}
-                </div>
-                {item.canEditGiftIdea &&
-                  editingGiftIdeaId === item.giftIdea.id && (
-                    <form
-                      className="mb-4 space-y-3 rounded-xl border border-accent-lavender/50 bg-surface p-3"
-                      onSubmit={(event) =>
-                        void handleSaveGiftIdea(item.giftIdea.id, event)
-                      }
-                    >
-                      <Input
-                        id={`library-idea-name-${item.id}`}
-                        name="name"
-                        label="Nombre de la idea"
-                        defaultValue={item.giftIdea.name}
-                        maxLength={100}
-                        required
-                      />
-                      <Input
-                        id={`library-idea-price-${item.id}`}
-                        name="price"
-                        label="Precio (€)"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        defaultValue={item.giftIdea.price}
-                        required
-                      />
-
-                      <label
-                        className="block text-sm text-primary"
-                        htmlFor={`library-idea-description-${item.id}`}
-                      >
-                        Descripción pública
-                      </label>
-                      <textarea
-                        id={`library-idea-description-${item.id}`}
-                        name="description"
-                        defaultValue={item.giftIdea.description ?? ""}
-                        className="block w-full box-border rounded-xl border border-muted p-3"
-                      />
-                      <Input
-                        id={`library-idea-product-url-${item.id}`}
-                        name="productUrl"
-                        label="Enlace del producto"
-                        type="url"
-                        defaultValue={item.giftIdea.productUrl ?? ""}
-                      />
-
-                      <div>
-                        <label
-                          htmlFor={`gift-image-${item.id}`}
-                          className="mb-2 block text-sm font-medium text-foreground"
-                        >
-                          Imagen del regalo
-                        </label>
-                        <input
-                          id={`gift-image-${item.id}`}
-                          name="image"
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp"
-                          className="block w-full min-w-0 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-xl file:border-0 file:bg-accent-lavender file:px-4 file:py-2 file:font-medium file:text-foreground"
-                        />
-                      </div>
-
-                      {item.giftIdea.imageFilename && (
-                        <label className="flex items-center gap-2 text-sm">
-                          <input type="checkbox" name="removeImage" />
-                          Quitar imagen actual
-                        </label>
-                      )}
-
-                      <details className="rounded-xl border border-muted p-3">
-                        <summary className="cursor-pointer font-medium text-primary">
-                          Temáticas
-                        </summary>
-                        {interestsError && (
-                          <ErrorState message={interestsError} />
-                        )}
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {[
-                            ...new Set([
-                              ...availableInterests,
-                              ...item.giftIdea.interests,
-                            ]),
-                          ].map((interest) => (
-                            <label
-                              key={interest}
-                              className="flex items-center gap-2 text-sm"
-                            >
-                              <input
-                                type="checkbox"
-                                name="interests"
-                                value={interest}
-                                defaultChecked={item.giftIdea.interests.includes(
-                                  interest,
-                                )}
-                                style={{
-                                  accentColor: getInterestAccentColor(interest),
-                                }}
-                              />
-                              {INTEREST_LABELS[interest] ?? interest}
-                            </label>
-                          ))}
-                        </div>
-                      </details>
-                      {editError && <ErrorState message={editError} />}
-                      <Button
-                        type="submit"
-                        className="w-full"
-                        disabled={savingGiftIdeaId !== null}
-                      >
-                        {savingGiftIdeaId === item.giftIdea.id
-                          ? "Guardando..."
-                          : "Guardar cambios de la idea"}
-                      </Button>
-                    </form>
-                  )}
-                <Button
-                  type="button"
-                  className="mb-2 w-full"
-                  onClick={() => {
-                    setSelectedPersonId("");
-                    setAssignmentError("");
-                    setAssignmentSuccess("");
-                    setAssigningGiftIdeaId((current) =>
-                      current === item.giftIdea.id ? null : item.giftIdea.id,
-                    );
-                  }}
+        <GiftIdeaFilters
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+          availableInterests={filterInterests}
+          allInterests={availableInterests}
+          resultCount={visibleItems.length}
+        >
+          <ul className="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
+            {pageItems.map((item) => (
+              <li key={item.id}>
+                <Card
+                  className={`box-border flex flex-col border-accent-gold/60! ${editingGiftIdeaId === null ? "sm:h-full" : ""}`}
                 >
-                  {assigningGiftIdeaId === item.giftIdea.id
-                    ? "Cancelar asignación"
-                    : "Asignar a persona"}
-                </Button>
-                {assigningGiftIdeaId === item.giftIdea.id && (
-                  <div className="mb-3">
-                    {isLoadingPeople && <p>Cargando personas...</p>}
-                    {!isLoadingPeople && peopleError && (
-                      <ErrorState message={peopleError} />
-                    )}
-                    {!isLoadingPeople &&
-                      !peopleError &&
-                      people.length === 0 && (
-                        <p>Aún no tienes personas añadidas.</p>
-                      )}
-                    {!isLoadingPeople && !peopleError && people.length > 0 && (
-                      <div className="grid gap-2">
-                        <label className="block text-sm font-medium">
-                          Persona
-                          <select
-                            className="mt-1 block w-full rounded-xl border border-muted bg-surface p-3"
-                            value={selectedPersonId}
-                            onChange={(event) =>
-                              setSelectedPersonId(event.target.value)
-                            }
-                          >
-                            <option value="">Elige una persona</option>
-                            {people.map((person) => (
-                              <option key={person.id} value={person.id}>
-                                {person.name}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                        <Button
-                          type="button"
-                          disabled={!selectedPersonId || isAssigning}
-                          onClick={() => void handleAssign(item.giftIdea.id)}
-                        >
-                          {isAssigning ? "Asignando..." : "Guardar asignación"}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )}
-                <div className="mt-auto flex min-h-14 gap-2">
-                  {item.canEditGiftIdea && (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      className="min-w-0 flex-1 text-sm"
-                      onClick={() => {
-                        setEditError("");
-                        setEditingGiftIdeaId((current) =>
-                          current === item.giftIdea.id
-                            ? null
-                            : item.giftIdea.id,
-                        );
-                      }}
-                    >
-                      {editingGiftIdeaId === item.giftIdea.id
-                        ? "Cancelar edición"
-                        : "Editar idea de regalo"}
-                    </Button>
+                  <h2 className="mt-0 mb-2 text-lg font-semibold text-primary">
+                    {item.giftIdea.name}
+                  </h2>
+                  {item.giftIdea.imageFilename && (
+                    <img
+                      src={`/api/giftideas/images/${encodeURIComponent(item.giftIdea.imageFilename)}`}
+                      alt={`Imagen de ${item.giftIdea.name}`}
+                      loading="lazy"
+                      className="mb-3 aspect-video w-full rounded-xl object-cover"
+                    />
                   )}
-                  <button
+                  {!item.giftIdea.imageFilename && (
+                    <div className="mb-3 flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-xl bg-accent-lavender/20 text-sm text-muted">
+                      <svg
+                        aria-hidden="true"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.7"
+                        className="h-7 w-7 text-primary"
+                      >
+                        <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" />
+                        <circle
+                          cx="9"
+                          cy="10"
+                          r="1.5"
+                          className="text-accent-gold"
+                        />
+                        <path
+                          d="m5 17 4.5-4 3 2.5 2.5-2 4 3.5"
+                          className="text-accent-gold"
+                        />
+                      </svg>
+                      <span>Sin imagen</span>
+                    </div>
+                  )}
+                  <p className="mt-0 mb-2 text-sm text-muted">
+                    {item.giftIdea.price} €
+                  </p>
+                  {item.giftIdea.description && (
+                    <p className="mb-3 whitespace-pre-wrap break-words text-sm text-foreground">
+                      {item.giftIdea.description}
+                    </p>
+                  )}
+                  {item.giftIdea.productUrl && (
+                    <a
+                      href={item.giftIdea.productUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mb-3 flex min-h-11 w-fit max-w-full items-center self-start gap-2 text-sm font-semibold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    >
+                      <span aria-hidden="true">🎁</span>
+                      Dónde encontrarlo
+                      <span aria-hidden="true" className="text-accent-gold">
+                        ↗
+                      </span>
+                    </a>
+                  )}
+                  <div className="mb-4 flex flex-wrap gap-2">
+                    {item.giftIdea.interests.map((interest) => (
+                      <span
+                        key={interest}
+                        className={`rounded-full px-3 py-1 text-sm ${getInterestColorStyle(interest)}`}
+                      >
+                        {INTEREST_LABELS[interest] ?? interest}
+                      </span>
+                    ))}
+                  </div>
+                  {item.canEditGiftIdea &&
+                    editingGiftIdeaId === item.giftIdea.id && (
+                      <form
+                        className="mb-4 space-y-3 rounded-xl border border-accent-lavender/50 bg-surface p-3"
+                        onSubmit={(event) =>
+                          void handleSaveGiftIdea(item.giftIdea.id, event)
+                        }
+                      >
+                        <Input
+                          id={`library-idea-name-${item.id}`}
+                          name="name"
+                          label="Nombre de la idea"
+                          defaultValue={item.giftIdea.name}
+                          maxLength={100}
+                          required
+                        />
+                        <Input
+                          id={`library-idea-price-${item.id}`}
+                          name="price"
+                          label="Precio (€)"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          defaultValue={item.giftIdea.price}
+                          required
+                        />
+
+                        <label
+                          className="block text-sm text-primary"
+                          htmlFor={`library-idea-description-${item.id}`}
+                        >
+                          Descripción pública
+                        </label>
+                        <textarea
+                          id={`library-idea-description-${item.id}`}
+                          name="description"
+                          defaultValue={item.giftIdea.description ?? ""}
+                          className="block w-full box-border rounded-xl border border-muted p-3"
+                        />
+                        <Input
+                          id={`library-idea-product-url-${item.id}`}
+                          name="productUrl"
+                          label="Enlace del producto"
+                          type="url"
+                          defaultValue={item.giftIdea.productUrl ?? ""}
+                        />
+
+                        <div>
+                          <label
+                            htmlFor={`gift-image-${item.id}`}
+                            className="mb-2 block text-sm font-medium text-foreground"
+                          >
+                            Imagen del regalo
+                          </label>
+                          <input
+                            id={`gift-image-${item.id}`}
+                            name="image"
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            className="block w-full min-w-0 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-xl file:border-0 file:bg-accent-lavender file:px-4 file:py-2 file:font-medium file:text-foreground"
+                          />
+                        </div>
+
+                        {item.giftIdea.imageFilename && (
+                          <label className="flex items-center gap-2 text-sm">
+                            <input type="checkbox" name="removeImage" />
+                            Quitar imagen actual
+                          </label>
+                        )}
+
+                        <details className="rounded-xl border border-muted p-3">
+                          <summary className="cursor-pointer font-medium text-primary">
+                            Temáticas
+                          </summary>
+                          {interestsError && (
+                            <ErrorState message={interestsError} />
+                          )}
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {[
+                              ...new Set([
+                                ...availableInterests,
+                                ...item.giftIdea.interests,
+                              ]),
+                            ].map((interest) => (
+                              <label
+                                key={interest}
+                                className="flex items-center gap-2 text-sm"
+                              >
+                                <input
+                                  type="checkbox"
+                                  name="interests"
+                                  value={interest}
+                                  defaultChecked={item.giftIdea.interests.includes(
+                                    interest,
+                                  )}
+                                  style={{
+                                    accentColor:
+                                      getInterestAccentColor(interest),
+                                  }}
+                                />
+                                {INTEREST_LABELS[interest] ?? interest}
+                              </label>
+                            ))}
+                          </div>
+                        </details>
+                        {editError && <ErrorState message={editError} />}
+                        <Button
+                          type="submit"
+                          className="w-full"
+                          disabled={savingGiftIdeaId !== null}
+                        >
+                          {savingGiftIdeaId === item.giftIdea.id
+                            ? "Guardando..."
+                            : "Guardar cambios de la idea"}
+                        </Button>
+                      </form>
+                    )}
+                  <Button
                     type="button"
-                    className="min-h-11 min-w-0 flex-1 rounded-xl border border-error bg-surface px-4 py-2 text-sm font-medium text-error focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error"
-                    onClick={() => void removeLibraryItem(item.id)}
+                    className="mb-2 w-full"
+                    onClick={() => {
+                      setSelectedPersonId("");
+                      setAssignmentError("");
+                      setAssignmentSuccess("");
+                      setAssigningGiftIdeaId((current) =>
+                        current === item.giftIdea.id ? null : item.giftIdea.id,
+                      );
+                    }}
                   >
-                    Eliminar de la biblioteca
-                  </button>
-                </div>
-              </Card>
-            </li>
-          ))}
-        </ul>
+                    {assigningGiftIdeaId === item.giftIdea.id
+                      ? "Cancelar asignación"
+                      : "Asignar a persona"}
+                  </Button>
+                  {assigningGiftIdeaId === item.giftIdea.id && (
+                    <div className="mb-3">
+                      {isLoadingPeople && <p>Cargando personas...</p>}
+                      {!isLoadingPeople && peopleError && (
+                        <ErrorState message={peopleError} />
+                      )}
+                      {!isLoadingPeople &&
+                        !peopleError &&
+                        people.length === 0 && (
+                          <p>Aún no tienes personas añadidas.</p>
+                        )}
+                      {!isLoadingPeople &&
+                        !peopleError &&
+                        people.length > 0 && (
+                          <div className="grid gap-2">
+                            <label className="block text-sm font-medium">
+                              Persona
+                              <select
+                                className="mt-1 block w-full rounded-xl border border-muted bg-surface p-3"
+                                value={selectedPersonId}
+                                onChange={(event) =>
+                                  setSelectedPersonId(event.target.value)
+                                }
+                              >
+                                <option value="">Elige una persona</option>
+                                {people.map((person) => (
+                                  <option key={person.id} value={person.id}>
+                                    {person.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            <Button
+                              type="button"
+                              disabled={!selectedPersonId || isAssigning}
+                              onClick={() =>
+                                void handleAssign(item.giftIdea.id)
+                              }
+                            >
+                              {isAssigning
+                                ? "Asignando..."
+                                : "Guardar asignación"}
+                            </Button>
+                          </div>
+                        )}
+                    </div>
+                  )}
+                  <div className="mt-auto flex min-h-14 gap-2">
+                    {item.canEditGiftIdea && (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="min-w-0 flex-1 text-sm"
+                        onClick={() => {
+                          setEditError("");
+                          setEditingGiftIdeaId((current) =>
+                            current === item.giftIdea.id
+                              ? null
+                              : item.giftIdea.id,
+                          );
+                        }}
+                      >
+                        {editingGiftIdeaId === item.giftIdea.id
+                          ? "Cancelar edición"
+                          : "Editar idea de regalo"}
+                      </Button>
+                    )}
+                    <button
+                      type="button"
+                      className="min-h-11 min-w-0 flex-1 rounded-xl border border-error bg-surface px-4 py-2 text-sm font-medium text-error focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error"
+                      onClick={() => void removeLibraryItem(item.id)}
+                    >
+                      Eliminar de la biblioteca
+                    </button>
+                  </div>
+                </Card>
+              </li>
+            ))}
+          </ul>
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        </GiftIdeaFilters>
       )}
     </main>
   );
