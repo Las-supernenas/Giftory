@@ -10,10 +10,7 @@ export class UpdateGiftIdeaImageUseCase {
       throw new EntityNotFoundError('GiftIdea', String(giftIdeaId));
     }
 
-    const updated = await this.giftIdeaRepository.updateImageFilename(
-      giftIdeaId,
-      imageFilename,
-    );
+    const updated = await this.giftIdeaRepository.updateImageFilename(giftIdeaId, imageFilename);
 
     return { giftIdea: updated, previousImageFilename: giftIdea.imageFilename };
   }
