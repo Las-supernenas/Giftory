@@ -39,6 +39,21 @@ export const personIdSchema = z.coerce
   .int('Invali person id.')
   .positive('Invalid person id.');
 
+// POST /api/people/:id/recommendations: every preference is optional
+export const recommendationRequestSchema = z.object({
+  budget: z
+    .number({ error: 'El presupuesto debe ser un número.' })
+    .positive('El presupuesto debe ser mayor que 0.')
+    .optional(),
+  ageRange: z.string({ error: 'El rango de edad debe ser un texto.' }).trim().optional(),
+  occasion: z.string({ error: 'La ocasión debe ser un texto.' }).trim().optional(),
+  additionalInfo: z
+    .string({ error: 'La información adicional debe ser un texto.' })
+    .trim()
+    .max(1000, 'La información adicional puede tener como máximo 1000 caracteres.')
+    .optional(),
+});
+
 // Shape of a person in a API response
 //userId is not returned
 
