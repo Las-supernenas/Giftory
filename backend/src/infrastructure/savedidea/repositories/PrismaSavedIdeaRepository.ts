@@ -23,6 +23,9 @@ export class PrismaSavedIdeaRepository implements SavedIdeaRepository {
         name: row.giftIdea.name,
         price: row.giftIdea.price.toNumber(),
         interests: row.giftIdea.interests,
+        description: row.giftIdea.description,
+        productUrl: row.giftIdea.productUrl,
+        imageFilename: row.giftIdea.imageFilename,
         userId: row.giftIdea.userId,
         deletedAt: row.giftIdea.deletedAt,
       });
@@ -55,6 +58,9 @@ export class PrismaSavedIdeaRepository implements SavedIdeaRepository {
         name: row.giftIdea.name,
         price: row.giftIdea.price.toNumber(),
         interests: row.giftIdea.interests,
+        description: row.giftIdea.description,
+        productUrl: row.giftIdea.productUrl,
+        imageFilename: row.giftIdea.imageFilename,
         userId: row.giftIdea.userId,
         deletedAt: row.giftIdea.deletedAt,
       });
@@ -84,6 +90,9 @@ export class PrismaSavedIdeaRepository implements SavedIdeaRepository {
       name: row.giftIdea.name,
       price: row.giftIdea.price.toNumber(),
       interests: row.giftIdea.interests,
+      description: row.giftIdea.description,
+      productUrl: row.giftIdea.productUrl,
+      imageFilename: row.giftIdea.imageFilename,
       userId: row.giftIdea.userId,
       deletedAt: row.giftIdea.deletedAt,
     });
@@ -108,6 +117,9 @@ export class PrismaSavedIdeaRepository implements SavedIdeaRepository {
         name: row.giftIdea.name,
         price: row.giftIdea.price.toNumber(),
         interests: row.giftIdea.interests,
+        description: row.giftIdea.description,
+        productUrl: row.giftIdea.productUrl,
+        imageFilename: row.giftIdea.imageFilename,
         userId: row.giftIdea.userId,
         deletedAt: row.giftIdea.deletedAt,
       });

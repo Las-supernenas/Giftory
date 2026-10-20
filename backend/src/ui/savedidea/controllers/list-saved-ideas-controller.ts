@@ -27,6 +27,9 @@ export const createListSavedIdeasController =
             name: item.giftIdea.name,
             price: item.giftIdea.price,
             interests: item.giftIdea.interests,
+            description: item.giftIdea.description,
+            productUrl: item.giftIdea.productUrl,
+            imageFilename: item.giftIdea.imageFilename,
           },
         })),
       );

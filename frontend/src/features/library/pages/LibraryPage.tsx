@@ -10,7 +10,11 @@ import {
   getInterestColorStyle,
 } from "../../shared/interest-colors";
 import { getInterests } from "../../shared/services/interests-service";
-import { updateGiftIdea } from "../../../api/giftidea";
+import {
+  deleteGiftIdeaImage,
+  updateGiftIdea,
+  uploadGiftIdeaImage,
+} from "../../../api/giftidea";
 import { getPeople } from "../../people/services/people-service";
 import { addSavedIdea } from "../../savedideas/services/savedideas-service";
 
@@ -22,6 +26,9 @@ type LibraryItemResponse = {
     name: string;
     price: number;
     interests: string[];
+    description: string | null;
+    productUrl: string | null;
+    imageFilename: string | null;
   };
 };
 
@@ -98,6 +105,22 @@ function LibraryPage() {
   ) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
+    const selectedImage = formData.get("image");
+    const imageFile =
+      selectedImage instanceof File && selectedImage.size > 0
+        ? selectedImage
+        : null;
+
+    if (
+      imageFile &&
+      (imageFile.size > 5 * 1024 * 1024 ||
+        !["image/jpeg", "image/png", "image/webp"].includes(imageFile.type))
+    ) {
+      setEditError(
+        "La imagen debe ser JPG, PNG o WebP y pesar como máximo 5 MB.",
+      );
+      return;
+    }
 
     setSavingGiftIdeaId(giftIdeaId);
     setEditError("");
@@ -106,6 +129,8 @@ function LibraryPage() {
         name: String(formData.get("name") ?? "").trim(),
         price: Number(formData.get("price")),
         interests: formData.getAll("interests").map(String),
+        description: String(formData.get("description") ?? "").trim(),
+        productUrl: String(formData.get("productUrl") ?? "").trim(),
       });
       setLibraryItems((current) =>
         current.map((item) =>
@@ -114,6 +139,44 @@ function LibraryPage() {
             : item,
         ),
       );
+      if (imageFile) {
+        try {
+          const { imageFilename } = await uploadGiftIdeaImage(
+            giftIdeaId,
+            imageFile,
+          );
+          setLibraryItems((current) =>
+            current.map((item) =>
+              item.giftIdea.id === giftIdeaId
+                ? {
+                    ...item,
+                    giftIdea: { ...item.giftIdea, imageFilename },
+                  }
+                : item,
+            ),
+          );
+        } catch {
+          setEditError("La idea se guardó, pero no se pudo subir la imagen.");
+          return;
+        }
+      } else if (formData.get("removeImage") === "on") {
+        try {
+          await deleteGiftIdeaImage(giftIdeaId);
+          setLibraryItems((current) =>
+            current.map((item) =>
+              item.giftIdea.id === giftIdeaId
+                ? {
+                    ...item,
+                    giftIdea: { ...item.giftIdea, imageFilename: null },
+                  }
+                : item,
+            ),
+          );
+        } catch {
+          setEditError("La idea se guardó, pero no se pudo quitar la imagen.");
+          return;
+        }
+      }
       setEditingGiftIdeaId(null);
     } catch {
       setEditError("No se pudo actualizar la idea de regalo.");
@@ -172,7 +235,6 @@ function LibraryPage() {
         </p>
       )}
       {errorMessage && <ErrorState message={errorMessage} />}
-      {editError && <ErrorState message={editError} />}
       {assignmentError && <ErrorState message={assignmentError} />}
       {assignmentSuccess && (
         <p role="status" className="text-sm text-primary">
@@ -186,13 +248,57 @@ function LibraryPage() {
         <ul className="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
           {libraryItems.map((item) => (
             <li key={item.id}>
-              <Card className="box-border flex flex-col border-accent-gold/60! sm:h-full">
+              <Card
+                className={`box-border flex flex-col border-accent-gold/60! ${editingGiftIdeaId === null ? "sm:h-full" : ""}`}
+              >
                 <h2 className="mt-0 mb-2 text-lg font-semibold text-primary">
                   {item.giftIdea.name}
                 </h2>
+                {item.giftIdea.imageFilename && (
+                  <img
+                    src={`/api/giftideas/images/${encodeURIComponent(item.giftIdea.imageFilename)}`}
+                    alt={`Imagen de ${item.giftIdea.name}`}
+                    loading="lazy"
+                    className="mb-3 aspect-video w-full rounded-xl object-cover"
+                  />
+                )}
+                {!item.giftIdea.imageFilename && (
+                  <div className="mb-3 flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-xl bg-accent-lavender/20 text-sm text-muted">
+                    <svg
+                      aria-hidden="true"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.7"
+                      className="h-7 w-7 text-primary"
+                    >
+                      <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" />
+                      <circle cx="9" cy="10" r="1.5" className="text-accent-gold" />
+                      <path d="m5 17 4.5-4 3 2.5 2.5-2 4 3.5" className="text-accent-gold" />
+                    </svg>
+                    <span>Sin imagen</span>
+                  </div>
+                )}
                 <p className="mt-0 mb-2 text-sm text-muted">
                   {item.giftIdea.price} €
                 </p>
+                {item.giftIdea.description && (
+                  <p className="mb-3 whitespace-pre-wrap break-words text-sm text-foreground">
+                    {item.giftIdea.description}
+                  </p>
+                )}
+                {item.giftIdea.productUrl && (
+                  <a
+                    href={item.giftIdea.productUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mb-3 flex min-h-11 w-fit max-w-full items-center self-start gap-2 text-sm font-semibold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  >
+                    <span aria-hidden="true">🎁</span>
+                    Dónde encontrarlo
+                    <span aria-hidden="true" className="text-accent-gold">↗</span>
+                  </a>
+                )}
                 <div className="mb-4 flex flex-wrap gap-2">
                   {item.giftIdea.interests.map((interest) => (
                     <span
@@ -229,6 +335,50 @@ function LibraryPage() {
                         defaultValue={item.giftIdea.price}
                         required
                       />
+
+                      <label
+                        className="block text-sm text-primary"
+                        htmlFor={`library-idea-description-${item.id}`}
+                      >
+                        Descripción pública
+                      </label>
+                      <textarea
+                        id={`library-idea-description-${item.id}`}
+                        name="description"
+                        defaultValue={item.giftIdea.description ?? ""}
+                        className="block w-full box-border rounded-xl border border-muted p-3"
+                      />
+                      <Input
+                        id={`library-idea-product-url-${item.id}`}
+                        name="productUrl"
+                        label="Enlace del producto"
+                        type="url"
+                        defaultValue={item.giftIdea.productUrl ?? ""}
+                      />
+
+                      <div>
+                        <label
+                          htmlFor={`gift-image-${item.id}`}
+                          className="mb-2 block text-sm font-medium text-foreground"
+                        >
+                          Imagen del regalo
+                        </label>
+                        <input
+                          id={`gift-image-${item.id}`}
+                          name="image"
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          className="block w-full min-w-0 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-xl file:border-0 file:bg-accent-lavender file:px-4 file:py-2 file:font-medium file:text-foreground"
+                        />
+                      </div>
+
+                      {item.giftIdea.imageFilename && (
+                        <label className="flex items-center gap-2 text-sm">
+                          <input type="checkbox" name="removeImage" />
+                          Quitar imagen actual
+                        </label>
+                      )}
+
                       <details className="rounded-xl border border-muted p-3">
                         <summary className="cursor-pointer font-medium text-primary">
                           Temáticas
@@ -263,8 +413,10 @@ function LibraryPage() {
                           ))}
                         </div>
                       </details>
+                      {editError && <ErrorState message={editError} />}
                       <Button
                         type="submit"
+                        className="w-full"
                         disabled={savingGiftIdeaId !== null}
                       >
                         {savingGiftIdeaId === item.giftIdea.id

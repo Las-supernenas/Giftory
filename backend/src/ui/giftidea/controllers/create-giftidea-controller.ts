@@ -20,6 +20,8 @@ export const createGiftIdeaSchema = z.object({
       error: 'Interests must be a list.',
     })
     .optional(),
+  description: z.string().nullable().optional(),
+  productUrl: z.string().nullable().optional(),
 });
 
 export const createCreateGiftIdeaController =
@@ -38,6 +40,8 @@ export const createCreateGiftIdeaController =
         name: result.data.name,
         price: result.data.price,
         interests: result.data.interests ?? [],
+        description: result.data.description,
+        productUrl: result.data.productUrl,
       });
 
       res.status(201).json({
@@ -45,6 +49,9 @@ export const createCreateGiftIdeaController =
         name: giftIdea.name,
         price: giftIdea.price,
         interests: giftIdea.interests,
+        description: giftIdea.description,
+        productUrl: giftIdea.productUrl,
+        imageFilename: giftIdea.imageFilename,
       });
     } catch (error) {
       next(error);

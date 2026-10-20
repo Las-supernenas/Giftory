@@ -6,6 +6,9 @@ export type LibraryItem = {
     name: string;
     price: number;
     interests: string[];
+    description: string | null;
+    productUrl: string | null;
+    imageFilename: string | null;
   };
 };
 

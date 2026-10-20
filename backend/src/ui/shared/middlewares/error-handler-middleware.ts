@@ -4,6 +4,7 @@ import { EntityNotFoundError } from '../../../domain/errors/EntityNotFoundError'
 import { ForbiddenOperationError } from '../../../domain/errors/ForbiddenOperationError';
 import { UnauthorizedError } from '../../../domain/errors/UnauthorizedError';
 import { ValidationError } from '../../../domain/errors/ValidationError';
+import multer from 'multer';
 
 //Translates domain errors into HTTP responses
 
@@ -15,7 +16,14 @@ export const errorHandlerMiddleware = (
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   next: NextFunction,
 ) => {
-  if (error instanceof ValidationError) {
+  if (error instanceof multer.MulterError) {
+    res.status(400).json({
+      error:
+        error.code === 'LIMIT_FILE_SIZE'
+          ? 'La imagen no puede superar 5 MB.'
+          : 'No se pudo subir la imagen.',
+    });
+  } else if (error instanceof ValidationError) {
     res.status(400).json({ error: error.message });
   } else if (error instanceof UnauthorizedError) {
     res.status(401).json({ error: error.message });

@@ -20,6 +20,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - giftidea_images:/app/uploads/giftideas
     restart: unless-stopped
 
   db:
@@ -43,3 +45,5 @@ services:
 
 volumes:
   postgres_data:
+  giftidea_images:
+    name: giftory_giftidea_images

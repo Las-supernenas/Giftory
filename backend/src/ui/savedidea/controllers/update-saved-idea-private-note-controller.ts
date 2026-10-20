@@ -42,6 +42,9 @@ export const createUpdateSavedIdeaPrivateNoteController =
           name: savedIdea.giftIdea.name,
           price: savedIdea.giftIdea.price,
           interests: savedIdea.giftIdea.interests,
+          description: savedIdea.giftIdea.description,
+          productUrl: savedIdea.giftIdea.productUrl,
+          imageFilename: savedIdea.giftIdea.imageFilename,
         },
       });
     } catch (error) {

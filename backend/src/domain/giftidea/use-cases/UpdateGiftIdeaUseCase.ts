@@ -10,6 +10,8 @@ export interface UpdateGiftIdeaUseCaseInput {
   name: string;
   price: number;
   interests: Interest[];
+  description?: string | null;
+  productUrl?: string | null;
 }
 
 export class UpdateGiftIdeaUseCase {
@@ -24,6 +26,11 @@ export class UpdateGiftIdeaUseCase {
 
     const name = input.name.trim();
 
+    const description =
+      input.description === undefined ? undefined : input.description?.trim() || null;
+    const productUrl =
+      input.productUrl === undefined ? undefined : input.productUrl?.trim() || null;
+
     if (!name) {
       throw new ValidationError('Name is required.');
     }
@@ -32,10 +39,23 @@ export class UpdateGiftIdeaUseCase {
       throw new ValidationError('Price must be a non-negative number.');
     }
 
+    if (productUrl) {
+      try {
+        const url = new URL(productUrl);
+        if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+          throw new Error('Unsupported protocol');
+        }
+      } catch {
+        throw new ValidationError('Product URL must be a valid http or https URL.');
+      }
+    }
+
     return this.giftIdeaRepository.update(giftIdea.id, {
       name: name,
       price: input.price,
       interests: [...new Set(input.interests)],
+      description,
+      productUrl,
     });
   }
 }

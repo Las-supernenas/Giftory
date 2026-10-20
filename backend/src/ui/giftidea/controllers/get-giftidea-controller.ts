@@ -24,6 +24,9 @@ export const createGetGiftIdeaController =
         name: giftIdea.name,
         price: giftIdea.price,
         interests: giftIdea.interests,
+        description: giftIdea.description,
+        productUrl: giftIdea.productUrl,
+        imageFilename: giftIdea.imageFilename,
       });
     } catch (error) {
       next(error);

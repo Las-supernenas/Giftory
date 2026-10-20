@@ -6,12 +6,18 @@ export interface CreateGiftIdeaData {
   name: string;
   price: number;
   interests: Interest[];
+  description?: string | null;
+  productUrl?: string | null;
+  imageFilename?: string | null;
 }
 
 export interface UpdateGiftIdeaData {
   name: string;
   price: number;
   interests: Interest[];
+  description?: string | null;
+  productUrl?: string | null;
+  imageFilename?: string | null;
 }
 
 export interface GiftIdeaRepository {
@@ -19,4 +25,5 @@ export interface GiftIdeaRepository {
   findAll(): Promise<GiftIdea[]>;
   create(data: CreateGiftIdeaData): Promise<GiftIdea>;
   update(id: number, data: UpdateGiftIdeaData): Promise<GiftIdea>;
+  updateImageFilename(id: number, imageFilename: string | null): Promise<GiftIdea>;
 }

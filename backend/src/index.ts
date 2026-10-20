@@ -29,6 +29,7 @@ import { ListSavedIdeasUseCase } from './domain/savedidea/use-cases/ListSavedIde
 import { AddSavedIdeaUseCase } from './domain/savedidea/use-cases/AddSavedIdeaUseCase';
 import { DeleteSavedIdeaUseCase } from './domain/savedidea/use-cases/DeleteSavedIdeaUseCase';
 import { UpdateSavedIdeaPrivateNoteUseCase } from './domain/savedidea/use-cases/UpdateSavedIdeaPrivateNoteUseCase';
+import { UpdateGiftIdeaImageUseCase } from './domain/giftidea/use-cases/UpdateGiftIdeaImageUseCase';
 
 environmentService.load();
 const { PORT, JWT_SECRET, COOKIE_SECURE } = environmentService.get();
@@ -77,6 +78,7 @@ const updatePrivateNoteUseCase = new UpdateSavedIdeaPrivateNoteUseCase(
   personRepository,
   savedIdeaRepository,
 );
+const updateGiftIdeaImageUseCase = new UpdateGiftIdeaImageUseCase(giftIdeaRepository);
 
 const api = createApi({
   registerUserUseCase,
@@ -102,6 +104,7 @@ const api = createApi({
   addSavedIdeaUseCase,
   deleteSavedIdeaUseCase,
   updatePrivateNoteUseCase,
+  updateGiftIdeaImageUseCase,
 });
 
 api.listen(PORT, '0.0.0.0', () => {

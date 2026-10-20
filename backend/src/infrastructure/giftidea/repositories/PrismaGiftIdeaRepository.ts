@@ -18,6 +18,9 @@ export class PrismaGiftIdeaRepository implements GiftIdeaRepository {
         name: data.name,
         price: data.price,
         interests: data.interests,
+        description: data.description,
+        productUrl: data.productUrl,
+        imageFilename: data.imageFilename,
       },
     });
 
@@ -31,7 +34,19 @@ export class PrismaGiftIdeaRepository implements GiftIdeaRepository {
         name: data.name,
         price: data.price,
         interests: data.interests,
+        description: data.description,
+        productUrl: data.productUrl,
+        imageFilename: data.imageFilename,
       },
+    });
+
+    return this.restore(row);
+  }
+
+  async updateImageFilename(id: number, imageFilename: string | null): Promise<GiftIdea> {
+    const row = await this.prisma.giftIdea.update({
+      where: { id },
+      data: { imageFilename },
     });
 
     return this.restore(row);
@@ -64,6 +79,9 @@ export class PrismaGiftIdeaRepository implements GiftIdeaRepository {
       price: prismaGiftIdea.price.toNumber(),
       userId: prismaGiftIdea.userId,
       interests: prismaGiftIdea.interests,
+      description: prismaGiftIdea.description,
+      productUrl: prismaGiftIdea.productUrl,
+      imageFilename: prismaGiftIdea.imageFilename,
       deletedAt: prismaGiftIdea.deletedAt,
     });
   }

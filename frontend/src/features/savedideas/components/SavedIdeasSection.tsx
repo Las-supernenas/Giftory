@@ -11,7 +11,12 @@ import { EmptyState } from "../../shared/components/EmptyState";
 import { Card } from "../../shared/components/Card";
 import { Button } from "../../shared/components/Button";
 import { useEffect, useState, type SubmitEvent } from "react";
-import { updateGiftIdea, type GiftIdea } from "../../../api/giftidea";
+import {
+  deleteGiftIdeaImage,
+  updateGiftIdea,
+  uploadGiftIdeaImage,
+  type GiftIdea,
+} from "../../../api/giftidea";
 import { getLibraryItems } from "../../library/services/library-service";
 import { Input } from "../../shared/components/Input";
 import { INTEREST_LABELS } from "../../shared/types/person";
@@ -34,6 +39,7 @@ export function SavedIdeasSection({
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [savingNoteId, setSavingNoteId] = useState<number | null>(null);
   const [actionError, setActionError] = useState("");
+  const [giftIdeaEditError, setGiftIdeaEditError] = useState("");
   const [giftIdeas, setGiftIdeas] = useState<GiftIdea[]>([]);
   const [isLoadingGiftIdeas, setIsLoadingGiftIdeas] = useState(true);
   const [giftIdeasError, setGiftIdeasError] = useState("");
@@ -151,15 +157,35 @@ export function SavedIdeasSection({
     const name = String(formData.get("name") ?? "").trim();
     const price = Number(formData.get("price"));
     const interests = formData.getAll("interests").map(String);
+    const description = String(formData.get("description") ?? "").trim();
+    const productUrl = String(formData.get("productUrl") ?? "").trim();
+    const selectedImage = formData.get("image");
+    const imageFile =
+      selectedImage instanceof File && selectedImage.size > 0
+        ? selectedImage
+        : null;
+
+    if (
+      imageFile &&
+      (imageFile.size > 5 * 1024 * 1024 ||
+        !["image/jpeg", "image/png", "image/webp"].includes(imageFile.type))
+    ) {
+      setGiftIdeaEditError(
+        "La imagen debe ser JPG, PNG o WebP y pesar como máximo 5 MB.",
+      );
+      return;
+    }
 
     setSavingGiftIdeaId(giftIdeaId);
-    setActionError("");
+    setGiftIdeaEditError("");
 
     try {
       const updated = await updateGiftIdea(giftIdeaId, {
         name,
         price,
         interests,
+        description,
+        productUrl,
       });
 
       setSavedIdeas((current) =>
@@ -172,9 +198,61 @@ export function SavedIdeasSection({
       setGiftIdeas((current) =>
         current.map((idea) => (idea.id === giftIdeaId ? updated : idea)),
       );
+
+      if (imageFile) {
+        try {
+          const { imageFilename } = await uploadGiftIdeaImage(
+            giftIdeaId,
+            imageFile,
+          );
+          setSavedIdeas((current) =>
+            current.map((item) =>
+              item.giftIdea.id === giftIdeaId
+                ? {
+                    ...item,
+                    giftIdea: { ...item.giftIdea, imageFilename },
+                  }
+                : item,
+            ),
+          );
+          setGiftIdeas((current) =>
+            current.map((idea) =>
+              idea.id === giftIdeaId ? { ...idea, imageFilename } : idea,
+            ),
+          );
+        } catch (error) {
+          setGiftIdeaEditError(
+            `La idea se guardó, pero la imagen no se subió: ${error instanceof Error ? error.message : "Inténtalo de nuevo."}`,
+          );
+          return;
+        }
+      } else if (formData.get("removeImage") === "on") {
+        try {
+          await deleteGiftIdeaImage(giftIdeaId);
+          setSavedIdeas((current) =>
+            current.map((item) =>
+              item.giftIdea.id === giftIdeaId
+                ? {
+                    ...item,
+                    giftIdea: { ...item.giftIdea, imageFilename: null },
+                  }
+                : item,
+            ),
+          );
+          setGiftIdeas((current) =>
+            current.map((idea) =>
+              idea.id === giftIdeaId ? { ...idea, imageFilename: null } : idea,
+            ),
+          );
+        } catch {
+          setGiftIdeaEditError("La idea se guardó, pero no se pudo quitar la imagen.");
+          return;
+        }
+      }
+
       setEditingGiftIdeaId(null);
     } catch {
-      setActionError("No se pudo actualizar la idea de regalo.");
+      setGiftIdeaEditError("No se pudo actualizar la idea de regalo.");
     } finally {
       setSavingGiftIdeaId(null);
     }
@@ -241,26 +319,50 @@ export function SavedIdeasSection({
                 <h3 className="m-0 text-lg font-semibold text-primary">
                   {savedIdea.giftIdea.name}
                 </h3>
+                {savedIdea.giftIdea.imageFilename && (
+                  <img
+                    src={`/api/giftideas/images/${encodeURIComponent(savedIdea.giftIdea.imageFilename)}`}
+                    alt={`Imagen de ${savedIdea.giftIdea.name}`}
+                    loading="lazy"
+                    className="mb-3 aspect-video w-full rounded-xl object-cover"
+                  />
+                )}
+                {!savedIdea.giftIdea.imageFilename && (
+                  <div className="mb-3 flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-xl bg-accent-lavender/20 text-sm text-muted">
+                    <svg
+                      aria-hidden="true"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.7"
+                      className="h-7 w-7 text-primary"
+                    >
+                      <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" />
+                      <circle cx="9" cy="10" r="1.5" className="text-accent-gold" />
+                      <path d="m5 17 4.5-4 3 2.5 2.5-2 4 3.5" className="text-accent-gold" />
+                    </svg>
+                    <span>Sin imagen</span>
+                  </div>
+                )}
                 <p className="mt-1 mb-4 text-sm text-muted">
                   {savedIdea.giftIdea.price} €
                 </p>
-                {savedIdea.canEditGiftIdea && (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    className="mb-3"
-                    onClick={() =>
-                      setEditingGiftIdeaId((current) =>
-                        current === savedIdea.giftIdea.id
-                          ? null
-                          : savedIdea.giftIdea.id,
-                      )
-                    }
+                {savedIdea.giftIdea.description && (
+                  <p className="mb-3 whitespace-pre-wrap break-words text-sm text-foreground">
+                    {savedIdea.giftIdea.description}
+                  </p>
+                )}
+                {savedIdea.giftIdea.productUrl && (
+                  <a
+                    href={savedIdea.giftIdea.productUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mb-3 flex min-h-11 w-fit max-w-full items-center gap-2 text-sm font-semibold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
-                    {editingGiftIdeaId === savedIdea.giftIdea.id
-                      ? "Cancelar edición"
-                      : "Editar idea de regalo"}
-                  </Button>
+                    <span aria-hidden="true">🎁</span>
+                    Dónde encontrarlo
+                    <span aria-hidden="true" className="text-accent-gold">↗</span>
+                  </a>
                 )}
                 {editingGiftIdeaId === savedIdea.giftIdea.id && (
                   <form
@@ -287,6 +389,49 @@ export function SavedIdeasSection({
                       defaultValue={savedIdea.giftIdea.price}
                       required
                     />
+
+                    <label
+                      className="block text-sm text-primary"
+                      htmlFor={`idea-description-${savedIdea.id}`}
+                    >
+                      Descripción pública
+                    </label>
+                    <textarea
+                      id={`idea-description-${savedIdea.id}`}
+                      name="description"
+                      defaultValue={savedIdea.giftIdea.description ?? ""}
+                      className="block w-full box-border rounded-xl border border-muted p-3"
+                    />
+                    <Input
+                      id={`idea-product-url-${savedIdea.id}`}
+                      name="productUrl"
+                      label="Enlace del producto"
+                      type="url"
+                      defaultValue={savedIdea.giftIdea.productUrl ?? ""}
+                    />
+
+                    <div>
+                      <label
+                        htmlFor={`idea-image-${savedIdea.id}`}
+                        className="mb-2 block text-sm font-medium text-foreground"
+                      >
+                        Imagen del regalo
+                      </label>
+                      <input
+                        id={`idea-image-${savedIdea.id}`}
+                        name="image"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="block w-full min-w-0 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-xl file:border-0 file:bg-accent-lavender file:px-4 file:py-2 file:font-medium file:text-foreground"
+                      />
+                    </div>
+
+                    {savedIdea.giftIdea.imageFilename && (
+                      <label className="flex items-center gap-2 text-sm">
+                        <input type="checkbox" name="removeImage" />
+                        Quitar imagen actual
+                      </label>
+                    )}
 
                     <details className="rounded-xl border border-muted p-3">
                       <summary className="cursor-pointer font-medium text-primary">
@@ -320,7 +465,14 @@ export function SavedIdeasSection({
                       </div>
                     </details>
 
-                    <Button type="submit" disabled={savingGiftIdeaId !== null}>
+                    {giftIdeaEditError && (
+                      <ErrorState message={giftIdeaEditError} />
+                    )}
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      disabled={savingGiftIdeaId !== null}
+                    >
                       {savingGiftIdeaId === savedIdea.giftIdea.id
                         ? "Guardando..."
                         : "Guardar cambios de la idea"}
@@ -347,14 +499,33 @@ export function SavedIdeasSection({
                         : "Guardar nota"}
                   </Button>
                 </form>
-                <button
-                  type="button"
-                  className="mt-3 min-h-11 rounded-xl border border-error bg-surface px-4 py-2 font-medium text-error focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={deletingId !== null}
-                  onClick={() => void handleDelete(savedIdea.id)}
-                >
-                  {deletingId === savedIdea.id ? "Quitando..." : "Quitar idea"}
-                </button>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {savedIdea.canEditGiftIdea && (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() =>
+                        setEditingGiftIdeaId((current) =>
+                          current === savedIdea.giftIdea.id
+                            ? null
+                            : savedIdea.giftIdea.id,
+                        )
+                      }
+                    >
+                      {editingGiftIdeaId === savedIdea.giftIdea.id
+                        ? "Cancelar edición"
+                        : "Editar idea de regalo"}
+                    </Button>
+                  )}
+                  <button
+                    type="button"
+                    className="min-h-11 rounded-xl border border-error bg-surface px-4 py-2 font-medium text-error focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={deletingId !== null}
+                    onClick={() => void handleDelete(savedIdea.id)}
+                  >
+                    {deletingId === savedIdea.id ? "Quitando..." : "Quitar idea"}
+                  </button>
+                </div>
               </Card>
             </li>
           ))}

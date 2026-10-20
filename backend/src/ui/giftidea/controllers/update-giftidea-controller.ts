@@ -26,6 +26,8 @@ export const createUpdateGiftIdeaController =
         name: bodyResult.data.name,
         price: bodyResult.data.price,
         interests: bodyResult.data.interests ?? [],
+        description: bodyResult.data.description,
+        productUrl: bodyResult.data.productUrl,
       });
 
       res.status(200).json({
@@ -33,6 +35,9 @@ export const createUpdateGiftIdeaController =
         name: giftIdea.name,
         price: giftIdea.price,
         interests: giftIdea.interests,
+        description: giftIdea.description,
+        productUrl: giftIdea.productUrl,
+        imageFilename: giftIdea.imageFilename,
       });
     } catch (error) {
       next(error);
