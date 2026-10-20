@@ -23,14 +23,18 @@ import { ListEventsUseCase } from './domain/event/use-cases/ListEventsUseCase';
 import { CreateEventUseCase } from './domain/event/use-cases/CreateEventUseCase';
 import { UpdateEventUseCase } from './domain/event/use-cases/UpdateEventUseCase';
 import { DeleteEventUseCase } from './domain/event/use-cases/DeleteEventUseCase';
+import { SendEventRemindersUseCase } from './domain/event/use-cases/SendEventRemindersUseCase';
 import { PrismaSavedIdeaRepository } from './infrastructure/savedidea/repositories/PrismaSavedIdeaRepository';
 import { ListSavedIdeasUseCase } from './domain/savedidea/use-cases/ListSavedIdeasUseCase';
 import { AddSavedIdeaUseCase } from './domain/savedidea/use-cases/AddSavedIdeaUseCase';
 import { DeleteSavedIdeaUseCase } from './domain/savedidea/use-cases/DeleteSavedIdeaUseCase';
 import { UpdateSavedIdeaPrivateNoteUseCase } from './domain/savedidea/use-cases/UpdateSavedIdeaPrivateNoteUseCase';
+import { MailgunEmailService } from './infrastructure/services/MailgunEmailService';
+import { startEventReminderScheduler } from './infrastructure/schedulers/eventReminderScheduler';
 
 environmentService.load();
-const { PORT, JWT_SECRET, COOKIE_SECURE } = environmentService.get();
+const { PORT, JWT_SECRET, COOKIE_SECURE, MAILGUN_API_KEY, MAILGUN_DOMAIN } =
+  environmentService.get();
 
 // composition root: here we create the real implementatios
 
@@ -75,6 +79,20 @@ const updatePrivateNoteUseCase = new UpdateSavedIdeaPrivateNoteUseCase(
   personRepository,
   savedIdeaRepository,
 );
+
+
+const emailService = new MailgunEmailService(
+  MAILGUN_API_KEY,
+  MAILGUN_DOMAIN,
+);
+
+const sendEventRemindersUseCase = new SendEventRemindersUseCase(
+  eventRepository,
+  emailService,
+);
+
+startEventReminderScheduler(sendEventRemindersUseCase);
+
 
 const api = createApi({
   registerUserUseCase,

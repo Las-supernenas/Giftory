@@ -110,10 +110,11 @@ model Person {
 // ==========================================
 
 model Event {
-  id       Int      @id @default(autoincrement())
-  name     String
-  date     DateTime @db.Date
-  personId Int
+  id             Int       @id @default(autoincrement())
+  name           String
+  date           DateTime  @db.Date
+  personId       Int
+  reminderSentAt DateTime?
 
   person Person @relation(fields: [personId], references: [id])
 

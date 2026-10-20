@@ -4,7 +4,7 @@ import { Event } from '../../../domain/event/Event';
 import {
   CreateEventData,
   EventRepository,
-  UpdateEventData,
+  UpdateEventData, EventReminder
 } from '../../../domain/event/repositories/EventRepository';
 
 //Adapter: implements the EventRepository port with Prisma
@@ -61,6 +61,47 @@ export class PrismaEventRepository implements EventRepository {
 
   async delete(id: number): Promise<void> {
     await this.prisma.event.delete({ where: { id } });
+  }
+
+  async findPendingRemindersByDate(
+    date: string,
+  ): Promise<EventReminder[]> {
+    const prismaEvents = await this.prisma.event.findMany({
+      where: {
+        date: this.toDatabaseDate(date),
+        reminderSentAt: null,
+        person: {
+          deletedAt: null,
+        },
+      },
+      include: {
+        person: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    return prismaEvents.map((prismaEvent) => ({
+      eventId: prismaEvent.id,
+      eventName: prismaEvent.name,
+      eventDate: this.toDomainDate(prismaEvent.date),
+      personName: prismaEvent.person.name,
+      userName: prismaEvent.person.user.name,
+      userEmail: prismaEvent.person.user.email,
+    }));
+  }
+
+  async markReminderSent(eventId: number): Promise<void> {
+    await this.prisma.event.update({
+      where: {
+        id: eventId,
+      },
+      data: {
+        reminderSentAt: new Date(),
+      },
+    });
   }
 
   // "2026-10-23" -> Date at 00:00 UTC
