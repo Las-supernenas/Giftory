@@ -19,6 +19,7 @@ import { Button } from "../../shared/components/Button";
 import { ErrorState } from "../../shared/components/ErrorState";
 import { EmptyState } from "../../shared/components/EmptyState";
 import { getInterestColorStyle } from "../../shared/interest-colors";
+import { RecommendationsSection } from "../components/RecommendationsSection";
 
 function PeoplePage() {
   // List and status of the initial load
@@ -387,6 +388,10 @@ function PeoplePage() {
                       personId={person.id}
                       personName={person.name}
                       availableInterests={interests}
+                    />
+                    <RecommendationsSection
+                      personId={person.id}
+                      personName={person.name}
                     />
                   </div>
                 </li>
