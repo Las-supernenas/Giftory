@@ -5,7 +5,10 @@ export type LibraryItem = {
     id: number;
     name: string;
     price: number;
-    interests: string;
+    interests: string[];
+    description: string | null;
+    productUrl: string | null;
+    imageFilename: string | null;
   };
 };
 

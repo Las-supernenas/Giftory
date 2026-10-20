@@ -166,18 +166,26 @@ Domain errors are translated to HTTP status codes in `ui/shared/middlewares/erro
 | `GET` | `/api/health` | `200 { "status": "ok" }` |
 | `POST` | `/api/users/register` | `201 { id, name, email }` · `400` invalid data · `409` email already registered |
 | `POST` | `/api/users/login` | `200 { accessToken, user: { id, name, email } }` · `400` invalid data · `401` invalid credentials |
-| `GET` | `/api/people` | `200` list of the user's people · `401` no token |
+| `GET` | `/api/people` | `200` list of the user's people, including `savedIdeasCount` · `401` no token |
 | `POST` | `/api/people` | `201 { id, name, interests }` · `400` invalid data · `401` no token |
 | `PATCH` | `/api/people/:id` | `200 { id, name, interests }` · `400` invalid data · `404` not found · `401` no token |
 | `DELETE` | `/api/people/:id` | `204` · `404` not found · `401` no token |
 | `GET` | `/api/giftideas` | `200` list of public gift ideas |
 | `POST` | `/api/giftideas` | `201` created; `400` invalid data; `401` no token |
-| `GET` | `/api/giftideas/:id` | `200 { id, name, price, interests }` � `400` invalid id � `404` not found |
+| `GET` | `/api/giftideas/:id` | `200` gift idea including optional description, product URL and image filename; `400` invalid id; `404` not found |
+| `PATCH` | `/api/giftideas/:id` | `200` updated gift idea; only its creator can edit it |
+| `POST` | `/api/giftideas/:id/image` | `200 { imageFilename }`; upload or replace the creator's image using multipart form field `image` |
+| `DELETE` | `/api/giftideas/:id/image` | `204`; remove the creator's image |
+| `GET` | `/api/giftideas/images/:filename` | Public image file |
+| `GET` | `/api/people/:personId/savedideas` | `200` list of the user's saved ideas for that person |
+| `POST` | `/api/people/:personId/savedideas` | `201` assign an idea to that person |
+| `PATCH` | `/api/people/:personId/savedideas/:id` | `200` update the private note |
+| `DELETE` | `/api/people/:personId/savedideas/:id` | `204` remove the assignment |
 | `GET` | `/api/people/:personId/events` | `200` list of the person's events · `400` invalid id · `404` person not found · `401` no token |
 | `POST` | `/api/people/:personId/events` | `201 { id, name, date }` · `400` invalid data · `404` person not found · `401` no token |
 | `PATCH` | `/api/events/:id` | `200 { id, name, date }` · `400` invalid data · `404` not found · `401` no token |
 | `DELETE` | `/api/events/:id` | `204` · `404` not found · `401` no token |
-| `GET` | `/api/library` | `200` list of the user's library items `[{ id, giftIdea: { id, name, price, interests } }]` · `401` not authenticated |
+| `GET` | `/api/library` | `200` library items with `giftIdea` details and `canEditGiftIdea` · `401` not authenticated |
 | `POST` | `/api/library` | `201 { id, giftIdea }` · `400` invalid data · `404` gift idea not found · `409` already in the library · `401` not authenticated |
 | `DELETE` | `/api/library/:id` | `204` · `400` invalid id · `404` not found · `401` not authenticated |
 
@@ -223,6 +231,11 @@ All `/api/library` routes require authentication.
 
 - All active gift ideas are public and can be listed or retrieved without authentication.
 - A gift idea requires a non-empty name and a non-negative price. Interests are optional and must be values of the `Interest` enum in `prisma/schema.prisma`.
+- Gift idea responses also include `description`, `productUrl` and `imageFilename`; each is `null` when absent. `GET /api/people` includes `savedIdeasCount` for each person. Library and saved idea responses include `canEditGiftIdea` so the frontend can show creator-only editing controls.
+- Authenticated creators can edit their idea's name, price, interests, public description and product URL. Product URLs must use `http` or `https`. Changes to a public idea appear in Discovery, Library and saved ideas.
+- A gift idea can have one optional JPG, PNG or WebP image of up to 5 MB. Uploads and removals require authentication and creator ownership; uploaded files receive a server-generated filename. The image URL is `/api/giftideas/images/<imageFilename>`.
+- In local backend development, images are stored in `backend/uploads/giftideas/`. In Docker, they are stored at `/app/uploads/giftideas/` in the named volume `giftory_giftidea_images`. The volume survives `docker compose up -d --build` and container replacement. `docker compose down -v` deletes the volume and its images.
+- Prisma stores the image filename, not the image file. Apply the included Prisma migration to existing databases (`npx prisma migrate dev` locally or `npx prisma migrate deploy` for deployment).
 ---
 
 ## Frontend
@@ -298,21 +311,26 @@ The components in `frontend/src/features/shared/components/` provide a small UI 
 - `LoadingState` while loading; `ErrorState` for errors; `EmptyState` when there is no content. Pass a `message` to the error and empty states.
 - Use the color tokens in `frontend/src/index.css`, the system font and Tailwind's spacing scale. Build for small screens first, then add responsive variants where needed. Keep labels, keyboard focus and readable contrast.
 - `AppNavigation` for the main navigation: receives `isAuthenticated` and `onLogout` from `App`, uses `NavLink` to highlight the current page.
+- `GiftIdeaFilters` for the Discovery and Library filters: search by name on top, and a filter panel with interests grouped by category and a price range (sidebar on desktop, collapsible on mobile). The filtering rules live in `features/shared/gift-idea-filters.ts` and the interest groups in `features/shared/interest-categories.ts`.
+- `Pagination` for page controls ("Anterior", page numbers, "Siguiente"); the calculations live in `features/shared/pagination.ts`.
 
 ### Pages
 
 | Route | Page | Access |
 |---|---|---|
-| `/` | Discovery: public gift ideas; authenticated users can create ideas and save them to their library | Public |
+| `/` | Discovery: public gift ideas with optional descriptions, product links and images; authenticated users can create ideas and save them to their library | Public |
 | `/login` | Login form | Public |
 | `/register` | Registration form | Public |
-| `/people` | List, create, edit and delete the user's people | Private |
-| `/library` | View and remove items from the user's library | Private |
+| `/people` | Manage people; expand one person's details to see events and saved ideas, assign ideas from the library, and edit private notes | Private |
+| `/library` | View and remove library items, assign ideas to people, and edit gift ideas created by the user | Private |
 
 Private routes redirect to `/login` when there is no session.
 After login, the user is redirected to Discovery (`/`).
 After a successful registration, the user is redirected to Login with the message "Cuenta creada correctamente. Inicia sesión" Registration does not log the user in.
 The main navigation (`AppNavigation`) is shown on every page. With a session it links to Discovery, People and Library and shows the logout button; without a session it links to Discovery, Login and Register. The current page is highlighted.
+Discovery and Library can be filtered by name (case and accent insensitive), interests (an idea matches if it has ANY of the selected interests) and minimum/maximum price (both included). Filters combine: an idea must match all of them. Filtering is done in the browser on the loaded list, which is never modified. In Library, only the user's own saved ideas are filtered. All interest categories are always shown; a category with no matching ideas shows "Aún no hay ideas aquí.".
+Every interest from `GET /api/interests` is shown in its category; interests without matching ideas are disabled.
+Both lists are paginated on the client (9 ideas per page); changing a filter goes back to page 1.
 
 ## Notes
 

@@ -36,11 +36,15 @@ export const createUpdateSavedIdeaPrivateNoteController =
       res.status(200).json({
         id: savedIdea.id,
         privateNote: savedIdea.privateNote,
+        canEditGiftIdea: savedIdea.giftIdea.userId === userId,
         giftIdea: {
           id: savedIdea.giftIdea.id,
           name: savedIdea.giftIdea.name,
           price: savedIdea.giftIdea.price,
           interests: savedIdea.giftIdea.interests,
+          description: savedIdea.giftIdea.description,
+          productUrl: savedIdea.giftIdea.productUrl,
+          imageFilename: savedIdea.giftIdea.imageFilename,
         },
       });
     } catch (error) {

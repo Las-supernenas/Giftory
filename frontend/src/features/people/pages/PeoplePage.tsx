@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import {
   createPerson,
   deletePerson,
@@ -150,7 +150,9 @@ function PeoplePage() {
                 );
                 setPeople((currentPeople) =>
                   currentPeople.map((p) =>
-                    p.id === updatedPerson.id ? updatedPerson : p,
+                    p.id === updatedPerson.id
+                      ? { ...updatedPerson, savedIdeasCount: p.savedIdeasCount }
+                      : p,
                   ),
                 );
                 setEditingPerson(null);
@@ -278,91 +280,120 @@ function PeoplePage() {
       )}
 
       {people.length > 0 && (
-        <ul className="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3 grid-flow-row-dense">
           {people.map((person) => (
-            <li key={person.id}>
-              <Card
-                className={
-                  selectedPersonId === person.id
-                    ? "bg-accent-lavender/15! ring-2 ring-accent-lavender shadow-lg shadow-primary/20"
-                    : "shadow-sm"
-                }
-              >
-                <div className="flex items-start gap-3">
-                  <div
-                    aria-hidden="true"
-                    className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-accent-lavender/25 text-xl font-semibold text-primary"
-                  >
-                    {person.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="m-0 text-lg font-semibold text-primary">
-                      {person.name}
-                    </h3>
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {person.interests.length > 0 ? (
-                        person.interests.map((interest) => (
-                          <span
-                            key={interest}
-                            className={`rounded-full px-2.5 py-1 text-xs ${getInterestColorStyle(interest)}`}
-                          >
-                            {INTEREST_LABELS[interest] ?? interest}
+            <Fragment key={person.id}>
+              <li className="relative">
+                <Card
+                  className={
+                    selectedPersonId === person.id
+                      ? "bg-accent-lavender/15! ring-2 ring-accent-lavender shadow-lg shadow-primary/20"
+                      : "shadow-sm"
+                  }
+                >
+                  <div className="flex items-start gap-3">
+                    <div
+                      aria-hidden="true"
+                      className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-accent-lavender/25 text-xl font-semibold text-primary"
+                    >
+                      {person.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="m-0 text-lg font-semibold text-primary">
+                        {person.name}
+                      </h3>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {person.interests.length > 0 ? (
+                          person.interests.map((interest) => (
+                            <span
+                              key={interest}
+                              className={`rounded-full px-2.5 py-1 text-xs ${getInterestColorStyle(interest)}`}
+                            >
+                              {INTEREST_LABELS[interest] ?? interest}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-sm text-muted">
+                            Sin intereses
                           </span>
-                        ))
-                      ) : (
-                        <span className="text-sm text-muted">
-                          Sin intereses
-                        </span>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
+                  <p className="mb-0 mt-3 flex items-center gap-1.5 text-sm text-muted">
+                    <svg
+                      aria-hidden="true"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="size-4 shrink-0 text-accent-dusty-pink"
+                    >
+                      <path d="M3 10h18v3H3zM5 13v8h14v-8M12 10v11M12 10H8.5a2.5 2.5 0 1 1 2.5-2.5V10M12 10h3.5A2.5 2.5 0 1 0 13 7.5V10" />
+                    </svg>
+                    {person.savedIdeasCount}{" "}
+                    {person.savedIdeasCount === 1
+                      ? "idea guardada"
+                      : "ideas guardadas"}
+                  </p>
 
-                <div className="mt-4 grid grid-cols-2 gap-2">
-                  <Button
-                    type="button"
-                    className="col-span-2"
-                    onClick={() => setSelectedPersonId(person.id)}
-                  >
-                    Ver ideas y eventos
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => {
-                      setEditingPerson(person);
-                      setSelectedInterests([...person.interests]);
-                    }}
-                  >
-                    Editar
-                  </Button>
-                  <button
-                    className="min-h-11 rounded-xl border border-error bg-surface px-4 py-2 font-medium text-error focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error"
-                    type="button"
-                    onClick={() => void handleDelete(person)}
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              </Card>
-            </li>
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    <Button
+                      type="button"
+                      className="col-span-2"
+                      onClick={() =>
+                        setSelectedPersonId((current) =>
+                          current === person.id ? null : person.id,
+                        )
+                      }
+                    >
+                      {selectedPersonId === person.id
+                        ? "Ocultar detalles"
+                        : "Ver detalles"}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => {
+                        setEditingPerson(person);
+                        setSelectedInterests([...person.interests]);
+                      }}
+                    >
+                      Editar
+                    </Button>
+                    <button
+                      className="min-h-11 rounded-xl border border-error bg-surface px-4 py-2 font-medium text-error focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error"
+                      type="button"
+                      onClick={() => void handleDelete(person)}
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </Card>
+                {selectedPersonId === person.id && (
+                  <span className="absolute -bottom-3 left-1/2 z-10 size-4 -translate-x-1/2 rotate-45 border-b-2 border-r-2 border-accent-lavender bg-background" />
+                )}
+              </li>
+              {selectedPersonId === person.id && (
+                <li className="col-span-full">
+                  <div className="space-y-8 rounded-2xl border border-accent-lavender/50 bg-accent-lavender/10 p-4 sm:p-6">
+                    <h3 className="text-xl font-semibold text-primary">
+                      Detalles de {person.name}
+                    </h3>
+                    <EventsSection personId={person.id} />
+                    <SavedIdeasSection
+                      personId={person.id}
+                      personName={person.name}
+                      availableInterests={interests}
+                    />
+                  </div>
+                </li>
+              )}
+            </Fragment>
           ))}
         </ul>
-      )}
-      {selectedPersonId !== null && (
-        <div
-          key={selectedPersonId}
-          className="mt-8 space-y-8 rounded-2xl border border-solid border-accent-lavender/50 bg-accent-lavender/10 p-4 sm:p-6"
-        >
-          <EventsSection personId={selectedPersonId} />
-          <SavedIdeasSection
-            personId={selectedPersonId}
-            personName={
-              people.find((person) => person.id === selectedPersonId)?.name ??
-              ""
-            }
-          />
-        </div>
       )}
     </main>
   );

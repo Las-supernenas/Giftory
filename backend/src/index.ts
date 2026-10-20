@@ -14,6 +14,7 @@ import { PrismaGiftIdeaRepository } from './infrastructure/giftidea/repositories
 import { CreateGiftIdeaUseCase } from './domain/giftidea/use-cases/CreateGiftIdeaUseCase';
 import { GetGiftIdeaUseCase } from './domain/giftidea/use-cases/GetGiftIdeaUseCase';
 import { ListGiftIdeaUseCase } from './domain/giftidea/use-cases/ListGiftIdeaUseCase';
+import { UpdateGiftIdeaUseCase } from './domain/giftidea/use-cases/UpdateGiftIdeaUseCase';
 import { PrismaLibraryItemRepository } from './infrastructure/library/repositories/PrismaLibraryItemRepository';
 import { ListLibraryItemsUseCase } from './domain/library/use-cases/ListLibraryItemsUseCase';
 import { AddLibraryItemUseCase } from './domain/library/use-cases/AddLibraryItemUseCase';
@@ -29,6 +30,7 @@ import { ListSavedIdeasUseCase } from './domain/savedidea/use-cases/ListSavedIde
 import { AddSavedIdeaUseCase } from './domain/savedidea/use-cases/AddSavedIdeaUseCase';
 import { DeleteSavedIdeaUseCase } from './domain/savedidea/use-cases/DeleteSavedIdeaUseCase';
 import { UpdateSavedIdeaPrivateNoteUseCase } from './domain/savedidea/use-cases/UpdateSavedIdeaPrivateNoteUseCase';
+import { UpdateGiftIdeaImageUseCase } from './domain/giftidea/use-cases/UpdateGiftIdeaImageUseCase';
 import { MailgunEmailService } from './infrastructure/services/MailgunEmailService';
 import { startEventReminderScheduler } from './infrastructure/schedulers/eventReminderScheduler';
 
@@ -58,6 +60,7 @@ const deletePersonUseCase = new DeletePersonUseCase(personRepository);
 const createGiftIdeaUseCase = new CreateGiftIdeaUseCase(giftIdeaRepository);
 const getGiftIdeaUseCase = new GetGiftIdeaUseCase(giftIdeaRepository);
 const listGiftIdeaUseCase = new ListGiftIdeaUseCase(giftIdeaRepository);
+const updateGiftIdeaUseCase = new UpdateGiftIdeaUseCase(giftIdeaRepository);
 
 const listLibraryItemsUseCase = new ListLibraryItemsUseCase(libraryItemRepository);
 const addLibraryItemUseCase = new AddLibraryItemUseCase(libraryItemRepository, giftIdeaRepository);
@@ -79,6 +82,7 @@ const updatePrivateNoteUseCase = new UpdateSavedIdeaPrivateNoteUseCase(
   personRepository,
   savedIdeaRepository,
 );
+const updateGiftIdeaImageUseCase = new UpdateGiftIdeaImageUseCase(giftIdeaRepository);
 
 
 const emailService = new MailgunEmailService(
@@ -106,6 +110,7 @@ const api = createApi({
   createGiftIdeaUseCase,
   getGiftIdeaUseCase,
   listGiftIdeaUseCase,
+  updateGiftIdeaUseCase,
   listLibraryItemsUseCase,
   addLibraryItemUseCase,
   deleteLibraryItemUseCase,
@@ -117,6 +122,7 @@ const api = createApi({
   addSavedIdeaUseCase,
   deleteSavedIdeaUseCase,
   updatePrivateNoteUseCase,
+  updateGiftIdeaImageUseCase,
 });
 
 api.listen(PORT, '0.0.0.0', () => {

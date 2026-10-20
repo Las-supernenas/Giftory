@@ -45,6 +45,7 @@ function EventsSection({ personId }: EventsSectionProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [isEventFormOpen, setIsEventFormOpen] = useState(false);
 
   useEffect(() => {
     //If personId changes before the answer arrives, the old answer is ignores
@@ -101,113 +102,6 @@ function EventsSection({ personId }: EventsSectionProps) {
   return (
     <section className="space-y-4">
       <h2 className="text-xl font-semibold text-primary">Eventos</h2>
-
-      <Card>
-        <h3 className="mt-0 mb-3 font-semibold text-primary">
-          {editingEvent ? "Editar evento" : "Nuevo evento"}
-        </h3>
-
-        <form
-          key={editingEvent ? editingEvent.id : "new"}
-          className="space-y-3"
-          onSubmit={async (formEvent) => {
-            formEvent.preventDefault();
-
-            setSuccessMessage("");
-            setErrorMessage("");
-
-            const form = formEvent.currentTarget;
-            const formData = new FormData(form);
-
-            const eventInput = {
-              name: String(formData.get("name")),
-              date: String(formData.get("date")),
-            };
-
-            setIsSaving(true);
-
-            try {
-              if (editingEvent) {
-                const updatedEvent = await updateEvent(
-                  editingEvent.id,
-                  eventInput,
-                );
-                setEvents((currentEvents) =>
-                  sortByDate(
-                    currentEvents.map((e) =>
-                      e.id === updatedEvent.id ? updatedEvent : e,
-                    ),
-                  ),
-                );
-                setEditingEvent(null);
-                setSuccessMessage("Evento actualizado.");
-              } else {
-                const newEvent = await createEvent(personId, eventInput);
-                setEvents((currentEvents) =>
-                  sortByDate([...currentEvents, newEvent]),
-                );
-                form.reset();
-                setSuccessMessage("Evento creado.");
-              }
-            } catch (error) {
-              setErrorMessage(
-                getErrorMessage(error, "No se pudo guardar el evento."),
-              );
-            } finally {
-              setIsSaving(false);
-            }
-          }}
-        >
-          <Input
-            id="event-name"
-            label="Nombre"
-            name="name"
-            type="text"
-            maxLength={100}
-            required
-            defaultValue={editingEvent?.name ?? ""}
-          />
-
-          <Input
-            id="event-date"
-            label="Fecha"
-            name="date"
-            type="date"
-            required
-            defaultValue={editingEvent?.date ?? ""}
-          />
-
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <Button
-              type="submit"
-              disabled={isSaving || isLoading || Boolean(loadError)}
-            >
-              {isSaving
-                ? "Guardando..."
-                : editingEvent
-                  ? "Guardar cambios"
-                  : "Crear evento"}
-            </Button>
-
-            {editingEvent && (
-              <Button variant="secondary" onClick={() => setEditingEvent(null)}>
-                Cancelar
-              </Button>
-            )}
-          </div>
-        </form>
-      </Card>
-
-      {successMessage && (
-        <p
-          role="status"
-          className="mb-4 rounded-xl border-l-4 border-success bg-surface px-4 py-3 text-sm text-foreground"
-        >
-          {successMessage}
-        </p>
-      )}
-      {errorMessage && <ErrorState message={errorMessage} />}
-
       {isLoading && <LoadingState />}
 
       {loadError && <ErrorState message={loadError} />}
@@ -215,7 +109,6 @@ function EventsSection({ personId }: EventsSectionProps) {
       {!isLoading && !loadError && events.length === 0 && (
         <EmptyState message="Todavía no hay eventos para esta persona." />
       )}
-
       {events.length > 0 && (
         <ul className="m-0 list-none space-y-2 p-0">
           {events.map((personEvent) => (
@@ -231,7 +124,10 @@ function EventsSection({ personId }: EventsSectionProps) {
                 <div className="flex flex-wrap gap-2">
                   <Button
                     variant="secondary"
-                    onClick={() => setEditingEvent(personEvent)}
+                    onClick={() => {
+                      setEditingEvent(personEvent);
+                      setIsEventFormOpen(true);
+                    }}
                   >
                     Editar
                   </Button>
@@ -248,6 +144,129 @@ function EventsSection({ personId }: EventsSectionProps) {
           ))}
         </ul>
       )}
+      <Button
+        variant="secondary"
+        aria-expanded={isEventFormOpen}
+        onClick={() => {
+          setEditingEvent(null);
+          setIsEventFormOpen((open) => !open);
+        }}
+      >
+        {isEventFormOpen ? "Ocultar formulario" : "Añadir evento"}
+      </Button>
+      {isEventFormOpen && (
+        <Card>
+          <h3 className="mt-0 mb-3 font-semibold text-primary">
+            {editingEvent ? "Editar evento" : "Nuevo evento"}
+          </h3>
+
+          <form
+            key={editingEvent ? editingEvent.id : "new"}
+            className="space-y-3"
+            onSubmit={async (formEvent) => {
+              formEvent.preventDefault();
+
+              setSuccessMessage("");
+              setErrorMessage("");
+
+              const form = formEvent.currentTarget;
+              const formData = new FormData(form);
+
+              const eventInput = {
+                name: String(formData.get("name")),
+                date: String(formData.get("date")),
+              };
+
+              setIsSaving(true);
+
+              try {
+                if (editingEvent) {
+                  const updatedEvent = await updateEvent(
+                    editingEvent.id,
+                    eventInput,
+                  );
+                  setEvents((currentEvents) =>
+                    sortByDate(
+                      currentEvents.map((e) =>
+                        e.id === updatedEvent.id ? updatedEvent : e,
+                      ),
+                    ),
+                  );
+                  setEditingEvent(null);
+                  setSuccessMessage("Evento actualizado.");
+                } else {
+                  const newEvent = await createEvent(personId, eventInput);
+                  setEvents((currentEvents) =>
+                    sortByDate([...currentEvents, newEvent]),
+                  );
+                  form.reset();
+                  setSuccessMessage("Evento creado.");
+                }
+              } catch (error) {
+                setErrorMessage(
+                  getErrorMessage(error, "No se pudo guardar el evento."),
+                );
+              } finally {
+                setIsSaving(false);
+              }
+            }}
+          >
+            <Input
+              id="event-name"
+              label="Nombre"
+              name="name"
+              type="text"
+              maxLength={100}
+              required
+              defaultValue={editingEvent?.name ?? ""}
+            />
+
+            <Input
+              id="event-date"
+              label="Fecha"
+              name="date"
+              type="date"
+              required
+              defaultValue={editingEvent?.date ?? ""}
+            />
+
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button
+                type="submit"
+                disabled={isSaving || isLoading || Boolean(loadError)}
+              >
+                {isSaving
+                  ? "Guardando..."
+                  : editingEvent
+                    ? "Guardar cambios"
+                    : "Crear evento"}
+              </Button>
+
+              {editingEvent && (
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setEditingEvent(null);
+                    setIsEventFormOpen(false);
+                  }}
+                >
+                  Cancelar
+                </Button>
+              )}
+            </div>
+          </form>
+        </Card>
+      )}
+
+      {successMessage && (
+        <p
+          role="status"
+          className="mb-4 rounded-xl border-l-4 border-success bg-surface px-4 py-3 text-sm text-foreground"
+        >
+          {successMessage}
+        </p>
+      )}
+      {errorMessage && <ErrorState message={errorMessage} />}
     </section>
   );
 }

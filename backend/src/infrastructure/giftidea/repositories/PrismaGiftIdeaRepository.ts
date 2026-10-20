@@ -3,6 +3,7 @@ import { GiftIdea } from '../../../domain/giftidea/GiftIdea';
 import type {
   CreateGiftIdeaData,
   GiftIdeaRepository,
+  UpdateGiftIdeaData,
 } from '../../../domain/giftidea/repositories/GiftIdeaRepository';
 import { prisma } from '../../prisma-client';
 
@@ -17,10 +18,38 @@ export class PrismaGiftIdeaRepository implements GiftIdeaRepository {
         name: data.name,
         price: data.price,
         interests: data.interests,
+        description: data.description,
+        productUrl: data.productUrl,
+        imageFilename: data.imageFilename,
       },
     });
 
     return this.restore(prismaGiftIdea);
+  }
+
+  async update(id: number, data: UpdateGiftIdeaData): Promise<GiftIdea> {
+    const row = await this.prisma.giftIdea.update({
+      where: { id },
+      data: {
+        name: data.name,
+        price: data.price,
+        interests: data.interests,
+        description: data.description,
+        productUrl: data.productUrl,
+        imageFilename: data.imageFilename,
+      },
+    });
+
+    return this.restore(row);
+  }
+
+  async updateImageFilename(id: number, imageFilename: string | null): Promise<GiftIdea> {
+    const row = await this.prisma.giftIdea.update({
+      where: { id },
+      data: { imageFilename },
+    });
+
+    return this.restore(row);
   }
 
   async findAll(): Promise<GiftIdea[]> {
@@ -50,6 +79,9 @@ export class PrismaGiftIdeaRepository implements GiftIdeaRepository {
       price: prismaGiftIdea.price.toNumber(),
       userId: prismaGiftIdea.userId,
       interests: prismaGiftIdea.interests,
+      description: prismaGiftIdea.description,
+      productUrl: prismaGiftIdea.productUrl,
+      imageFilename: prismaGiftIdea.imageFilename,
       deletedAt: prismaGiftIdea.deletedAt,
     });
   }

@@ -5,6 +5,7 @@ interface PersonProps {
   userId: number;
   name: string;
   interests: Interest[];
+  savedIdeasCount?: number;
 }
 
 // a person the user buys gifts for. Its private, it always belongs to one user (userId)
@@ -14,11 +15,13 @@ export class Person {
   readonly userId: number;
   readonly name: string;
   readonly interests: Interest[];
+  readonly savedIdeasCount: number;
 
   constructor(props: PersonProps) {
     this.id = props.id;
     this.userId = props.userId;
     this.name = props.name;
     this.interests = props.interests;
+    this.savedIdeasCount = props.savedIdeasCount ?? 0;
   }
 }
