@@ -129,6 +129,9 @@ model GiftIdea {
   name      String
   price     Decimal    @db.Decimal(10, 2)
   interests Interest[]
+  productUrl    String?
+  imageFilename String?
+  description String?
   userId    Int
 
   // Soft deletion

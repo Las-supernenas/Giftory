@@ -6,6 +6,7 @@ import { UnauthorizedError } from '../../../domain/errors/UnauthorizedError';
 import { ValidationError } from '../../../domain/errors/ValidationError';
 import { RecommendationProviderResponseError } from '../../../domain/errors/RecommendationProviderResponseError';
 import { RecommendationProviderTimeoutError } from '../../../domain/errors/RecommendationProviderTimeoutError';
+import multer from 'multer';
 
 //Translates domain errors into HTTP responses
 
@@ -17,7 +18,14 @@ export const errorHandlerMiddleware = (
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   next: NextFunction,
 ) => {
-  if (error instanceof ValidationError) {
+  if (error instanceof multer.MulterError) {
+    res.status(400).json({
+      error:
+        error.code === 'LIMIT_FILE_SIZE'
+          ? 'La imagen no puede superar 5 MB.'
+          : 'No se pudo subir la imagen.',
+    });
+  } else if (error instanceof ValidationError) {
     res.status(400).json({ error: error.message });
   } else if (error instanceof UnauthorizedError) {
     res.status(401).json({ error: error.message });

@@ -12,11 +12,15 @@ export const createListLibraryController =
       res.status(200).json(
         libraryItems.map((item) => ({
           id: item.id,
+          canEditGiftIdea: item.giftIdea.userId === userId,
           giftIdea: {
             id: item.giftIdea.id,
             name: item.giftIdea.name,
             price: item.giftIdea.price,
             interests: item.giftIdea.interests,
+            description: item.giftIdea.description,
+            productUrl: item.giftIdea.productUrl,
+            imageFilename: item.giftIdea.imageFilename,
           },
         })),
       );

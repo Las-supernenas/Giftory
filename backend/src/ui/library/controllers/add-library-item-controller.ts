@@ -28,6 +28,9 @@ export const createAddLibraryItemController =
           name: libraryItem.giftIdea.name,
           price: libraryItem.giftIdea.price,
           interests: libraryItem.giftIdea.interests,
+          description: libraryItem.giftIdea.description,
+          productUrl: libraryItem.giftIdea.productUrl,
+          imageFilename: libraryItem.giftIdea.imageFilename,
         },
       });
     } catch (error) {
