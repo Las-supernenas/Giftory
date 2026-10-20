@@ -46,4 +46,5 @@ export const toPersonResponse = (person: Person) => ({
   id: person.id,
   name: person.name,
   interests: person.interests,
+  savedIdeasCount: person.savedIdeasCount,
 });

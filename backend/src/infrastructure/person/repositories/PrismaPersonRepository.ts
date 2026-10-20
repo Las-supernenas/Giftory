@@ -29,9 +29,12 @@ export class PrismaPersonRepository implements PersonRepository {
     const prismaPeople = await this.prisma.person.findMany({
       where: { userId, deletedAt: null },
       orderBy: { name: 'asc' },
+      include: { _count: { select: { savedItems: true } } },
     });
 
-    return prismaPeople.map((prismaPerson) => this.restore(prismaPerson));
+    return prismaPeople.map((prismaPerson) =>
+      this.restore(prismaPerson, prismaPerson._count.savedItems),
+    );
   }
 
   async findByIdAndUserId(id: number, userId: number): Promise<Person | null> {
@@ -67,12 +70,13 @@ export class PrismaPersonRepository implements PersonRepository {
   }
 
   // Converts a Prisma row into a domain entity (without deletedAt)
-  private restore(prismaPerson: PrismaPerson): Person {
+  private restore(prismaPerson: PrismaPerson, savedIdeasCount = 0): Person {
     return new Person({
       id: prismaPerson.id,
       userId: prismaPerson.userId,
       name: prismaPerson.name,
       interests: prismaPerson.interests,
+      savedIdeasCount,
     });
   }
 }
