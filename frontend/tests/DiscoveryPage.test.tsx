@@ -57,7 +57,8 @@ describe("DiscoveryPage", () => {
 
     expect(await screen.findByText("Board Game")).toBeTruthy();
     expect(screen.getByText("29.99 €")).toBeTruthy();
-    expect(mockedGetInterests).not.toHaveBeenCalled();
+    // Interests are loaded even without a session: the filters need them
+    expect(mockedGetInterests).toHaveBeenCalled();
   });
 
   it("shows a loading message while gift ideas are being fetched", () => {
