@@ -107,6 +107,8 @@ describe("DiscoveryPage", () => {
         name: "Coffee Machine",
         price: 79.99,
         interests: [],
+        description: null,
+        productUrl: null,
       });
     });
 
