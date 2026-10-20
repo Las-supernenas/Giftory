@@ -4,6 +4,8 @@ import { EntityNotFoundError } from '../../../domain/errors/EntityNotFoundError'
 import { ForbiddenOperationError } from '../../../domain/errors/ForbiddenOperationError';
 import { UnauthorizedError } from '../../../domain/errors/UnauthorizedError';
 import { ValidationError } from '../../../domain/errors/ValidationError';
+import { RecommendationProviderResponseError } from '../../../domain/errors/RecommendationProviderResponseError';
+import { RecommendationProviderTimeoutError } from '../../../domain/errors/RecommendationProviderTimeoutError';
 
 //Translates domain errors into HTTP responses
 
@@ -25,6 +27,10 @@ export const errorHandlerMiddleware = (
     res.status(404).json({ error: error.message });
   } else if (error instanceof BusinessConflictError) {
     res.status(409).json({ error: error.message });
+  } else if (error instanceof RecommendationProviderResponseError) {
+    res.status(502).json({ error: error.message });
+  } else if (error instanceof RecommendationProviderTimeoutError) {
+    res.status(504).json({ error: error.message });
   } else if (error instanceof SyntaxError && 'body' in error) {
     // Malformed JSON in the request body
     res.status(400).json({ error: 'Invalid JSON body' });
