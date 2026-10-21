@@ -23,6 +23,19 @@ type GiftIdeaFiltersProps = {
   resultCount: number;
   //The filtered list, rendered next to the filter panel
   children: ReactNode;
+  // Optional content shown next to the search field (ex. the Library "Created by me" switch)
+  searchAside?: ReactNode;
+  // Optional message when there are no results (default: no matches for the filters)
+  emptyMessage?: string;
+  // Optional texts of the search field, so each page can describe what it searches
+  searchLabel?: string;
+  searchPlaceholder?: string;
+};
+
+type ActiveFilterChip = {
+  key: string;
+  label: string;
+  onRemove: () => void;
 };
 
 // Search on top, filter panel on the left (desktop) and collapsible above (mobile)
@@ -33,6 +46,10 @@ export function GiftIdeaFilters({
   allInterests,
   resultCount,
   children,
+  searchAside,
+  emptyMessage,
+  searchLabel = "Buscar ideas de regalo",
+  searchPlaceholder = "Busca por nombre: taza, libro, viaje...",
 }: GiftIdeaFiltersProps) {
   // mobile only: the panel starts collapsed. On desktop is always visible
   const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -63,17 +80,74 @@ export function GiftIdeaFilters({
     onFiltersChange(EMPTY_GIFT_IDEA_FILTERS);
   }
 
+  // Active filters shown as removable chips above the results
+  const activeChips: ActiveFilterChip[] = [
+    ...(filters.search.trim()
+      ? [
+          {
+            key: "search",
+            label: `"${filters.search.trim()}"`,
+            onRemove: () => updateFilters({ search: "" }),
+          },
+        ]
+      : []),
+    ...filters.interests.map((interest) => ({
+      key: `interest-${interest}`,
+      label: INTEREST_LABELS[interest] ?? interest,
+      onRemove: () => toggleInterest(interest),
+    })),
+    ...(filters.minPrice.trim()
+      ? [
+          {
+            key: "min-price",
+            label: `Desde ${filters.minPrice} €`,
+            onRemove: () => updateFilters({ minPrice: "" }),
+          },
+        ]
+      : []),
+    ...(filters.maxPrice.trim()
+      ? [
+          {
+            key: "max-price",
+            label: `Hasta ${filters.maxPrice} €`,
+            onRemove: () => updateFilters({ maxPrice: "" }),
+          },
+        ]
+      : []),
+  ];
+
   return (
     <div className="space-y-4">
-      {/* Search: always visible, also on mobile */}
-      <Input
-        id="gift-filter-search"
-        label="Buscar por nombre"
-        type="search"
-        placeholder="Ej.: taza, libro, viaje..."
-        value={filters.search}
-        onChange={(event) => updateFilters({ search: event.target.value })}
-      />
+      {/* Search: always visible, also on mobile. searchAside sits next to it */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative min-w-0 flex-1">
+          {/* The label is visually hidden but still read by screen readers */}
+          <label htmlFor="gift-filter-search" className="sr-only">
+            {searchLabel}
+          </label>
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            className="pointer-events-none absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-muted"
+          >
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
+          </svg>
+          <input
+            id="gift-filter-search"
+            type="search"
+            placeholder={searchPlaceholder}
+            value={filters.search}
+            onChange={(event) => updateFilters({ search: event.target.value })}
+            className="box-border block min-h-12 w-full rounded-2xl border border-solid border-primary/20 bg-surface py-3 pr-4 pl-12 text-base text-foreground shadow-sm placeholder:text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          />
+        </div>
+        {searchAside}
+      </div>
 
       {/* Mobile only: shows or hides the filter panel */}
       <Button
@@ -83,7 +157,7 @@ export function GiftIdeaFilters({
         aria-controls="gift-filter-panel"
         onClick={() => setIsPanelOpen((isOpen) => !isOpen)}
       >
-        {isPanelOpen ? "Ocultar filtros" : "Filtros"}
+        {isPanelOpen ? "Ocultar filtros" : "Filtrar"}
         {panelFilterCount > 0 && ` (${panelFilterCount})`}
       </Button>
 
@@ -93,8 +167,23 @@ export function GiftIdeaFilters({
           aria-label="Filtros"
           className={`${isPanelOpen ? "block" : "hidden"} mb-4 space-y-4 rounded-2xl border border-solid border-foreground/10 bg-surface p-4 shadow-sm md:mb-0 md:block`}
         >
+          <div className="flex items-center justify-between">
+            <h2 className="m-0 text-base font-semibold text-primary">
+              Filtrar
+            </h2>
+            {/* Always visible; disabled while there is nothing to clear */}
+            <button
+              type="button"
+              onClick={clearFilters}
+              disabled={!canClear}
+              className="min-h-11 rounded-lg border-0 bg-transparent px-2 text-sm font-medium text-primary underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Limpiar
+            </button>
+          </div>
+
           <fieldset className="m-0 min-w-0 border-0 p-0">
-            <legend className="mb-2 p-0 text-sm font-semibold text-primary">
+            <legend className="mb-2 p-0 text-xs font-bold uppercase tracking-wider text-muted">
               Intereses
             </legend>
 
@@ -175,7 +264,7 @@ export function GiftIdeaFilters({
           </fieldset>
 
           <fieldset className="m-0 min-w-0 border-0 p-0">
-            <legend className="mb-2 p-0 text-sm font-semibold text-primary">
+            <legend className="mb-2 p-0 text-xs font-bold uppercase tracking-wider text-muted">
               Precio
             </legend>
             <div className="grid grid-cols-2 gap-3">
@@ -205,25 +294,44 @@ export function GiftIdeaFilters({
               />
             </div>
           </fieldset>
-
-          {canClear && (
-            <Button variant="accent" className="w-full" onClick={clearFilters}>
-              Limpiar filtros
-            </Button>
-          )}
         </aside>
 
         <div id="gift-idea-results" className="min-w-0">
-          <p className="mt-0 mb-3 text-sm text-muted" aria-live="polite">
-            {resultCount === 1 ? "1 idea" : `${resultCount} ideas`}
-          </p>
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <p className="m-0 text-sm text-muted" aria-live="polite">
+              <strong className="text-foreground">{resultCount}</strong>{" "}
+              {resultCount === 1 ? "idea" : "ideas"}
+            </p>
+            {activeChips.map((chip) => (
+              <span
+                key={chip.key}
+                className="inline-flex items-center gap-1 rounded-full border border-solid border-primary/20 bg-surface py-1 pr-1 pl-3 text-sm text-foreground"
+              >
+                {chip.label}
+                <button
+                  type="button"
+                  aria-label={`Quitar filtro ${chip.label}`}
+                  onClick={chip.onRemove}
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border-0 bg-accent-lavender/20 text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
 
           {resultCount === 0 ? (
             <div className="space-y-3">
-              <EmptyState message="No encontramos ideas con estos filtros." />
-              <Button variant="accent" onClick={clearFilters}>
-                Limpiar filtros
-              </Button>
+              <EmptyState
+                message={
+                  emptyMessage ?? "No encontramos ideas con estos filtros."
+                }
+              />
+              {canClear && (
+                <Button variant="accent" onClick={clearFilters}>
+                  Limpiar filtros
+                </Button>
+              )}
             </div>
           ) : (
             children
