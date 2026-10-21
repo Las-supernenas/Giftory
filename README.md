@@ -180,6 +180,7 @@ Domain errors are translated to HTTP status codes in `ui/shared/middlewares/erro
 | `GET` | `/api/health` | `200 { "status": "ok" }` |
 | `POST` | `/api/users/register` | `201 { id, name, email }` · `400` invalid data · `409` email already registered |
 | `POST` | `/api/users/login` | `200 { accessToken, user: { id, name, email } }` · `400` invalid data · `401` invalid credentials |
+| `GET` | `/api/users/session` | `200 { id, name }` (not cached) · `401` no valid session |
 | `GET` | `/api/people` | `200` list of the user's people, including `savedIdeasCount` · `401` no token |
 | `POST` | `/api/people` | `201 { id, name, interests }` · `400` invalid data · `401` no token |
 | `PATCH` | `/api/people/:id` | `200 { id, name, interests }` · `400` invalid data · `404` not found · `401` no token |
@@ -335,7 +336,7 @@ The components in `frontend/src/features/shared/components/` provide a small UI 
 - `Button` for actions (primary, accent or secondary); `Input` for labeled fields and validation errors; `Card` for grouped content.
 - `LoadingState` while loading; `ErrorState` for errors; `EmptyState` when there is no content. Pass a `message` to the error and empty states.
 - Use the color tokens in `frontend/src/index.css`, the system font and Tailwind's spacing scale. Build for small screens first, then add responsive variants where needed. Keep labels, keyboard focus and readable contrast.
-- `AppNavigation` for the main navigation: receives `isAuthenticated` and `onLogout` from `App`, uses `NavLink` to highlight the current page.
+- `AppNavigation` for the main navigation: receives `userName` (null without a session) and `onLogout` from `App`. Logo and links on the left; the user greeting ("¡Hola, Julia!" with an avatar initial) and the logout button on the right. Uses `NavLink` to highlight the current page. On mobile the links take a full-width row and logout is an icon button.
 - `GiftIdeaFilters` for the Discovery and Library filters: search by name on top, and a filter panel with interests grouped by category and a price range (sidebar on desktop, collapsible on mobile). The filtering rules live in `features/shared/gift-idea-filters.ts` and the interest groups in `features/shared/interest-categories.ts`.
 - `Pagination` for page controls ("Anterior", page numbers, "Siguiente"); the calculations live in `features/shared/pagination.ts`.
 
@@ -352,7 +353,7 @@ The components in `frontend/src/features/shared/components/` provide a small UI 
 Private routes redirect to `/login` when there is no session.
 After login, the user is redirected to Discovery (`/`).
 After a successful registration, the user is redirected to Login with the message "Cuenta creada correctamente. Inicia sesión" Registration does not log the user in.
-The main navigation (`AppNavigation`) is shown on every page. With a session it links to Discovery, People and Library and shows the logout button; without a session it links to Discovery, Login and Register. The current page is highlighted.
+The main navigation (`AppNavigation`) is shown on every page. With a session it greets the user by name, links to Discovery, People and Library, and shows the logout button; without a session it links to Discovery, Login and Register. The current page is highlighted. The user's name comes from `GET /api/users/session` on page load and from the login response; the frontend never reads the token.
 Discovery and Library can be filtered by name (case and accent insensitive), interests (an idea matches if it has ANY of the selected interests) and minimum/maximum price (both included). Filters combine: an idea must match all of them. Filtering is done in the browser on the loaded list, which is never modified. In Library, only the user's own saved ideas are filtered. All interest categories are always shown; a category with no matching ideas shows "Aún no hay ideas aquí.".
 Every interest from `GET /api/interests` is shown in its category; interests without matching ideas are disabled.
 Both lists are paginated on the client (9 ideas per page); changing a filter goes back to page 1.
