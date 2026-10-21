@@ -312,7 +312,7 @@ export function GiftIdeaFilters({
                   type="button"
                   aria-label={`Quitar filtro ${chip.label}`}
                   onClick={chip.onRemove}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-full border-0 bg-accent-lavender/20 text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border-0 bg-accent-lavender/20 text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 >
                   ×
                 </button>
