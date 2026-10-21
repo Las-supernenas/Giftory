@@ -4,9 +4,10 @@ import { Card } from "../../shared/components/Card";
 import { Input } from "../../shared/components/Input";
 import { Button } from "../../shared/components/Button";
 import { ErrorState } from "../../shared/components/ErrorState";
+import type { CurrentUser } from "../types/current-user";
 
 type LoginPageProps = {
-  onLogin: () => void;
+  onLogin: (user: CurrentUser) => void;
 };
 
 // Data that can arrive with the navigation to /login (sent by the app after a successful registration)
@@ -59,7 +60,9 @@ function LoginPage({ onLogin }: LoginPageProps) {
               });
 
               if (response.ok) {
-                onLogin();
+                // The login response also has the email: we only keep id and name
+                const data = (await response.json()) as { user: CurrentUser };
+                onLogin({ id: data.user.id, name: data.user.name });
               } else if (response.status === 401) {
                 setErrorMessage("Email o contraseña incorrectos.");
               } else if (response.status === 400) {

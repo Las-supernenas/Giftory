@@ -3,6 +3,7 @@ import { SecurityServiceImplementation } from './infrastructure/services/Securit
 import { PrismaUserRepository } from './infrastructure/user/repositories/PrismaUserRepository';
 import { createApi } from './ui/api';
 import { LoginUserUseCase } from './domain/user/use-cases/LoginUserUseCase';
+import { GetCurrentUserUseCase } from './domain/user/use-cases/GetCurrentUserUseCase';
 import { environmentService } from './infrastructure/EnvironmentService';
 import { createAuthenticationMiddleware } from './ui/shared/middlewares/authentication-middleware';
 import { PrismaPersonRepository } from './infrastructure/person/repositories/PrismaPersonRepository';
@@ -50,6 +51,7 @@ const savedIdeaRepository = new PrismaSavedIdeaRepository();
 
 const registerUserUseCase = new RegisterUserUseCase(userRepository, securityService);
 const loginUserUseCase = new LoginUserUseCase(userRepository, securityService);
+const getCurrentUserUseCase = new GetCurrentUserUseCase(userRepository);
 
 const listPeopleUseCase = new ListPeopleUseCase(personRepository);
 const createPersonUseCase = new CreatePersonUseCase(personRepository);
@@ -91,6 +93,7 @@ const updateGiftIdeaImageUseCase = new UpdateGiftIdeaImageUseCase(giftIdeaReposi
 const api = createApi({
   registerUserUseCase,
   loginUserUseCase,
+  getCurrentUserUseCase,
   authenticationMiddleware,
   cookieSecure: COOKIE_SECURE,
   listPeopleUseCase,

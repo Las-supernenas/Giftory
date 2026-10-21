@@ -8,6 +8,7 @@ import { createPersonRouter } from './person/person-router';
 import { createGiftIdeaRouter } from './giftidea/giftidea-router';
 import { LoginUserUseCase } from '../domain/user/use-cases/LoginUserUseCase';
 import { RegisterUserUseCase } from '../domain/user/use-cases/RegisterUserUseCase';
+import { GetCurrentUserUseCase } from '../domain/user/use-cases/GetCurrentUserUseCase';
 import type { RequestHandler } from 'express';
 import { CreatePersonUseCase } from '../domain/person/use-cases/CreatePersonUseCase';
 import { DeletePersonUseCase } from '../domain/person/use-cases/DeletePersonUseCase';
@@ -41,6 +42,7 @@ import { GetGiftRecommendationsUseCase } from '../domain/person/use-cases/GetGif
 export interface ApiDependencies {
   registerUserUseCase: RegisterUserUseCase;
   loginUserUseCase: LoginUserUseCase;
+  getCurrentUserUseCase: GetCurrentUserUseCase;
   authenticationMiddleware: RequestHandler;
   cookieSecure: boolean;
   listPeopleUseCase: ListPeopleUseCase;

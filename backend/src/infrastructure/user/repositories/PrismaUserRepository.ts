@@ -40,4 +40,23 @@ export class PrismaUserRepository implements UserRepository {
       passwordHash: prismaUser.passwordHash,
     });
   }
+
+  async findById(id: number): Promise<User | null> {
+    const prismaUser = await this.prisma.user.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!prismaUser) {
+      return null;
+    }
+
+    return new User({
+      id: prismaUser.id,
+      name: prismaUser.name,
+      email: prismaUser.email,
+      passwordHash: prismaUser.passwordHash,
+    });
+  }
 }

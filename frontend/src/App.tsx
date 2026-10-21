@@ -6,19 +6,33 @@ import PeoplePage from "./features/people/pages/PeoplePage";
 import LibraryPage from "./features/library/pages/LibraryPage";
 import DiscoveryPage from "./features/giftideas/pages/DiscoveryPage";
 import { AppNavigation } from "./features/shared/components/AppNavigation";
+import type { CurrentUser } from "./features/auth/types/current-user";
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  // null = no session. The cookie is HttpOnly: we only keep the user's public data
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
+  const isAuthenticated = currentUser !== null;
   const navigate = useNavigate();
+
+  // On page load (also after a refresh) ask the backend who is logged in
   useEffect(() => {
     fetch("/api/users/session")
-      .then((response) => setIsAuthenticated(response.ok))
-      .catch(() => setIsAuthenticated(false));
+      .then(async (response) => {
+        if (!response.ok) {
+          setCurrentUser(null);
+          return;
+        }
+        const user = (await response.json()) as CurrentUser;
+        setCurrentUser({ id: user.id, name: user.name });
+      })
+      .catch(() => setCurrentUser(null))
+      .finally(() => setIsCheckingSession(false));
     sessionStorage.removeItem("giftoryAccessToken");
   }, []);
 
-  function handleLogin() {
-    setIsAuthenticated(true);
+  function handleLogin(user: CurrentUser) {
+    setCurrentUser(user);
     navigate("/");
   }
 
@@ -33,21 +47,21 @@ function App() {
       if (!response.ok) {
         throw new Error("Logout failed");
       }
-      setIsAuthenticated(false);
+      setCurrentUser(null);
       navigate("/login");
     } catch {
       window.alert("No se pudo cerrar sesión. Inténtalo de nuevo.");
     }
   }
 
-  if (isAuthenticated === null) {
+  if (isCheckingSession) {
     return <p>Comprobando sesión...</p>;
   }
 
   return (
     <>
       <AppNavigation
-        isAuthenticated={isAuthenticated}
+        userName={currentUser?.name ?? null}
         onLogout={handleLogout}
       />
       <Routes>
