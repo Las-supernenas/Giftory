@@ -115,6 +115,8 @@ model Event {
   date           DateTime  @db.Date
   personId       Int
   reminderSentAt DateTime?
+  // false: one-time event. true: repeats every year on the same day and month
+  repeatsYearly  Boolean   @default(false)
 
   person Person @relation(fields: [personId], references: [id])
 

@@ -1,28 +1,11 @@
 import { NavLink } from "react-router-dom";
+import { authenticatedLinks, publicLinks } from "../navigation-links";
 
 type AppNavigationProps = {
   // Name of the logged-in user, null when there is no session
   userName: string | null;
   onLogout: () => void;
 };
-
-type NavigationLink = {
-  to: string;
-  label: string;
-};
-
-//Main areas of the app. Discovery is public, People and Library need a session
-const authenticatedLinks: NavigationLink[] = [
-  { to: "/", label: "Descubrir" },
-  { to: "/people", label: "Personas" },
-  { to: "/library", label: "Biblioteca" },
-];
-
-const publicLinks: NavigationLink[] = [
-  { to: "/", label: "Descubrir" },
-  { to: "/login", label: "Iniciar sesión" },
-  { to: "/register", label: "Crear cuenta" },
-];
 
 const linkBaseClasses =
   "inline-flex w-full min-h-10 items-center justify-center rounded-xl px-2 py-1.5 text-sm font-medium no-underline transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:w-auto sm:px-4 sm:text-base";

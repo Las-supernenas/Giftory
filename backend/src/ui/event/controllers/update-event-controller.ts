@@ -16,13 +16,13 @@ export const createUpdateEventController =
         throw new ValidationError(idResult.error.issues[0].message);
       }
 
-      // validate the body: name and/or date (400 if invalid or empty)
+      // validate the body: name, date and/or repeatsYearly (400 if invalid or empty)
       const bodyResult = updateEventSchema.safeParse(req.body);
       if (!bodyResult.success) {
         throw new ValidationError(bodyResult.error.issues[0].message);
       }
 
-      const { name, date } = bodyResult.data;
+      const { name, date, repeatsYearly } = bodyResult.data;
 
       // the use case checks ownership through the person: another user's event returns 404
       const event = await updateEventUseCase.execute({
@@ -30,6 +30,7 @@ export const createUpdateEventController =
         eventId: idResult.data,
         name,
         date,
+        repeatsYearly,
       });
 
       // 200 with the updated event

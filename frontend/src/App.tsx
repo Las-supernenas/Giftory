@@ -1,4 +1,10 @@
-import { Route, Routes, useNavigate, Navigate } from "react-router-dom";
+import {
+  Route,
+  Routes,
+  useNavigate,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 import { useEffect, useState } from "react";
 import RegisterPage from "./features/auth/pages/RegisterPage";
 import LoginPage from "./features/auth/pages/LoginPage";
@@ -6,7 +12,9 @@ import PeoplePage from "./features/people/pages/PeoplePage";
 import LibraryPage from "./features/library/pages/LibraryPage";
 import DiscoveryPage from "./features/giftideas/pages/DiscoveryPage";
 import { AppNavigation } from "./features/shared/components/AppNavigation";
+import { AppFooter } from "./features/shared/components/AppFooter";
 import type { CurrentUser } from "./features/auth/types/current-user";
+import { scrollToTop } from "./features/shared/scroll-to-top";
 
 function App() {
   // null = no session. The cookie is HttpOnly: we only keep the user's public data
@@ -14,6 +22,12 @@ function App() {
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const isAuthenticated = currentUser !== null;
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  // React Router keeps the scroll position when the page changes: go back to the top
+  useEffect(() => {
+    scrollToTop();
+  }, [pathname]);
 
   // On page load (also after a refresh) ask the backend who is logged in
   useEffect(() => {
@@ -59,56 +73,64 @@ function App() {
   }
 
   return (
-    <>
+    // Full-height column: the page grows (flex-1) so the footer stays at the bottom on short pages
+    <div className="flex min-h-svh flex-col">
       <AppNavigation
         userName={currentUser?.name ?? null}
         onLogout={handleLogout}
       />
-      <Routes>
-        <Route
-          path="/"
-          element={<DiscoveryPage isAuthenticated={isAuthenticated} />}
-        />
+      <div className="flex-1">
+        <Routes>
+          <Route
+            path="/"
+            element={<DiscoveryPage isAuthenticated={isAuthenticated} />}
+          />
 
-        <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
+          <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
 
-        <Route
-          path="/register"
-          element={<RegisterPage onRegister={handleRegister} />}
-        />
+          <Route
+            path="/register"
+            element={<RegisterPage onRegister={handleRegister} />}
+          />
 
-        <Route
-          path="/library"
-          element={
-            isAuthenticated ? <LibraryPage /> : <Navigate to="/login" replace />
-          }
-        />
+          <Route
+            path="/library"
+            element={
+              isAuthenticated ? (
+                <LibraryPage />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
 
-        <Route
-          path="/people"
-          element={
-            isAuthenticated ? (
-              <div>
-                <PeoplePage />
+          <Route
+            path="/people"
+            element={
+              isAuthenticated ? (
+                <div>
+                  <PeoplePage />
+                </div>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          <Route
+            path="*"
+            element={
+              <div className="flex items-start justify-center pt-8">
+                <h1 className="font-sans text-2xl font-medium tracking-wide text-slate-800">
+                  Página no encontrada
+                </h1>
               </div>
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
-
-        <Route
-          path="*"
-          element={
-            <div className="min-h-screen flex items-start justify-center pt-8">
-              <h1 className="font-sans text-2xl font-medium tracking-wide text-slate-800">
-                Página no encontrada
-              </h1>
-            </div>
-          }
-        />
-      </Routes>
-    </>
+            }
+          />
+        </Routes>
+      </div>
+      <AppFooter isAuthenticated={isAuthenticated} />
+    </div>
   );
 }
 

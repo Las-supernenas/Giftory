@@ -21,6 +21,7 @@ export class PrismaEventRepository implements EventRepository {
         personId: data.personId,
         name: data.name,
         date: this.toDatabaseDate(data.date),
+        repeatsYearly: data.repeatsYearly,
       },
     });
     return this.restore(prismaEvent);
@@ -54,6 +55,7 @@ export class PrismaEventRepository implements EventRepository {
       data: {
         name: data.name,
         date: data.date === undefined ? undefined : this.toDatabaseDate(data.date),
+        repeatsYearly: data.repeatsYearly,
         reminderSentAt: data.resetReminder ? null : undefined,
       },
     });
@@ -121,6 +123,7 @@ export class PrismaEventRepository implements EventRepository {
       personId: prismaEvent.personId,
       name: prismaEvent.name,
       date: this.toDomainDate(prismaEvent.date),
+      repeatsYearly: prismaEvent.repeatsYearly,
     });
   }
 }
