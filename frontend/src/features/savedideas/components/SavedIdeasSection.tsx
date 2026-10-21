@@ -26,12 +26,16 @@ type SavedIdeasSectionProps = {
   personId: number;
   personName: string;
   availableInterests: string[];
+  savedIdeasVersion?: number;
+  onSavedIdeasChanged?: () => void;
 };
 
 export function SavedIdeasSection({
   personId,
   personName,
   availableInterests,
+  savedIdeasVersion = 0,
+  onSavedIdeasChanged,
 }: SavedIdeasSectionProps) {
   const [savedIdeas, setSavedIdeas] = useState<SavedIdea[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -53,9 +57,13 @@ export function SavedIdeasSection({
   useEffect(() => {
     let active = true;
     async function loadSavedIdeas() {
+      setIsLoading(true);
       try {
         const data = await getSavedIdeas(personId);
-        if (active) setSavedIdeas(data);
+        if (active) {
+          setSavedIdeas(data);
+          setLoadError("");
+        }
       } catch {
         if (active) setLoadError("No se pudieron cargar las ideas guardadas.");
       } finally {
@@ -66,7 +74,7 @@ export function SavedIdeasSection({
     return () => {
       active = false;
     };
-  }, [personId]);
+  }, [personId, savedIdeasVersion]);
 
   useEffect(() => {
     async function loadGiftIdeas() {
@@ -91,6 +99,7 @@ export function SavedIdeasSection({
       setSavedIdeas((current) =>
         current.filter((savedIdea) => savedIdea.id !== savedIdeaId),
       );
+      onSavedIdeasChanged?.();
     } catch {
       setActionError("No se pudo quitar la idea guardada.");
     } finally {
@@ -109,6 +118,7 @@ export function SavedIdeasSection({
       setSavedIdeas((current) => [...current, created]);
       setSelectedGiftIdeaId("");
       setLoadError("");
+      onSavedIdeasChanged?.();
     } catch (error) {
       setActionError(
         error instanceof Error ? error.message : "No se pudo guardar la idea.",

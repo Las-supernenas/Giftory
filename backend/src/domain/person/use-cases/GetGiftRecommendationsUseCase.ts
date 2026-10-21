@@ -116,8 +116,8 @@ export class GetGiftRecommendationsUseCase {
         giftIdeaId: giftIdea.id,
         name: giftIdea.name,
         price: giftIdea.price,
-        imageFilename: giftIdea.imageFilename,
-        productUrl: giftIdea.productUrl,
+        imageFilename: giftIdea.imageFilename ?? null,
+        productUrl: giftIdea.productUrl ?? null,
         matchScore: recommendation.matchScore,
         reason: recommendation.reason,
       };
