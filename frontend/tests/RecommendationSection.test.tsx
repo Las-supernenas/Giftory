@@ -2,16 +2,23 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { RecommendationsSection } from "../src/features/people/components/RecommendationsSection";
 import { getRecommendations } from "../src/features/people/services/recommendations-service";
+import { getSavedIdeas } from "../src/features/savedideas/services/savedideas-service";
 import type { RecommendationResponse } from "../src/features/people/types/recommendation";
 
 vi.mock("../src/features/people/services/recommendations-service", () => ({
   getRecommendations: vi.fn(),
 }));
+vi.mock("../src/features/savedideas/services/savedideas-service", () => ({
+  addSavedIdea: vi.fn(),
+  getSavedIdeas: vi.fn().mockResolvedValue([]),
+}));
 
 const mockedGetRecommendations = vi.mocked(getRecommendations);
+const mockedGetSavedIdeas = vi.mocked(getSavedIdeas);
 
 afterEach(() => {
   cleanup();
+  mockedGetSavedIdeas.mockResolvedValue([]);
 });
 
 describe("RecommendationsSection", () => {
@@ -22,6 +29,8 @@ describe("RecommendationsSection", () => {
           giftIdeaId: 1,
           name: "Juego de mesa",
           price: 29.99,
+          imageFilename: null,
+          productUrl: null,
           matchScore: 90,
           reason: "Le gusta compartir tiempo jugando.",
         },
@@ -133,6 +142,8 @@ describe("RecommendationsSection", () => {
       giftIdeaId: index + 1,
       name: `Regalo ${index + 1}`,
       price: 10 + index,
+      imageFilename: null,
+      productUrl: null,
       matchScore: 90 - index,
       reason: `Motivo ${index + 1}`,
     }));

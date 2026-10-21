@@ -28,6 +28,7 @@ function PeoplePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [selectedPersonId, setSelectedPersonId] = useState<number | null>(null);
+  const [savedIdeasVersion, setSavedIdeasVersion] = useState(0);
 
   // Text typed in the people search. Empty means "show everyone"
   const [search, setSearch] = useState("");
@@ -84,6 +85,13 @@ function PeoplePage() {
 
     void loadInterests();
   }, []);
+
+  function handleSavedIdeasChanged() {
+    setSavedIdeasVersion((version) => version + 1);
+    void getPeople().then(setPeople).catch(() => {
+      // The saved ideas sections refresh independently; keep the current count if this fails.
+    });
+  }
 
   function toggleInterest(interest: Interest) {
     setSelectedInterests((current) => {
@@ -423,10 +431,14 @@ function PeoplePage() {
                       personId={person.id}
                       personName={person.name}
                       availableInterests={interests}
+                      savedIdeasVersion={savedIdeasVersion}
+                      onSavedIdeasChanged={handleSavedIdeasChanged}
                     />
                     <RecommendationsSection
                       personId={person.id}
                       personName={person.name}
+                      savedIdeasVersion={savedIdeasVersion}
+                      onSavedIdeasChanged={handleSavedIdeasChanged}
                     />
                   </div>
                 </li>

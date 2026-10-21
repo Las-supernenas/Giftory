@@ -18,6 +18,8 @@ const RECOMMENDATIONS: RecommendationResponse = {
       giftIdeaId: 3,
       name: 'Ajedrez de mármol',
       price: 45,
+      imageFilename: null,
+      productUrl: null,
       matchScore: 92,
       reason: 'Le encantan los juegos de mesa.',
     },
