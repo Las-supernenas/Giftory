@@ -5,10 +5,19 @@ export interface CreateEventData {
   name: string;
   date: string; //"YYYY-MM-DD"
 }
+export interface EventReminder {
+  eventId: number;
+  eventName: string;
+  eventDate: string;
+  personName: string;
+  userEmail: string;
+  userName: string;
+}
 
 export interface UpdateEventData {
   name?: string;
   date?: string;
+  resetReminder?: boolean;
 }
 
 export interface EventRepository {
@@ -20,4 +29,7 @@ export interface EventRepository {
   update(id: number, data: UpdateEventData): Promise<Event>;
   //Hard delete: the row is removed from the database
   delete(id: number): Promise<void>;
+
+  findPendingRemindersByDate(date: string): Promise<EventReminder[]>;
+  markReminderSent(eventId: number): Promise<void>;
 }

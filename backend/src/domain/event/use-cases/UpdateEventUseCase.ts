@@ -37,6 +37,7 @@ export class UpdateEventUseCase {
         throw new ValidationError('La fecha no es válida.');
       }
       data.date = input.date;
+      data.resetReminder = input.date !== event.date;
     }
 
     return this.eventRepository.update(event.id, data);

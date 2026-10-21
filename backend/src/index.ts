@@ -25,17 +25,23 @@ import { ListEventsUseCase } from './domain/event/use-cases/ListEventsUseCase';
 import { CreateEventUseCase } from './domain/event/use-cases/CreateEventUseCase';
 import { UpdateEventUseCase } from './domain/event/use-cases/UpdateEventUseCase';
 import { DeleteEventUseCase } from './domain/event/use-cases/DeleteEventUseCase';
+import { SendEventRemindersUseCase } from './domain/event/use-cases/SendEventRemindersUseCase';
 import { PrismaSavedIdeaRepository } from './infrastructure/savedidea/repositories/PrismaSavedIdeaRepository';
 import { ListSavedIdeasUseCase } from './domain/savedidea/use-cases/ListSavedIdeasUseCase';
 import { AddSavedIdeaUseCase } from './domain/savedidea/use-cases/AddSavedIdeaUseCase';
 import { DeleteSavedIdeaUseCase } from './domain/savedidea/use-cases/DeleteSavedIdeaUseCase';
 import { UpdateSavedIdeaPrivateNoteUseCase } from './domain/savedidea/use-cases/UpdateSavedIdeaPrivateNoteUseCase';
 import { UpdateGiftIdeaImageUseCase } from './domain/giftidea/use-cases/UpdateGiftIdeaImageUseCase';
+
+import { MailgunEmailService } from './infrastructure/services/MailgunEmailService';
+import { startEventReminderScheduler } from './infrastructure/schedulers/eventReminderScheduler';
 import { GetGiftRecommendationsUseCase } from './domain/person/use-cases/GetGiftRecommendationsUseCase';
 import { OpenRouterRecommendationService } from './infrastructure/services/OpenRouterRecommendationService';
 
 environmentService.load();
-const { PORT, JWT_SECRET, COOKIE_SECURE, OPENROUTER_API_KEY } = environmentService.get();
+
+const { PORT, JWT_SECRET, COOKIE_SECURE, MAILGUN_API_KEY, MAILGUN_DOMAIN, OPENROUTER_API_KEY } =
+  environmentService.get();
 
 // composition root: here we create the real implementatios
 
@@ -89,6 +95,12 @@ const updatePrivateNoteUseCase = new UpdateSavedIdeaPrivateNoteUseCase(
   savedIdeaRepository,
 );
 const updateGiftIdeaImageUseCase = new UpdateGiftIdeaImageUseCase(giftIdeaRepository);
+
+const emailService = new MailgunEmailService(MAILGUN_API_KEY, MAILGUN_DOMAIN);
+
+const sendEventRemindersUseCase = new SendEventRemindersUseCase(eventRepository, emailService);
+
+startEventReminderScheduler(sendEventRemindersUseCase);
 
 const api = createApi({
   registerUserUseCase,
