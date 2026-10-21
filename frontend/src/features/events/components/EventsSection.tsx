@@ -133,7 +133,7 @@ function EventsSection({ personId }: EventsSectionProps) {
                   </Button>
                   <button
                     type="button"
-                    className="min-h-11 rounded-xl border border-error bg-surface px-4 py-2 font-medium text-error focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error"
+                    className="min-h-11 rounded-xl border border-error bg-surface px-4 py-2 font-medium text-error transition-colors hover:bg-error/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error"
                     onClick={() => void handleDelete(personEvent)}
                   >
                     Eliminar
@@ -144,16 +144,18 @@ function EventsSection({ personId }: EventsSectionProps) {
           ))}
         </ul>
       )}
-      <Button
-        variant="secondary"
-        aria-expanded={isEventFormOpen}
-        onClick={() => {
-          setEditingEvent(null);
-          setIsEventFormOpen((open) => !open);
-        }}
-      >
-        {isEventFormOpen ? "Ocultar formulario" : "Añadir evento"}
-      </Button>
+      <div className="pt-4">
+        <Button
+          variant="secondary"
+          aria-expanded={isEventFormOpen}
+          onClick={() => {
+            setEditingEvent(null);
+            setIsEventFormOpen((open) => !open);
+          }}
+        >
+          {isEventFormOpen ? "Ocultar formulario" : "Añadir evento"}
+        </Button>
+      </div>
       {isEventFormOpen && (
         <Card>
           <h3 className="mt-0 mb-3 font-semibold text-primary">

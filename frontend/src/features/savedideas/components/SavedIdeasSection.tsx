@@ -422,7 +422,7 @@ export function SavedIdeasSection({
                         name="image"
                         type="file"
                         accept="image/jpeg,image/png,image/webp"
-                        className="block w-full min-w-0 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-xl file:border-0 file:bg-accent-lavender file:px-4 file:py-2 file:font-medium file:text-foreground"
+                        className="block w-full min-w-0 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-xl file:border-0 file:bg-accent-lavender file:px-4 file:py-2 file:font-medium file:text-foreground file:hover:brightness-90"
                       />
                     </div>
 
@@ -519,7 +519,7 @@ export function SavedIdeasSection({
                   )}
                   <button
                     type="button"
-                    className="min-h-11 rounded-xl border border-error bg-surface px-4 py-2 font-medium text-error focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error disabled:cursor-not-allowed disabled:opacity-50"
+                    className="min-h-11 rounded-xl border border-error bg-surface px-4 py-2 font-medium text-error transition-colors enabled:hover:bg-error/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error disabled:cursor-not-allowed disabled:opacity-50"
                     disabled={deletingId !== null}
                     onClick={() => void handleDelete(savedIdea.id)}
                   >

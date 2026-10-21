@@ -158,7 +158,7 @@ export function GiftIdeaFilters({
                                 isEmpty
                                   ? "cursor-not-allowed border-dashed border-foreground/20 bg-surface text-muted"
                                   : isSelected
-                                    ? `border-solid border-primary ring-2 ring-primary/25 ${getInterestColorStyle(interest)}`
+                                    ? `border-solid border-primary ring-2 ring-primary/25 hover:brightness-90 ${getInterestColorStyle(interest)}`
                                     : "border-solid border-primary/30 bg-surface text-foreground hover:border-primary"
                               }`}
                             >
