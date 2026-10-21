@@ -16,6 +16,8 @@
   --color-success: #16a34a;
 }
 body {
+  /* No Tailwind reset: remove the browser's default 8px margin so the header and footer reach the edges */
+  margin: 0;
   background-color: var(--color-background);
   background-image:
     radial-gradient(
