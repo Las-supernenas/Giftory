@@ -33,6 +33,7 @@ import { AddSavedIdeaUseCase } from '../domain/savedidea/use-cases/AddSavedIdeaU
 import { DeleteSavedIdeaUseCase } from '../domain/savedidea/use-cases/DeleteSavedIdeaUseCase';
 import { UpdateSavedIdeaPrivateNoteUseCase } from '../domain/savedidea/use-cases/UpdateSavedIdeaPrivateNoteUseCase';
 import { UpdateGiftIdeaImageUseCase } from '../domain/giftidea/use-cases/UpdateGiftIdeaImageUseCase';
+import { GetGiftRecommendationsUseCase } from '../domain/person/use-cases/GetGiftRecommendationsUseCase';
 
 // All the use cases the HTTP layer needs. Created in index.ts and passed to the routers.
 // When a new use case is added, add it here too.
@@ -46,6 +47,7 @@ export interface ApiDependencies {
   createPersonUseCase: CreatePersonUseCase;
   updatePersonUseCase: UpdatePersonUseCase;
   deletePersonUseCase: DeletePersonUseCase;
+  getGiftRecommendationsUseCase: GetGiftRecommendationsUseCase;
   createGiftIdeaUseCase: CreateGiftIdeaUseCase;
   getGiftIdeaUseCase: GetGiftIdeaUseCase;
   listGiftIdeaUseCase: ListGiftIdeaUseCase;

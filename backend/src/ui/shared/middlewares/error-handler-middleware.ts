@@ -6,6 +6,7 @@ import { UnauthorizedError } from '../../../domain/errors/UnauthorizedError';
 import { ValidationError } from '../../../domain/errors/ValidationError';
 import { RecommendationProviderResponseError } from '../../../domain/errors/RecommendationProviderResponseError';
 import { RecommendationProviderTimeoutError } from '../../../domain/errors/RecommendationProviderTimeoutError';
+import { RecommendationProviderUnavailableError } from '../../../domain/errors/RecommendationProviderUnavailableError';
 import multer from 'multer';
 
 //Translates domain errors into HTTP responses
@@ -36,6 +37,8 @@ export const errorHandlerMiddleware = (
   } else if (error instanceof BusinessConflictError) {
     res.status(409).json({ error: error.message });
   } else if (error instanceof RecommendationProviderResponseError) {
+    res.status(502).json({ error: error.message });
+  } else if (error instanceof RecommendationProviderUnavailableError) {
     res.status(502).json({ error: error.message });
   } else if (error instanceof RecommendationProviderTimeoutError) {
     res.status(504).json({ error: error.message });

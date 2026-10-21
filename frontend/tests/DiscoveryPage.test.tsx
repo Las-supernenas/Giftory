@@ -10,7 +10,10 @@ import {
 import DiscoveryPage from "../src/features/giftideas/pages/DiscoveryPage";
 import { getGiftIdeas, createGiftIdea } from "../src/api/giftidea";
 import { getInterests } from "../src/features/shared/services/interests-service";
-import { getLibraryItems } from "../src/features/library/services/library-service";
+import {
+  addToLibrary,
+  getLibraryItems,
+} from "../src/features/library/services/library-service";
 
 vi.mock("../src/api/giftidea", () => ({
   getGiftIdeas: vi.fn(),
@@ -22,12 +25,14 @@ vi.mock("../src/features/shared/services/interests-service", () => ({
 }));
 
 vi.mock("../src/features/library/services/library-service", () => ({
+  addToLibrary: vi.fn(),
   getLibraryItems: vi.fn(),
 }));
 
 const mockedGetGiftIdeas = vi.mocked(getGiftIdeas);
 const mockedCreateGiftIdea = vi.mocked(createGiftIdea);
 const mockedGetInterests = vi.mocked(getInterests);
+const mockedAddToLibrary = vi.mocked(addToLibrary);
 const mockedGetLibraryItems = vi.mocked(getLibraryItems);
 
 beforeEach(() => {
@@ -36,6 +41,7 @@ beforeEach(() => {
   mockedGetGiftIdeas.mockResolvedValue([]);
   mockedGetInterests.mockResolvedValue([]);
   mockedGetLibraryItems.mockResolvedValue([]);
+  mockedAddToLibrary.mockResolvedValue("added");
 });
 
 afterEach(() => {
@@ -79,7 +85,7 @@ describe("DiscoveryPage", () => {
     ).toBeTruthy();
   });
 
-  it("allows an authenticated user to create a gift idea", async () => {
+  it("creates a public gift idea and saves it to the user's library", async () => {
     mockedCreateGiftIdea.mockResolvedValue({
       id: 2,
       name: "Coffee Machine",
@@ -111,12 +117,58 @@ describe("DiscoveryPage", () => {
         description: null,
         productUrl: null,
       });
+      expect(mockedAddToLibrary).toHaveBeenCalledWith(2);
     });
 
     expect(await screen.findByText("Coffee Machine")).toBeTruthy();
 
     expect(
-      screen.getByText("¡Idea de regalo creada correctamente!"),
+      screen.getByText("¡Idea de regalo creada y guardada en tu biblioteca!"),
     ).toBeTruthy();
+  });
+
+  it("keeps the public gift idea when saving it to the library fails", async () => {
+    mockedCreateGiftIdea.mockResolvedValue({
+      id: 3,
+      name: "Coffee Grinder",
+      price: 25,
+      interests: [],
+    });
+    mockedAddToLibrary.mockRejectedValue(new Error("No se pudo conectar con el servidor."));
+
+    render(<DiscoveryPage isAuthenticated={true} />);
+
+    fireEvent.change(screen.getByLabelText("Nombre del regalo"), {
+      target: { value: "Coffee Grinder" },
+    });
+    fireEvent.change(screen.getByLabelText("Precio (€)"), {
+      target: { value: "25" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Crear idea de regalo" }));
+
+    expect(await screen.findByText("Coffee Grinder")).toBeTruthy();
+    expect(mockedAddToLibrary).toHaveBeenCalledWith(3);
+    expect(
+      screen.getByText(
+        "La idea se creó en Discovery, pero no se guardó en tu biblioteca: No se pudo conectar con el servidor.",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("does not save to the library when creating the gift idea fails", async () => {
+    mockedCreateGiftIdea.mockRejectedValue(new Error("Creation failed"));
+
+    render(<DiscoveryPage isAuthenticated={true} />);
+
+    fireEvent.change(screen.getByLabelText("Nombre del regalo"), {
+      target: { value: "Coffee Grinder" },
+    });
+    fireEvent.change(screen.getByLabelText("Precio (€)"), {
+      target: { value: "25" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Crear idea de regalo" }));
+
+    expect(await screen.findByText("No se pudo crear la idea de regalo.")).toBeTruthy();
+    expect(mockedAddToLibrary).not.toHaveBeenCalled();
   });
 });

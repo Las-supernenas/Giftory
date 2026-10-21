@@ -5,6 +5,9 @@ const environmentVariablesValidator = z.object({
   PORT: z.coerce.number().default(3000),
   DATABASE_URL: z.string({ error: 'DATABASE_URL is required' }).min(1, 'DATABASE_URL is required'),
   JWT_SECRET: z.string({ error: 'JWT_SECRET is required' }).min(1, 'JWT_SECRET is required'),
+  OPENROUTER_API_KEY: z
+    .string({ error: 'OPENROUTER_API_KEY is required' })
+    .min(1, 'OPENROUTER_API_KEY is required'),
   COOKIE_SECURE: z
     .string()
     .optional()
