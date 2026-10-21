@@ -229,7 +229,7 @@ function PeoplePage() {
                     onClick={() => toggleInterest(interest)}
                     className={`min-h-11 rounded-full border px-3 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                       selectedInterests.includes(interest)
-                        ? `border-primary ring-2 ring-primary/25 ${getInterestColorStyle(interest)}`
+                        ? `border-primary ring-2 ring-primary/25 hover:brightness-90 ${getInterestColorStyle(interest)}`
                         : "border-primary/30 bg-surface text-foreground hover:border-primary"
                     }`}
                   >
@@ -400,7 +400,7 @@ function PeoplePage() {
                       Editar
                     </Button>
                     <button
-                      className="min-h-11 rounded-xl border border-error bg-surface px-4 py-2 font-medium text-error focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error"
+                      className="min-h-11 rounded-xl border border-error bg-surface px-4 py-2 font-medium text-error transition-colors hover:bg-error/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error"
                       type="button"
                       onClick={() => void handleDelete(person)}
                     >

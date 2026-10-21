@@ -429,7 +429,7 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
               name="image"
               type="file"
               accept="image/jpeg,image/png,image/webp"
-              className="block w-full min-w-0 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-xl file:border-0 file:bg-accent-lavender file:px-4 file:py-2 file:font-medium file:text-foreground"
+              className="block w-full min-w-0 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-xl file:border-0 file:bg-accent-lavender file:px-4 file:py-2 file:font-medium file:text-foreground file:hover:brightness-90"
             />
 
             <fieldset className="min-w-0 border-0 p-0">
@@ -469,7 +469,7 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
                         onClick={() => toggleInterest(interest)}
                         className={`min-h-11 rounded-full border px-3 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                           selectedInterests.includes(interest)
-                            ? `border-primary ring-2 ring-primary/25 ${getInterestColorStyle(interest)}`
+                            ? `border-primary ring-2 ring-primary/25 hover:brightness-90 ${getInterestColorStyle(interest)}`
                             : "border-primary/30 bg-surface text-foreground hover:border-primary"
                         }`}
                       >
@@ -543,7 +543,7 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
                     key={idea.id}
                     className="rounded-2xl border border-solid border-accent-gold/60 bg-surface p-5 shadow-sm flex flex-col"
                   >
-                    <h3 className="mb-2 text-xl font-semibold text-primary">
+                    <h3 className="mb-2 min-h-[5.25rem] text-xl font-semibold text-primary">
                       {idea.name}
                     </h3>
 
@@ -612,7 +612,7 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
                       </a>
                     )}
 
-                    <div className="flex flex-wrap gap-2 pb-4">
+                    <div className="mt-auto flex min-h-20 flex-wrap content-start gap-2 pb-4">
                       {idea.interests.map((interest) => (
                         <span
                           key={interest}
@@ -627,7 +627,7 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
                     {isAuthenticated && (
                       <Button
                         variant="secondary"
-                        className="mt-auto w-full sm:w-auto"
+                        className="w-full sm:w-auto"
                         disabled={
                           libraryLoading || savingGiftIdeaId !== null || isSaved
                         }
