@@ -311,7 +311,8 @@ frontend/src/
 │   ├── events/
 │   │   ├── components/          EventsSection: list, create, edit and delete a person's events
 │   │   ├── services/            events-service.ts: requests to the Event endpoints
-│   │   └── types/               event.ts: PersonEvent and EventInput types
+│   │   ├── types/               event.ts: PersonEvent and EventInput types
+│   │   └── event-dates.ts       Next occurrence, countdown, past events and readable dates
 │   ├── people/
 │   │   ├── pages/               PeoplePage
 │   │   └── services/            people-service.ts: requests to /api/people
@@ -359,6 +360,7 @@ Discovery and Library can be filtered by name (case and accent insensitive), int
 Every interest from `GET /api/interests` is shown in its category; interests without matching ideas are disabled.
 Both lists are paginated on the client (9 ideas per page); changing a filter goes back to page 1.
 People can be searched by name with the same rules (case and accent insensitive, trimmed); the shared helper is `features/shared/normalize-text.ts`.
+In a person's details, events are one-time ("Una sola vez") or yearly ("Cada año"). A yearly event repeats on the same day and month every year (29/02 falls on 28/02 in non-leap years) and is shown with its next occurrence. Each event shows a countdown ("¡Es hoy!", "Mañana", "En X días", "En X meses", "En X años", "Ya pasó"); the last 7 days are highlighted. Upcoming events are sorted by next occurrence, and the closest one is summarized next to the title ("Próximo: …"). Past one-time events are grouped in a collapsed "Eventos pasados (N)" section and can still be edited or deleted. The form offers name suggestions (they select "Cada año") and a non-blocking warning when a one-time event has a past date. "Today" is the user's local date; the date rules live in `features/events/event-dates.ts`.
 
 ## Notes
 
