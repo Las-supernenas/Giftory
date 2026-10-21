@@ -10,6 +10,7 @@ export interface CreateEventUseCaseInput {
   personId: number;
   name: string;
   date: string; // "YYYY-MM-DD"
+  repeatsYearly?: boolean; // not sent: one-time event
 }
 
 export class CreateEventUseCase {
@@ -36,6 +37,11 @@ export class CreateEventUseCase {
       throw new ValidationError('La fecha no es válida.');
     }
 
-    return this.eventRepository.create({ personId: person.id, name, date: input.date });
+    return this.eventRepository.create({
+      personId: person.id,
+      name,
+      date: input.date,
+      repeatsYearly: input.repeatsYearly ?? false,
+    });
   }
 }

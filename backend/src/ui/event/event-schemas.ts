@@ -17,21 +17,32 @@ const dateSchema = z.iso.date({
   error: 'La fecha debe ser una fecha válida en formato YYYY-MM-DD.',
 });
 
-// POST /api/people/:personId/events: name and date are required
+// Repeats yearly: a real boolean (true / false), not text like "true" or "sí"
+const repeatsYearlySchema = z.boolean({
+  error: 'Indica si el evento se repite cada año (true o false).',
+});
+
+// POST /api/people/:personId/events: name and date are required, repeatsYearly is optional
 export const createEventSchema = z.object({
   name: nameSchema,
   date: dateSchema,
+  repeatsYearly: repeatsYearlySchema.optional(),
 });
 
-// PATCH /api/events/:id: both fields are optional (partial update)
+// PATCH /api/events/:id: every field is optional (partial update)
 export const updateEventSchema = z
   .object({
     name: nameSchema.optional(),
     date: dateSchema.optional(),
+    repeatsYearly: repeatsYearlySchema.optional(),
   }) // at least one of them must be sent
-  .refine((data) => data.name !== undefined || data.date !== undefined, {
-    error: 'Envía al menos un campo para actualizar.',
-  });
+  .refine(
+    (data) =>
+      data.name !== undefined || data.date !== undefined || data.repeatsYearly !== undefined,
+    {
+      error: 'Envía al menos un campo para actualizar.',
+    },
+  );
 
 // :id from the URL arrives as text: convert it to a positive integer
 export const eventIdSchema = z.coerce
@@ -45,4 +56,5 @@ export const toEventResponse = (event: Event) => ({
   id: event.id,
   name: event.name,
   date: event.date,
+  repeatsYearly: event.repeatsYearly,
 });
