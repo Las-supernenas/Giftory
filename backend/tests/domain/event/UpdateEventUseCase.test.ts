@@ -14,6 +14,7 @@ const existingEvent: Event = {
   name: 'Birthday',
   date: '2026-10-27',
   personId: 2,
+  repeatsYearly: false,
 };
 
 function createFakeRepository(event: Event | null = existingEvent) {
@@ -83,6 +84,49 @@ test('preserves reminder when the date stays the same', async () => {
 
   assert.equal(updates.length, 1);
   assert.equal(updates[0].resetReminder, false);
+});
+
+test('updates only repeatsYearly and keeps name and date', async () => {
+  const { repository, updates } = createFakeRepository();
+  const useCase = new UpdateEventUseCase(repository);
+
+  const result = await useCase.execute({
+    userId: 1,
+    eventId: 1,
+    repeatsYearly: true,
+  });
+
+  // only repeatsYearly is sent to the repository: name and date are not changed
+  assert.deepEqual(updates[0], { repeatsYearly: true });
+  assert.equal(result.repeatsYearly, true);
+  assert.equal(result.name, 'Birthday');
+  assert.equal(result.date, '2026-10-27');
+});
+
+test('sends repeatsYearly false so a yearly event can become one-time', async () => {
+  const { repository, updates } = createFakeRepository({ ...existingEvent, repeatsYearly: true });
+  const useCase = new UpdateEventUseCase(repository);
+
+  await useCase.execute({
+    userId: 1,
+    eventId: 1,
+    repeatsYearly: false,
+  });
+
+  assert.equal(updates[0].repeatsYearly, false);
+});
+
+test('does not change repeatsYearly when it is not sent', async () => {
+  const { repository, updates } = createFakeRepository();
+  const useCase = new UpdateEventUseCase(repository);
+
+  await useCase.execute({
+    userId: 1,
+    eventId: 1,
+    name: 'Updated Birthday',
+  });
+
+  assert.equal('repeatsYearly' in updates[0], false);
 });
 
 test('rejects an invalid event date', async () => {

@@ -198,8 +198,8 @@ Domain errors are translated to HTTP status codes in `ui/shared/middlewares/erro
 | `PATCH` | `/api/people/:personId/savedideas/:id` | `200` update the private note |
 | `DELETE` | `/api/people/:personId/savedideas/:id` | `204` remove the assignment |
 | `GET` | `/api/people/:personId/events` | `200` list of the person's events · `400` invalid id · `404` person not found · `401` no token |
-| `POST` | `/api/people/:personId/events` | `201 { id, name, date }` · `400` invalid data · `404` person not found · `401` no token |
-| `PATCH` | `/api/events/:id` | `200 { id, name, date }` · `400` invalid data · `404` not found · `401` no token |
+| `POST` | `/api/people/:personId/events` | `201 { id, name, date, repeatsYearly }` · `400` invalid data · `404` person not found · `401` no token |
+| `PATCH` | `/api/events/:id` | `200 { id, name, date, repeatsYearly }` · `400` invalid data · `404` not found · `401` no token |
 | `DELETE` | `/api/events/:id` | `204` · `404` not found · `401` no token |
 | `GET` | `/api/library` | `200` library items with `giftIdea` details and `canEditGiftIdea` · `401` not authenticated |
 | `POST` | `/api/library` | `201 { id, giftIdea }` · `400` invalid data · `404` gift idea not found · `409` already in the library · `401` not authenticated |
@@ -240,6 +240,7 @@ All Event routes require the `Authorization: Bearer <accessToken>` header.
 - An event belongs to a person, and ownership is checked through that person: a user only sees and modifies events of their own (not deleted) people. Otherwise the API returns `404`.
 - `date` is a calendar day in `YYYY-MM-DD` format (e.g. `2026-10-23`), both in requests and responses. It must be a real date; past dates are allowed.
 - `name` is required, trimmed, 1–100 characters.
+- `repeatsYearly` is an optional boolean (`true` / `false`). `true` means the event repeats every year on the same day and month (e.g. a birthday); `date` keeps the original date. When creating, it defaults to `false` (one-time event); when updating, it only changes if it is sent.
 - `DELETE` is a hard delete: the event is removed from the database.
 - Events are returned ordered by date.
 

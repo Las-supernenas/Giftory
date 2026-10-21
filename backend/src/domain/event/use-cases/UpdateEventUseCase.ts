@@ -9,6 +9,7 @@ export interface UpdateEventUseCaseInput {
   eventId: number;
   name?: string;
   date?: string; //"YYYY-MM-DD"
+  repeatsYearly?: boolean;
 }
 
 export class UpdateEventUseCase {
@@ -38,6 +39,10 @@ export class UpdateEventUseCase {
       }
       data.date = input.date;
       data.resetReminder = input.date !== event.date;
+    }
+
+    if (input.repeatsYearly !== undefined) {
+      data.repeatsYearly = input.repeatsYearly;
     }
 
     return this.eventRepository.update(event.id, data);

@@ -78,10 +78,49 @@ test('creates an event for a person owned by the authenticated user', async () =
     personId: 10,
     name: 'Birthday',
     date: '2026-12-15',
+    repeatsYearly: false,
   });
 
   assert.equal(fake.getCreateCalls(), 1);
   assert.equal(result.id, 100);
+});
+
+test('creates a yearly event when repeatsYearly is true', async () => {
+  const fake = createFakeRepositories();
+
+  const useCase = new CreateEventUseCase(
+    fake.eventRepository,
+    fake.personRepository,
+  );
+
+  await useCase.execute({
+    userId: 1,
+    personId: 10,
+    name: 'Anniversary',
+    date: '2015-05-18',
+    repeatsYearly: true,
+  });
+
+  assert.equal(fake.getCreatedData()?.repeatsYearly, true);
+});
+
+test('creates a one-time event when repeatsYearly is false', async () => {
+  const fake = createFakeRepositories();
+
+  const useCase = new CreateEventUseCase(
+    fake.eventRepository,
+    fake.personRepository,
+  );
+
+  await useCase.execute({
+    userId: 1,
+    personId: 10,
+    name: 'Dinner',
+    date: '2026-10-22',
+    repeatsYearly: false,
+  });
+
+  assert.equal(fake.getCreatedData()?.repeatsYearly, false);
 });
 
 test('rejects an event with an empty name', async () => {
