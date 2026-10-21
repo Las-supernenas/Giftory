@@ -16,6 +16,7 @@ services:
     environment:
       DATABASE_URL: "postgresql://giftory:${POSTGRES_PASSWORD}@db:5432/giftory?schema=public"
       JWT_SECRET: ${JWT_SECRET}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
     depends_on:
       db:
