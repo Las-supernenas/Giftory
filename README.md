@@ -327,7 +327,7 @@ The components in `frontend/src/features/shared/components/` provide a small UI 
 | `/` | Discovery: public gift ideas with optional descriptions, product links and images; authenticated users can create ideas and save them to their library | Public |
 | `/login` | Login form | Public |
 | `/register` | Registration form | Public |
-| `/people` | Manage people; expand one person's details to see events and saved ideas, assign ideas from the library, and edit private notes | Private |
+| `/people` | Manage and search people by name; expand one person's details to see events and saved ideas, assign ideas from the library, and edit private notes | Private |
 | `/library` | View and remove library items, assign ideas to people, and edit gift ideas created by the user | Private |
 
 Private routes redirect to `/login` when there is no session.
@@ -337,6 +337,7 @@ The main navigation (`AppNavigation`) is shown on every page. With a session it 
 Discovery and Library can be filtered by name (case and accent insensitive), interests (an idea matches if it has ANY of the selected interests) and minimum/maximum price (both included). Filters combine: an idea must match all of them. Filtering is done in the browser on the loaded list, which is never modified. In Library, only the user's own saved ideas are filtered. All interest categories are always shown; a category with no matching ideas shows "Aún no hay ideas aquí.".
 Every interest from `GET /api/interests` is shown in its category; interests without matching ideas are disabled.
 Both lists are paginated on the client (9 ideas per page); changing a filter goes back to page 1.
+People can be searched by name with the same rules (case and accent insensitive, trimmed); the shared helper is `features/shared/normalize-text.ts`.
 
 ## Notes
 
