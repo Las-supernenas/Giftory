@@ -31,6 +31,7 @@ import {
   getTotalPages,
   scrollToResults,
 } from "../../shared/pagination";
+import { formatPrice } from "../../shared/format-price";
 
 type LibraryItemResponse = {
   id: number;
@@ -45,6 +46,9 @@ type LibraryItemResponse = {
     imageFilename: string | null;
   };
 };
+
+// Which library ideas to show: all of them (own first) or only the ones the user created
+type Ownership = "all" | "mine";
 
 function LibraryPage() {
   const [libraryItems, setLibraryItems] = useState<LibraryItemResponse[]>([]);
@@ -72,6 +76,7 @@ function LibraryPage() {
     EMPTY_GIFT_IDEA_FILTERS,
   );
   const [currentPage, setCurrentPage] = useState(1);
+  const [ownership, setOwnership] = useState<Ownership>("all");
 
   useEffect(() => {
     async function loadLibrary() {
@@ -243,12 +248,24 @@ function LibraryPage() {
     }
   }
 
-  // Only the users own library items are filtered. libraryItems itself is never changed
-  const visibleItems = libraryItems.filter((item) =>
+  // canEditGiftIdea is true when the user created the idea (returned by the API)
+  const ownCount = libraryItems.filter((item) => item.canEditGiftIdea).length;
+
+  // "Todas": the user's own ideas first, then the rest. "Creadas por mí": only them.
+  // filter and [...].sort return new arrays: libraryItems itself is never changed
+  const listedItems =
+    ownership === "mine"
+      ? libraryItems.filter((item) => item.canEditGiftIdea)
+      : [...libraryItems].sort(
+          (a, b) => Number(b.canEditGiftIdea) - Number(a.canEditGiftIdea),
+        );
+
+  // Only the user's own library items are filtered
+  const visibleItems = listedItems.filter((item) =>
     matchesGiftIdeaFilters(item.giftIdea, filters),
   );
   const filterInterests = collectInterests(
-    libraryItems.map((item) => item.giftIdea),
+    listedItems.map((item) => item.giftIdea),
   );
 
   const totalPages = getTotalPages(visibleItems.length);
@@ -262,6 +279,17 @@ function LibraryPage() {
     setCurrentPage(1);
   }
 
+  // Switching between "Todas" and "Creadas por mí" also shows the first page
+  function handleOwnershipChange(newOwnership: Ownership) {
+    setOwnership(newOwnership);
+    setCurrentPage(1);
+  }
+
+  const ownershipOptions = [
+    { value: "all", label: "Todas", count: libraryItems.length },
+    { value: "mine", label: "Creadas por mí", count: ownCount },
+  ] as const;
+
   function handlePageChange(newPage: number) {
     setCurrentPage(newPage);
     scrollToResults();
@@ -269,9 +297,14 @@ function LibraryPage() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
-      <h1 className="mb-8 font-serif text-3xl font-bold leading-tight tracking-tight text-primary sm:text-4xl">
-        Biblioteca
-      </h1>
+      <header className="mb-8">
+        <h1 className="mb-2 font-serif text-3xl font-bold leading-tight tracking-tight text-primary sm:text-4xl">
+          Biblioteca
+        </h1>
+        <p className="m-0 text-muted">
+          Las ideas que has guardado, listas para asignar a alguien especial.
+        </p>
+      </header>
       {isLoading && (
         <p role="status" className="text-sm text-muted">
           Cargando biblioteca...
@@ -294,6 +327,43 @@ function LibraryPage() {
           availableInterests={filterInterests}
           allInterests={availableInterests}
           resultCount={visibleItems.length}
+          searchLabel="Buscar en tu biblioteca"
+          searchPlaceholder="Buscar en tu biblioteca..."
+          emptyMessage={
+            ownership === "mine" && ownCount === 0
+              ? "Todavía no has creado ninguna idea. Las que crees en Descubrir aparecerán aquí."
+              : undefined
+          }
+          searchAside={
+            <div
+              role="group"
+              aria-label="Mostrar ideas"
+              className="inline-flex shrink-0 gap-1 self-start rounded-2xl border border-solid border-primary/20 bg-surface p-1 sm:self-auto"
+            >
+              {ownershipOptions.map((option) => {
+                const isActive = ownership === option.value;
+
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-pressed={isActive}
+                    onClick={() => handleOwnershipChange(option.value)}
+                    className={`min-h-11 rounded-xl border-0 px-4 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                      isActive
+                        ? "bg-primary text-white"
+                        : "bg-transparent text-foreground hover:bg-accent-lavender/15"
+                    }`}
+                  >
+                    {option.label}{" "}
+                    <span className={isActive ? "opacity-80" : "text-muted"}>
+                      ({option.count})
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          }
         >
           <ul className="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
             {pageItems.map((item) => (
@@ -301,6 +371,11 @@ function LibraryPage() {
                 <Card
                   className={`box-border flex flex-col border-accent-gold/60! ${editingGiftIdeaId === null ? "sm:h-full" : ""}`}
                 >
+                  {item.canEditGiftIdea && (
+                    <span className="mb-2 inline-flex w-fit rounded-full bg-primary px-3 py-1 text-xs font-semibold text-white">
+                      Creada por ti
+                    </span>
+                  )}
                   <h2 className="mt-0 mb-2 text-lg font-semibold text-primary">
                     {item.giftIdea.name}
                   </h2>
@@ -309,7 +384,7 @@ function LibraryPage() {
                       src={`/api/giftideas/images/${encodeURIComponent(item.giftIdea.imageFilename)}`}
                       alt={`Imagen de ${item.giftIdea.name}`}
                       loading="lazy"
-                      className="mb-3 aspect-video w-full rounded-xl object-cover"
+                      className="mb-3 aspect-video w-full rounded-xl bg-surface object-contain"
                     />
                   )}
                   {!item.giftIdea.imageFilename && (
@@ -337,11 +412,11 @@ function LibraryPage() {
                       <span>Sin imagen</span>
                     </div>
                   )}
-                  <p className="mt-0 mb-2 text-sm text-muted">
-                    {item.giftIdea.price} €
+                  <p className="mt-0 mb-2 text-lg font-bold text-primary">
+                    {formatPrice(item.giftIdea.price)}
                   </p>
                   {item.giftIdea.description && (
-                    <p className="mb-3 whitespace-pre-wrap break-words text-sm text-foreground">
+                    <p className="mb-3 line-clamp-2 break-words text-sm text-foreground">
                       {item.giftIdea.description}
                     </p>
                   )}
@@ -360,7 +435,7 @@ function LibraryPage() {
                     </a>
                   )}
                   <div className="mb-4 flex flex-wrap gap-2">
-                    {item.giftIdea.interests.map((interest) => (
+                    {item.giftIdea.interests.slice(0, 2).map((interest) => (
                       <span
                         key={interest}
                         className={`rounded-full px-3 py-1 text-sm ${getInterestColorStyle(interest)}`}
@@ -368,6 +443,19 @@ function LibraryPage() {
                         {INTEREST_LABELS[interest] ?? interest}
                       </span>
                     ))}
+                    {item.giftIdea.interests.length > 2 && (
+                      <span
+                        className="rounded-full bg-accent-lavender/20 px-3 py-1 text-sm text-primary"
+                        title={item.giftIdea.interests
+                          .slice(2)
+                          .map(
+                            (interest) => INTEREST_LABELS[interest] ?? interest,
+                          )
+                          .join(", ")}
+                      >
+                        +{item.giftIdea.interests.length - 2}
+                      </span>
+                    )}
                   </div>
                   {item.canEditGiftIdea &&
                     editingGiftIdeaId === item.giftIdea.id && (
@@ -428,7 +516,7 @@ function LibraryPage() {
                             name="image"
                             type="file"
                             accept="image/jpeg,image/png,image/webp"
-                            className="block w-full min-w-0 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-xl file:border-0 file:bg-accent-lavender file:px-4 file:py-2 file:font-medium file:text-foreground"
+                            className="block w-full min-w-0 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-xl file:border-0 file:bg-accent-lavender file:px-4 file:py-2 file:font-medium file:text-foreground file:hover:brightness-90"
                           />
                         </div>
 
@@ -549,12 +637,11 @@ function LibraryPage() {
                         )}
                     </div>
                   )}
-                  <div className="mt-auto flex min-h-14 gap-2">
-                    {item.canEditGiftIdea && (
-                      <Button
+                  <div className="mt-auto flex min-h-11 flex-wrap items-center justify-between gap-2">
+                    {item.canEditGiftIdea ? (
+                      <button
                         type="button"
-                        variant="secondary"
-                        className="min-w-0 flex-1 text-sm"
+                        className="min-h-11 rounded-lg whitespace-nowrap border-0 bg-transparent px-1 text-sm font-medium text-primary underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                         onClick={() => {
                           setEditError("");
                           setEditingGiftIdeaId((current) =>
@@ -566,15 +653,17 @@ function LibraryPage() {
                       >
                         {editingGiftIdeaId === item.giftIdea.id
                           ? "Cancelar edición"
-                          : "Editar idea de regalo"}
-                      </Button>
+                          : "Editar idea"}
+                      </button>
+                    ) : (
+                      <span />
                     )}
                     <button
                       type="button"
-                      className="min-h-11 min-w-0 flex-1 rounded-xl border border-error bg-surface px-4 py-2 text-sm font-medium text-error focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error"
+                      className="min-h-11 rounded-lg border-0 bg-transparent px-1 text-sm font-medium whitespace-nowrap text-error underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error"
                       onClick={() => void removeLibraryItem(item.id)}
                     >
-                      Eliminar de la biblioteca
+                      Quitar de la biblioteca
                     </button>
                   </div>
                 </Card>

@@ -5,7 +5,7 @@ type PaginationProps = {
 };
 
 const baseButtonClasses =
-  "inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-solid px-3 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-solid px-3 py-2 text-sm font-medium transition-[filter] enabled:hover:brightness-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50";
 
 const idleButtonClasses =
   "border-primary/30 bg-surface text-foreground hover:border-primary";

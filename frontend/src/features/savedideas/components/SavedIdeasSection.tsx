@@ -26,12 +26,16 @@ type SavedIdeasSectionProps = {
   personId: number;
   personName: string;
   availableInterests: string[];
+  savedIdeasVersion?: number;
+  onSavedIdeasChanged?: () => void;
 };
 
 export function SavedIdeasSection({
   personId,
   personName,
   availableInterests,
+  savedIdeasVersion = 0,
+  onSavedIdeasChanged,
 }: SavedIdeasSectionProps) {
   const [savedIdeas, setSavedIdeas] = useState<SavedIdea[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -53,9 +57,13 @@ export function SavedIdeasSection({
   useEffect(() => {
     let active = true;
     async function loadSavedIdeas() {
+      setIsLoading(true);
       try {
         const data = await getSavedIdeas(personId);
-        if (active) setSavedIdeas(data);
+        if (active) {
+          setSavedIdeas(data);
+          setLoadError("");
+        }
       } catch {
         if (active) setLoadError("No se pudieron cargar las ideas guardadas.");
       } finally {
@@ -66,7 +74,7 @@ export function SavedIdeasSection({
     return () => {
       active = false;
     };
-  }, [personId]);
+  }, [personId, savedIdeasVersion]);
 
   useEffect(() => {
     async function loadGiftIdeas() {
@@ -91,6 +99,7 @@ export function SavedIdeasSection({
       setSavedIdeas((current) =>
         current.filter((savedIdea) => savedIdea.id !== savedIdeaId),
       );
+      onSavedIdeasChanged?.();
     } catch {
       setActionError("No se pudo quitar la idea guardada.");
     } finally {
@@ -109,6 +118,7 @@ export function SavedIdeasSection({
       setSavedIdeas((current) => [...current, created]);
       setSelectedGiftIdeaId("");
       setLoadError("");
+      onSavedIdeasChanged?.();
     } catch (error) {
       setActionError(
         error instanceof Error ? error.message : "No se pudo guardar la idea.",
@@ -422,7 +432,7 @@ export function SavedIdeasSection({
                         name="image"
                         type="file"
                         accept="image/jpeg,image/png,image/webp"
-                        className="block w-full min-w-0 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-xl file:border-0 file:bg-accent-lavender file:px-4 file:py-2 file:font-medium file:text-foreground"
+                        className="block w-full min-w-0 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-xl file:border-0 file:bg-accent-lavender file:px-4 file:py-2 file:font-medium file:text-foreground file:hover:brightness-90"
                       />
                     </div>
 
@@ -519,7 +529,7 @@ export function SavedIdeasSection({
                   )}
                   <button
                     type="button"
-                    className="min-h-11 rounded-xl border border-error bg-surface px-4 py-2 font-medium text-error focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error disabled:cursor-not-allowed disabled:opacity-50"
+                    className="min-h-11 rounded-xl border border-error bg-surface px-4 py-2 font-medium text-error transition-colors enabled:hover:bg-error/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error disabled:cursor-not-allowed disabled:opacity-50"
                     disabled={deletingId !== null}
                     onClick={() => void handleDelete(savedIdea.id)}
                   >

@@ -19,6 +19,8 @@ import { Button } from "../../shared/components/Button";
 import { ErrorState } from "../../shared/components/ErrorState";
 import { EmptyState } from "../../shared/components/EmptyState";
 import { getInterestColorStyle } from "../../shared/interest-colors";
+import { RecommendationsSection } from "../components/RecommendationsSection";
+import { normalizeText } from "../../shared/normalize-text";
 
 function PeoplePage() {
   // List and status of the initial load
@@ -26,6 +28,10 @@ function PeoplePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [selectedPersonId, setSelectedPersonId] = useState<number | null>(null);
+  const [savedIdeasVersion, setSavedIdeasVersion] = useState(0);
+
+  // Text typed in the people search. Empty means "show everyone"
+  const [search, setSearch] = useState("");
 
   // Available interests, loaded from the backend
   const [interests, setInterests] = useState<Interest[]>([]);
@@ -42,6 +48,13 @@ function PeoplePage() {
   // When editing a person, no new interests would send []
   //deleting previous saved interests
   const canSave = !isLoadingInterests && !interestsError;
+
+  // People shown in the list: derived from the loaded people + search text
+  // people is never modified. An empty search matches everyone ("".includes is always true)
+  const normalizedSearch = normalizeText(search);
+  const visiblePeople = people.filter((person) =>
+    normalizeText(person.name).includes(normalizedSearch),
+  );
 
   useEffect(() => {
     async function loadPeople() {
@@ -72,6 +85,13 @@ function PeoplePage() {
 
     void loadInterests();
   }, []);
+
+  function handleSavedIdeasChanged() {
+    setSavedIdeasVersion((version) => version + 1);
+    void getPeople().then(setPeople).catch(() => {
+      // The saved ideas sections refresh independently; keep the current count if this fails.
+    });
+  }
 
   function toggleInterest(interest: Interest) {
     setSelectedInterests((current) => {
@@ -217,7 +237,7 @@ function PeoplePage() {
                     onClick={() => toggleInterest(interest)}
                     className={`min-h-11 rounded-full border px-3 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                       selectedInterests.includes(interest)
-                        ? `border-primary ring-2 ring-primary/25 ${getInterestColorStyle(interest)}`
+                        ? `border-primary ring-2 ring-primary/25 hover:brightness-90 ${getInterestColorStyle(interest)}`
                         : "border-primary/30 bg-surface text-foreground hover:border-primary"
                     }`}
                   >
@@ -279,9 +299,33 @@ function PeoplePage() {
         <EmptyState message="Todavía no has añadido a ninguna persona." />
       )}
 
+      {/* Search: only when there are people to search */}
       {people.length > 0 && (
+        <div className="mb-4">
+          <Input
+            id="people-search"
+            label="Buscar personas"
+            type="search"
+            placeholder="Ej.: Ana"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+        </div>
+      )}
+
+      {/* There are people, but none matches the search */}
+      {people.length > 0 && visiblePeople.length === 0 && (
+        <div className="space-y-3">
+          <EmptyState message="No encontramos personas con ese nombre." />
+          <Button variant="accent" onClick={() => setSearch("")}>
+            Limpiar búsqueda
+          </Button>
+        </div>
+      )}
+
+      {visiblePeople.length > 0 && (
         <ul className="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3 grid-flow-row-dense">
-          {people.map((person) => (
+          {visiblePeople.map((person) => (
             <Fragment key={person.id}>
               <li className="relative">
                 <Card
@@ -364,7 +408,7 @@ function PeoplePage() {
                       Editar
                     </Button>
                     <button
-                      className="min-h-11 rounded-xl border border-error bg-surface px-4 py-2 font-medium text-error focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error"
+                      className="min-h-11 rounded-xl border border-error bg-surface px-4 py-2 font-medium text-error transition-colors hover:bg-error/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error"
                       type="button"
                       onClick={() => void handleDelete(person)}
                     >
@@ -387,6 +431,14 @@ function PeoplePage() {
                       personId={person.id}
                       personName={person.name}
                       availableInterests={interests}
+                      savedIdeasVersion={savedIdeasVersion}
+                      onSavedIdeasChanged={handleSavedIdeasChanged}
+                    />
+                    <RecommendationsSection
+                      personId={person.id}
+                      personName={person.name}
+                      savedIdeasVersion={savedIdeasVersion}
+                      onSavedIdeasChanged={handleSavedIdeasChanged}
                     />
                   </div>
                 </li>

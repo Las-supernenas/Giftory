@@ -13,6 +13,9 @@ const environmentVariablesValidator = z.object({
     .string({ error: 'MAILGUN_DOMAIN is required' })
     .trim()
     .min(1, 'MAILGUN_DOMAIN is required'),
+  OPENROUTER_API_KEY: z
+    .string({ error: 'OPENROUTER_API_KEY is required' })
+    .min(1, 'OPENROUTER_API_KEY is required'),
   COOKIE_SECURE: z
     .string()
     .optional()

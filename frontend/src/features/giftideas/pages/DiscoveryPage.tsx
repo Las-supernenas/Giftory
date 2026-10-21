@@ -56,7 +56,7 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
   // Creation request state
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
-  const [createSuccess, setCreateSuccess] = useState(false);
+  const [createSuccess, setCreateSuccess] = useState<string | null>(null);
 
   // Library state: ids of the gift ideas already saved by the user.
   // Kept apart from `error` so a failed save never hides the Discovery List.
@@ -194,7 +194,7 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
     if (!isAuthenticated || creating) return;
 
     setCreateError(null);
-    setCreateSuccess(false);
+    setCreateSuccess(null);
 
     if (
       imageFile &&
@@ -246,6 +246,20 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
         }
       }
 
+      let librarySaveError: string | null = null;
+      try {
+        await addToLibrary(createdIdea.id);
+        setSavedGiftIdeaIds((current) =>
+          current.includes(createdIdea.id) ? current : [...current, createdIdea.id],
+        );
+        setSaveError(null);
+      } catch (error) {
+        librarySaveError =
+          error instanceof Error
+            ? error.message
+            : "No se pudo guardar la idea en tu biblioteca.";
+      }
+
       // Add the new idea to the discovery list
       setGiftIdeas((current) => [createdIdea, ...current]);
       setError(null);
@@ -257,11 +271,24 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
       setProductUrl("");
       setSelectedInterests([]);
       form.reset();
-      setCreateSuccess(imageUploadError === null);
+
+      if (!imageUploadError && !librarySaveError) {
+        setCreateSuccess("¡Idea de regalo creada y guardada en tu biblioteca!");
+      }
+
+      const partialErrors: string[] = [];
       if (imageUploadError) {
-        setCreateError(
+        partialErrors.push(
           `La idea se creó, pero la imagen no se subió: ${imageUploadError}`,
         );
+      }
+      if (librarySaveError) {
+        partialErrors.push(
+          `La idea se creó en Discovery, pero no se guardó en tu biblioteca: ${librarySaveError}`,
+        );
+      }
+      if (partialErrors.length > 0) {
+        setCreateError(partialErrors.join(" "));
       }
     } catch {
       setCreateError("No se pudo crear la idea de regalo.");
@@ -402,7 +429,7 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
               name="image"
               type="file"
               accept="image/jpeg,image/png,image/webp"
-              className="block w-full min-w-0 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-xl file:border-0 file:bg-accent-lavender file:px-4 file:py-2 file:font-medium file:text-foreground"
+              className="block w-full min-w-0 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-xl file:border-0 file:bg-accent-lavender file:px-4 file:py-2 file:font-medium file:text-foreground file:hover:brightness-90"
             />
 
             <fieldset className="min-w-0 border-0 p-0">
@@ -442,7 +469,7 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
                         onClick={() => toggleInterest(interest)}
                         className={`min-h-11 rounded-full border px-3 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                           selectedInterests.includes(interest)
-                            ? `border-primary ring-2 ring-primary/25 ${getInterestColorStyle(interest)}`
+                            ? `border-primary ring-2 ring-primary/25 hover:brightness-90 ${getInterestColorStyle(interest)}`
                             : "border-primary/30 bg-surface text-foreground hover:border-primary"
                         }`}
                       >
@@ -461,7 +488,7 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
                 role="status"
                 className="rounded-xl border-l-4 border-success bg-surface px-4 py-3 text-sm text-foreground"
               >
-                ¡Idea de regalo creada correctamente!
+                {createSuccess}
               </p>
             )}
 
@@ -516,7 +543,7 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
                     key={idea.id}
                     className="rounded-2xl border border-solid border-accent-gold/60 bg-surface p-5 shadow-sm flex flex-col"
                   >
-                    <h3 className="mb-2 text-xl font-semibold text-primary">
+                    <h3 className="mb-2 min-h-[5.25rem] text-xl font-semibold text-primary">
                       {idea.name}
                     </h3>
 
@@ -585,7 +612,7 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
                       </a>
                     )}
 
-                    <div className="flex flex-wrap gap-2 pb-4">
+                    <div className="mt-auto flex min-h-20 flex-wrap content-start gap-2 pb-4">
                       {idea.interests.map((interest) => (
                         <span
                           key={interest}
@@ -600,7 +627,7 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
                     {isAuthenticated && (
                       <Button
                         variant="secondary"
-                        className="mt-auto w-full sm:w-auto"
+                        className="w-full sm:w-auto"
                         disabled={
                           libraryLoading || savingGiftIdeaId !== null || isSaved
                         }

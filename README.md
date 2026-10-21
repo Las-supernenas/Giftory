@@ -67,6 +67,12 @@ Requirement: Docker Desktop must be running.
 
    The server does not start if `JWT_SECRET` is missing.
 
+   Add your OpenRouter API key as `OPENROUTER_API_KEY` to both ignored files:
+   - `backend/.env` for running the backend directly with `npm run dev`.
+   - The root `.env` for Docker Compose; `compose.yml` passes it only to the backend container.
+
+   Use the same key in both files if you switch between local and Docker execution. Replace the placeholder in `backend/.env`; never commit either `.env` file. The backend does not start without this variable.
+
 2. Start the services (from the project root):
 
    ```bash
@@ -99,9 +105,15 @@ Requirement: Docker Desktop must be running.
 The seed only runs if you manually add `ALLOW_DEMO_SEED=true` to `backend/.env` when you intend to run it. It can be run multiple times without duplicating data. It creates:
 
 - Demo user: `demo@giftory.dev` / `giftory123`
+- Demo creators: `lucia@giftory.dev` and `marcos@giftory.dev` (same password), who own the public demo gift ideas
 - People: Laura (with interests) and Mamá (no interests, useful for testing empty states)
-- 3 gift ideas, 1 idea in the user's library and 1 idea saved for Laura with a private note
+- 3 gift ideas of the demo user, plus 38 public demo ideas covering every interest, with a wide range of prices, descriptions, product links and photos
+- 13 ideas in the demo user's library (two pages, to show pagination) and 1 idea saved for Laura with a private note
 - 2 events: Laura's birthday in 12 days and Mamá's birthday in 54 days (dates relative to the current day)
+
+Demo photos live in `backend/prisma/seed-images/` (committed to the repository; JPG, PNG or WebP). The seed copies them to `backend/uploads/giftideas/` with server-generated names; a missing photo only produces a warning. The seed fails if any interest has no demo idea. Running it again updates the demo ideas instead of duplicating them.
+
+Ideas owned by the demo creators (`lucia@giftory.dev`, `marcos@giftory.dev`) that are no longer in the seed list (for example, after renaming an idea in `seed.ts`) are soft-deleted, so Discovery always shows exactly the current demo ideas. This also applies to ideas created manually with those two accounts. Ideas created with any other account, including the demo user, are never touched.
 
 ### Architecture (hexagonal)
 
@@ -156,6 +168,8 @@ Domain errors are translated to HTTP status codes in `ui/shared/middlewares/erro
 | `ForbiddenOperationError` | 403 |
 | `EntityNotFoundError` | 404 |
 | `BusinessConflictError` | 409 |
+| Invalid recommendation provider response or unavailable provider | 502 |
+| Recommendation provider timeout | 504 |
 | Unknown route | 404 |
 | Any other error | 500 |
 
@@ -170,6 +184,7 @@ Domain errors are translated to HTTP status codes in `ui/shared/middlewares/erro
 | `POST` | `/api/people` | `201 { id, name, interests }` · `400` invalid data · `401` no token |
 | `PATCH` | `/api/people/:id` | `200 { id, name, interests }` · `400` invalid data · `404` not found · `401` no token |
 | `DELETE` | `/api/people/:id` | `204` · `404` not found · `401` no token |
+| `POST` | `/api/people/:id/recommendations` | `200 { recommendations: [...] }` · `400` invalid preferences · `401` no token · `404` person not found · `502` provider failure or invalid response · `504` provider timeout |
 | `GET` | `/api/giftideas` | `200` list of public gift ideas |
 | `POST` | `/api/giftideas` | `201` created; `400` invalid data; `401` no token |
 | `GET` | `/api/giftideas/:id` | `200` gift idea including optional description, product URL and image filename; `400` invalid id; `404` not found |
@@ -206,6 +221,16 @@ All `/api/people` routes require the `Authorization: Bearer <accessToken>` heade
 - A user only sees and modifies their own people. Accessing another user's person returns `404`, so the API does not reveal whether it exists.
 - `DELETE` is a soft delete: the person is kept in the database with `deletedAt` set, and is no longer returned by the API.
 - `interests` must be values of the `Interest` enum in `prisma/schema.prisma` (e.g. `TRAVEL`, `COOKING`).
+
+#### Gift recommendations (Gifty)
+
+The authenticated `POST /api/people/:id/recommendations` route recommends up to five existing public gift ideas for a person owned by the current user. All request fields are optional: `budget` (a positive, inclusive maximum in euros), `ageRange`, `occasion`, and `additionalInfo`. An empty eligible catalog returns `{ "recommendations": [] }` without calling OpenRouter. Returned gift names and prices come from the database, not the model.
+
+The backend uses OpenRouter model `minimax/minimax-m3.1-flash:free`. A direct provider smoke request returned structured JSON successfully. The free model can be unavailable or rate limited; its JSON mode does not replace the backend's runtime response validation. Each action makes at most one provider request, with a 30-second timeout and no automatic retry. Provider failures or invalid responses return a safe `502`; timeouts return `504`.
+
+To try it locally, start the backend and frontend, log in, open `/people`, expand a person you own, optionally enter a budget or other preferences, and click **Haz tu magia Gifty**. The page shows the recommendations or an empty/error message. The OpenRouter key stays on the backend; do not put it in a `VITE_` variable or browser code.
+
+For Docker Compose on your machine, add `OPENROUTER_API_KEY` to the ignored root `.env` before `docker compose up -d --build`. For the EC2 deployment, set it in the ignored `/home/ubuntu/Giftory/.env` on the server before deploying; the deployment runs `docker compose` from that directory. Keep the real key out of Git, workflow files, Docker images, and logs. Changing the key requires recreating the backend container.
 
 #### Events
 
@@ -321,7 +346,7 @@ The components in `frontend/src/features/shared/components/` provide a small UI 
 | `/` | Discovery: public gift ideas with optional descriptions, product links and images; authenticated users can create ideas and save them to their library | Public |
 | `/login` | Login form | Public |
 | `/register` | Registration form | Public |
-| `/people` | Manage people; expand one person's details to see events and saved ideas, assign ideas from the library, and edit private notes | Private |
+| `/people` | Manage and search people by name; expand one person's details to see events, saved ideas, and Gifty recommendations, assign ideas from the library, and edit private notes | Private |
 | `/library` | View and remove library items, assign ideas to people, and edit gift ideas created by the user | Private |
 
 Private routes redirect to `/login` when there is no session.
@@ -331,6 +356,7 @@ The main navigation (`AppNavigation`) is shown on every page. With a session it 
 Discovery and Library can be filtered by name (case and accent insensitive), interests (an idea matches if it has ANY of the selected interests) and minimum/maximum price (both included). Filters combine: an idea must match all of them. Filtering is done in the browser on the loaded list, which is never modified. In Library, only the user's own saved ideas are filtered. All interest categories are always shown; a category with no matching ideas shows "Aún no hay ideas aquí.".
 Every interest from `GET /api/interests` is shown in its category; interests without matching ideas are disabled.
 Both lists are paginated on the client (9 ideas per page); changing a filter goes back to page 1.
+People can be searched by name with the same rules (case and accent insensitive, trimmed); the shared helper is `features/shared/normalize-text.ts`.
 
 ## Notes
 
