@@ -657,8 +657,8 @@ async function main() {
   // 7 · Events: a close one (highlighted notice) and a later one without ideas
   await prisma.event.createMany({
     data: [
-      { personId: laura.id, name: 'Cumpleaños', date: daysFromToday(12) },
-      { personId: mama.id, name: 'Cumpleaños', date: daysFromToday(54) },
+      { personId: laura.id, name: 'Cumpleaños', date: daysFromToday(12), repeatsYearly: true },
+      { personId: mama.id, name: 'Cumpleaños', date: daysFromToday(54), repeatsYearly: true },
     ],
   });
 
