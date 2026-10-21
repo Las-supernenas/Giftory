@@ -1,4 +1,3 @@
-
 import cron from 'node-cron';
 import { SendEventRemindersUseCase } from '../../domain/event/use-cases/SendEventRemindersUseCase';
 

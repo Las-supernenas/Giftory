@@ -31,5 +31,5 @@ export interface EventRepository {
   delete(id: number): Promise<void>;
 
   findPendingRemindersByDate(date: string): Promise<EventReminder[]>;
-   markReminderSent(eventId: number): Promise<void>;
+  markReminderSent(eventId: number): Promise<void>;
 }

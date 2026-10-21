@@ -39,14 +39,8 @@ import { OpenRouterRecommendationService } from './infrastructure/services/OpenR
 
 environmentService.load();
 
-const {
-  PORT,
-  JWT_SECRET,
-  COOKIE_SECURE,
-  MAILGUN_API_KEY,
-  MAILGUN_DOMAIN,
-  OPENROUTER_API_KEY,
-} = environmentService.get();
+const { PORT, JWT_SECRET, COOKIE_SECURE, MAILGUN_API_KEY, MAILGUN_DOMAIN, OPENROUTER_API_KEY } =
+  environmentService.get();
 
 // composition root: here we create the real implementatios
 
@@ -100,19 +94,11 @@ const updatePrivateNoteUseCase = new UpdateSavedIdeaPrivateNoteUseCase(
 );
 const updateGiftIdeaImageUseCase = new UpdateGiftIdeaImageUseCase(giftIdeaRepository);
 
+const emailService = new MailgunEmailService(MAILGUN_API_KEY, MAILGUN_DOMAIN);
 
-const emailService = new MailgunEmailService(
-  MAILGUN_API_KEY,
-  MAILGUN_DOMAIN,
-);
-
-const sendEventRemindersUseCase = new SendEventRemindersUseCase(
-  eventRepository,
-  emailService,
-);
+const sendEventRemindersUseCase = new SendEventRemindersUseCase(eventRepository, emailService);
 
 startEventReminderScheduler(sendEventRemindersUseCase);
-
 
 const api = createApi({
   registerUserUseCase,

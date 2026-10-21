@@ -1,4 +1,3 @@
-
 import { Email, EmailService } from '../../domain/services/EmailService';
 
 export class MailgunEmailService implements EmailService {
@@ -18,23 +17,18 @@ export class MailgunEmailService implements EmailService {
 
     const credentials = Buffer.from(`api:${this.apiKey}`).toString('base64');
 
-    const response = await fetch(
-      `${this.apiBaseUrl}/v3/${this.domain}/messages`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Basic ${credentials}`,
-        },
-        body: formData,
+    const response = await fetch(`${this.apiBaseUrl}/v3/${this.domain}/messages`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Basic ${credentials}`,
       },
-    );
+      body: formData,
+    });
 
     if (!response.ok) {
       const errorMessage = await response.text();
 
-      throw new Error(
-        `Mailgun failed to send email (${response.status}): ${errorMessage}`,
-      );
+      throw new Error(`Mailgun failed to send email (${response.status}): ${errorMessage}`);
     }
   }
 }
