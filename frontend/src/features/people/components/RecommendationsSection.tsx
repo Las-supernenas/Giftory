@@ -21,7 +21,6 @@ type RecommendationsSectionProps = {
 
 export function RecommendationsSection({
   personId,
-  personName,
   savedIdeasVersion = 0,
   onSavedIdeasChanged,
 }: RecommendationsSectionProps) {
@@ -177,13 +176,27 @@ export function RecommendationsSection({
 
   return (
     <section>
-      <h2 className="text-xl font-semibold text-primary">
-        Recomendaciones para {personName}
-      </h2>
       <form className="space-y-4" onSubmit={handleSubmit}>
         <Input
           id="recommendation-budget"
-          label="Presupuesto máximo (€), opcional"
+          label={
+            <span className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-4 w-4 text-accent-gold"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path d="M14.5 8.5a3.5 3.5 0 1 0 0 7M8.5 11h5M8.5 13h5" />
+              </svg>
+              Presupuesto máximo (€), opcional
+            </span>
+          }
           type="number"
           min="0.01"
           step="0.01"
@@ -193,14 +206,47 @@ export function RecommendationsSection({
         />
         <Input
           id="recommendation-age-range"
-          label="Rango de edad, opcional"
+          label={
+            <span className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-4 w-4 text-accent-gold"
+              >
+                <circle cx="12" cy="8" r="3" />
+                <path d="M5 20a7 7 0 0 1 14 0" />
+              </svg>
+              Rango de edad, opcional
+            </span>
+          }
           placeholder="Ej.: 20–30 años"
           value={ageRange}
           onChange={(event) => setAgeRange(event.target.value)}
         />
         <Input
           id="recommendation-occasion"
-          label="Ocasión, opcional"
+          label={
+            <span className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-4 w-4 text-accent-gold"
+              >
+                <path d="M3 9h18v4H3zM5 13v8h14v-8M12 9v12M12 9H8.5a2.5 2.5 0 1 1 2.5-2.5V9M12 9h3.5A2.5 2.5 0 1 0 13 6.5V9" />
+              </svg>
+              Ocasión, opcional
+            </span>
+          }
           placeholder="Ej.: cumpleaños"
           value={occasion}
           onChange={(event) => setOccasion(event.target.value)}
@@ -208,9 +254,24 @@ export function RecommendationsSection({
         <div className="space-y-1.5">
           <label
             htmlFor="recommendation-additional-info"
-            className="block text-sm font-medium text-foreground"
+            className="block text-sm font-semibold text-primary"
           >
-            Información adicional, opcional
+            <span className="mb-1.5 inline-flex items-center gap-2">
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-4 w-4 text-accent-gold"
+              >
+                <path d="M6 3.5h8l4 4V20a.5.5 0 0 1-.5.5h-11A.5.5 0 0 1 6 20V3.5Z" />
+                <path d="M14 3.5V8h4M9 12h6M9 16h6" />
+              </svg>
+              Información adicional, opcional
+            </span>
           </label>
           <textarea
             id="recommendation-additional-info"
@@ -242,7 +303,10 @@ export function RecommendationsSection({
       {recommendations && recommendations.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-3">
           {recommendations.map((recommendation) => (
-            <Card key={recommendation.giftIdeaId} className="w-full min-w-0 sm:w-80">
+            <Card
+              key={recommendation.giftIdeaId}
+              className="w-full min-w-0 sm:w-80"
+            >
               <h3 className="m-0 text-lg font-semibold text-primary">
                 {recommendation.name}
               </h3>
