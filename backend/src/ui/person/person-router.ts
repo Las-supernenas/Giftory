@@ -19,8 +19,7 @@ export interface PersonRouterDependencies {
   createPersonUseCase: CreatePersonUseCase;
   updatePersonUseCase: UpdatePersonUseCase;
   deletePersonUseCase: DeletePersonUseCase;
-  // optional until it is wired in index.ts during the joint integration, then make it required
-  getGiftRecommendationsUseCase?: GetGiftRecommendationsExecutor;
+  getGiftRecommendationsUseCase: GetGiftRecommendationsExecutor;
 }
 
 export const createPersonRouter = ({
@@ -40,14 +39,10 @@ export const createPersonRouter = ({
   personRouter.post('/', createCreatePersonController(createPersonUseCase)); // POST   /api/people
   personRouter.patch('/:id', createUpdatePersonController(updatePersonUseCase)); // PATCH  /api/people/:id
   personRouter.delete('/:id', createDeletePersonController(deletePersonUseCase)); // DELETE /api/people/:id
-
-  // only registered when the use case is provided (see PersonRouterDependencies)
-  if (getGiftRecommendationsUseCase) {
-    personRouter.post(
-      '/:id/recommendations',
-      createGetGiftRecommendationsController(getGiftRecommendationsUseCase),
-    ); // POST   /api/people/:id/recommendations
-  }
+  personRouter.post(
+    '/:id/recommendations',
+    createGetGiftRecommendationsController(getGiftRecommendationsUseCase),
+  );
 
   return personRouter;
 };

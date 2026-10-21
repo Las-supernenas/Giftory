@@ -30,9 +30,11 @@ import { AddSavedIdeaUseCase } from './domain/savedidea/use-cases/AddSavedIdeaUs
 import { DeleteSavedIdeaUseCase } from './domain/savedidea/use-cases/DeleteSavedIdeaUseCase';
 import { UpdateSavedIdeaPrivateNoteUseCase } from './domain/savedidea/use-cases/UpdateSavedIdeaPrivateNoteUseCase';
 import { UpdateGiftIdeaImageUseCase } from './domain/giftidea/use-cases/UpdateGiftIdeaImageUseCase';
+import { GetGiftRecommendationsUseCase } from './domain/person/use-cases/GetGiftRecommendationsUseCase';
+import { OpenRouterRecommendationService } from './infrastructure/services/OpenRouterRecommendationService';
 
 environmentService.load();
-const { PORT, JWT_SECRET, COOKIE_SECURE } = environmentService.get();
+const { PORT, JWT_SECRET, COOKIE_SECURE, OPENROUTER_API_KEY } = environmentService.get();
 
 // composition root: here we create the real implementatios
 
@@ -42,6 +44,7 @@ const giftIdeaRepository = new PrismaGiftIdeaRepository();
 const libraryItemRepository = new PrismaLibraryItemRepository();
 const eventRepository = new PrismaEventRepository();
 const securityService = new SecurityServiceImplementation(JWT_SECRET);
+const recommendationService = new OpenRouterRecommendationService(OPENROUTER_API_KEY);
 const authenticationMiddleware = createAuthenticationMiddleware(securityService);
 const savedIdeaRepository = new PrismaSavedIdeaRepository();
 
@@ -52,6 +55,11 @@ const listPeopleUseCase = new ListPeopleUseCase(personRepository);
 const createPersonUseCase = new CreatePersonUseCase(personRepository);
 const updatePersonUseCase = new UpdatePersonUseCase(personRepository);
 const deletePersonUseCase = new DeletePersonUseCase(personRepository);
+const getGiftRecommendationsUseCase = new GetGiftRecommendationsUseCase(
+  personRepository,
+  giftIdeaRepository,
+  recommendationService,
+);
 
 const createGiftIdeaUseCase = new CreateGiftIdeaUseCase(giftIdeaRepository);
 const getGiftIdeaUseCase = new GetGiftIdeaUseCase(giftIdeaRepository);
@@ -89,6 +97,7 @@ const api = createApi({
   createPersonUseCase,
   updatePersonUseCase,
   deletePersonUseCase,
+  getGiftRecommendationsUseCase,
   createGiftIdeaUseCase,
   getGiftIdeaUseCase,
   listGiftIdeaUseCase,
