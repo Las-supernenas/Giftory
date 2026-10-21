@@ -53,6 +53,7 @@ export class PrismaEventRepository implements EventRepository {
       data: {
         name: data.name,
         date: data.date === undefined ? undefined : this.toDatabaseDate(data.date),
+        reminderSentAt: data.resetReminder ? null : undefined,
       },
     });
 

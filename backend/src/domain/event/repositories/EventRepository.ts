@@ -17,6 +17,7 @@ export interface EventReminder {
 export interface UpdateEventData {
   name?: string;
   date?: string;
+  resetReminder?: boolean;
 }
 
 export interface EventRepository {
