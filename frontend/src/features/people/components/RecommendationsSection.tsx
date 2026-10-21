@@ -142,11 +142,34 @@ export function RecommendationsSection({
               <h3 className="m-0 text-lg font-semibold text-primary">
                 {recommendation.name}
               </h3>
+              {recommendation.imageFilename && (
+                <img
+                  src={`/api/giftideas/images/${encodeURIComponent(recommendation.imageFilename)}`}
+                  alt={`Imagen de ${recommendation.name}`}
+                  loading="lazy"
+                  className="mb-3 aspect-video w-full rounded-xl object-cover"
+                />
+              )}
+              {!recommendation.imageFilename && (
+                <div className="mb-3 flex aspect-video w-full items-center justify-center rounded-xl bg-accent-lavender/20 text-sm text-muted">
+                  Sin imagen
+                </div>
+              )}
               <p className="mb-1 mt-2">{recommendation.price.toFixed(2)} €</p>
               <p className="mb-1 mt-0">
                 Puntuación de afinidad: {recommendation.matchScore}
               </p>
               <p className="mb-0 mt-2">{recommendation.reason}</p>
+              {recommendation.productUrl && (
+                <a
+                  href={recommendation.productUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                >
+                  Dónde encontrarlo ↗
+                </a>
+              )}
             </Card>
           ))}
         </div>

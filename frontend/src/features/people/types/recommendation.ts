@@ -11,6 +11,8 @@ export interface GiftRecommendation {
   giftIdeaId: number;
   name: string;
   price: number;
+  imageFilename: string | null;
+  productUrl: string | null;
   matchScore: number;
   reason: string;
 }
