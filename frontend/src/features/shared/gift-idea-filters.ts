@@ -1,3 +1,5 @@
+import { normalizeText } from "./normalize-text";
+
 // Filtering rules shared by Discovery and Library
 // filtering is done in the browser on the lists that are already loaded
 //The original lists are never modified: callers use Array.filter, which returns a new array
@@ -24,15 +26,6 @@ type FilterableGiftIdea = {
   price: number;
   interests: string[];
 };
-
-// normalize written text (lowercase, trimmed and without accents)
-function normalizeText(text: string): string {
-  return text
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-}
 
 // Empty or ivalid input means "no limit"
 function parsePrice(value: string): number | null {
