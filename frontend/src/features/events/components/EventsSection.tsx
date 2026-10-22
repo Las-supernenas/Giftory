@@ -228,7 +228,6 @@ function EventsSection({ personId }: EventsSectionProps) {
     {isEventFormOpen ? "Ocultar formulario" : "Añadir evento"}
   </Button>
 </div>
-      </div>
       {isLoading && <LoadingState />}
 
       {loadError && <ErrorState message={loadError} />}
