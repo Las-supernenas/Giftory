@@ -1,6 +1,7 @@
 # Giftory
 
 Find the gift. Remember the person.
+Visit our website: https://giftory.duckdns.org/
 
 Monorepo with the backend and the frontend in separate folders, each with its own dependencies.
 
