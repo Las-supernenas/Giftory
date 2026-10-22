@@ -57,7 +57,7 @@ test('sends the eligible catalog and returns valid recommendations with one prov
   assert.ok(options?.signal);
 
   const body = JSON.parse(String(options?.body));
-  assert.equal(body.model, 'minimax/minimax-m3.1-flash:free');
+  assert.equal(body.model, 'minimax/minimax-m3.1-flash');
   assert.deepEqual(body.response_format, { type: 'json_object' });
   assert.match(body.messages[0].content, /Spanish/);
   assert.deepEqual(JSON.parse(body.messages[1].content), input);

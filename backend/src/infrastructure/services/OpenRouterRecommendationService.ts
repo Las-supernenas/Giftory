@@ -37,7 +37,7 @@ export class OpenRouterRecommendationService implements GiftRecommendationServic
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'minimax/minimax-m3.1-flash:free',
+          model: 'minimax/minimax-m3.1-flash',
           messages,
           response_format: { type: 'json_object' },
           max_tokens: 512,
