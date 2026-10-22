@@ -6,13 +6,14 @@
  * Run:      npx prisma db seed (requires ALLOW_DEMO_SEED=true)
  *
  * - It can be run several times without duplicating anything.
- * - It only touches the data of the demo users.
+ * - It resets the demo users' data and soft-deletes every gift idea that is not in the seed
+ *   (from any user), so the demo always starts clean.
  * - Laura's birthday is always "in 12 days", as in the demo.
  */
 import { PrismaClient, Interest, GiftIdea } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import { randomUUID } from 'node:crypto';
-import { access, copyFile, mkdir } from 'node:fs/promises';
+import { access, copyFile, mkdir, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { giftIdeaImagesDirectory } from '../src/infrastructure/giftidea/giftidea-image-storage';
 
@@ -59,7 +60,7 @@ const SEED_IDEAS: SeedIdea[] = [
     description: 'Para disfrutar de su música favorita con un diseño innovador.',
     productUrl:
       'https://www.elcorteingles.es/electronica/A200280373-6942103169434-pr-auriculares-true-wireless-huawei-freeclip-2-negro/',
-    image: 'auriculares.jpg',
+    image: 'auriculares.jpeg',
   },
   {
     creatorEmail: LUCIA_EMAIL,
@@ -69,7 +70,7 @@ const SEED_IDEAS: SeedIdea[] = [
     description: 'Soporte para cascos gaming y mandos, para los fans de El Señor de los Anillos.',
     productUrl:
       'https://www.amazon.es/Grupo-Erik-Auriculares-Accesorios-Merchandising/dp/B0HGMBB1M1/ref=sr_1_15',
-    image: 'soporte-mando.webp',
+    image: 'soporte-mando.jpeg',
   },
   {
     creatorEmail: LUCIA_EMAIL,
@@ -78,7 +79,7 @@ const SEED_IDEAS: SeedIdea[] = [
     interests: [Interest.PHOTOGRAPHY],
     description: 'Fotos impresas al momento para guardar los mejores recuerdos.',
     productUrl: "https://www.amazon.es/C%C3%A1mara-instant%C3%A1nea-instax-Dreamy-Purple/dp/B0H3CF2N5J/ref=sr_1_7?dib=eyJ2IjoiMSJ9.K1n6_mVUznAQC7N2rxQla_c0gX4RE9gtARLTupguEH8rpwBcm_-5eAF4w0H7mZ1gJTAbZpzda6g-pSGK6lYIkW-ogLIaP4cFz-cbs_90sHzp5t78khkhx6N2JcuV0R7Rt1-_4hYYr13R0kMzfFfnf-tVgHOsRvzk0WZN5ioVXxTehHr7a0ryeNJfn_cFYjvmsCnpL4ooijk1rwnlmIP1DBxtBRZVo4Kvl3GyBtXLv_IrUEbvWKb4ZcF2Y3dwCimjCwOyWFDM_cn9vvY3nLG6mMWHvTCg__OEwke2CKBzOf0.YnOwd6yygYtVHqmG4pUy9KSqpKy9ZilkVt04Jy1Ik1s&dib_tag=se&keywords=c%C3%A1mara+instant%C3%A1nea&qid=1792506452&sr=8-7&ufe=app_do%3Aamzn1.fos.fde3827e-5b32-4544-acac-9bcf8407a6a6",
-    image: 'camara-instantanea.jpg',
+    image: 'camara-instantanea.jpeg',
   },
   {
     creatorEmail: LUCIA_EMAIL,
@@ -87,7 +88,7 @@ const SEED_IDEAS: SeedIdea[] = [
     interests: [Interest.FILM_AND_TV],
     description: 'Póster de la película Blade Runner (1982).',
     productUrl: null,
-    image: 'poster.jpg',
+    image: null,
   },
   {
     creatorEmail: LUCIA_EMAIL,
@@ -96,7 +97,7 @@ const SEED_IDEAS: SeedIdea[] = [
     interests: [Interest.MUSIC, Interest.HOME_AND_DECOR],
     description: 'Estilo retro para escuchar vinilos en cualquier rincón de casa.',
     productUrl: 'https://www.amazon.es/Muse-MT501-ATC-Tocadiscos-Platino/dp/B09J547MHP',
-    image: 'tocadiscos.jpg',
+    image: 'tocadiscos.jpeg',
   },
   {
     creatorEmail: LUCIA_EMAIL,
@@ -105,7 +106,7 @@ const SEED_IDEAS: SeedIdea[] = [
     interests: [Interest.BOOKS_AND_READING],
     description: 'Una biblioteca entera en el bolsillo.',
     productUrl: 'https://ereader.kobo.com/es-es/products/kobo-clara-bw',
-    image: 'ebook.webp',
+    image: 'ebook.jpeg',
   },
   {
     creatorEmail: LUCIA_EMAIL,
@@ -115,7 +116,7 @@ const SEED_IDEAS: SeedIdea[] = [
     description: 'Globo terráqueo con base de madera de haya e iluminación.',
     productUrl:
       'https://www.amazon.es/TECNODIDATTICA-Terr%C3%A1queo-Cartograf%C3%ADa-F%C3%ADsico-Pol%C3%ADtica-Geographic/dp/B081TQNS87/ref=sr_1_2_sspa',
-    image: 'globo.webp',
+    image: 'globo.jpeg',
   },
   {
     creatorEmail: LUCIA_EMAIL,
@@ -124,7 +125,7 @@ const SEED_IDEAS: SeedIdea[] = [
     interests: [Interest.HISTORY, Interest.BOOKS_AND_READING],
     description: 'Un viaje por la historia del mundo a través de mapas.',
     productUrl: storeSearchUrl('atlas histórico ilustrado'),
-    image: 'atlas-historico.jpg',
+    image: 'atlas-historico.jpeg',
   },
   {
     creatorEmail: LUCIA_EMAIL,
@@ -133,7 +134,7 @@ const SEED_IDEAS: SeedIdea[] = [
     interests: [Interest.LANGUAGES, Interest.EDUCATION],
     description: 'Para preparar su próximo viaje a Italia.',
     productUrl: null,
-    image: 'curso-italiano.jpg',
+    image: null,
   },
   {
     creatorEmail: LUCIA_EMAIL,
@@ -143,7 +144,7 @@ const SEED_IDEAS: SeedIdea[] = [
     description: 'Colores intensos y pinceles de calidad para pintar sin límites.',
     productUrl:
       'https://hartem.com/caja-de-madera-azul-de-48-godets-de-acuarela-y-pincel-white-nights.html',
-    image: 'acuarelas.webp',
+    image: 'acuarelas.jpeg',
   },
   {
     creatorEmail: LUCIA_EMAIL,
@@ -152,7 +153,7 @@ const SEED_IDEAS: SeedIdea[] = [
     interests: [Interest.CRAFTS_AND_DIY, Interest.HOME_AND_DECOR],
     description: 'Todo lo necesario para crear sus propias velas.',
     productUrl: storeSearchUrl('kit hacer velas aromáticas'),
-    image: 'velas.jpg',
+    image: null,
   },
   {
     creatorEmail: LUCIA_EMAIL,
@@ -163,7 +164,7 @@ const SEED_IDEAS: SeedIdea[] = [
       'Para relajarse y desconectar con un adorable libro para colorear. ¡Es hora de ponerse cómodo!',
     productUrl:
       'https://www.amazon.es/Cozy-Corner-Calm-Comforting-Colouring/dp/024176422X/ref=asc_df_024176422X',
-    image: 'cuaderno-colorear.webp',
+    image: 'cuaderno-colorear.jpeg',
   },
   {
     creatorEmail: LUCIA_EMAIL,
@@ -173,7 +174,7 @@ const SEED_IDEAS: SeedIdea[] = [
     description: 'Un tote bag único en color rosa pastel.',
     productUrl:
       'https://www.etsy.com/es/listing/4445769357/handmade-patchwork-tote-bag-pastel-pink',
-    image: 'bolso.webp',
+    image: 'bolso.jpeg',
   },
   {
     creatorEmail: LUCIA_EMAIL,
@@ -183,7 +184,7 @@ const SEED_IDEAS: SeedIdea[] = [
     description: 'Pack de accesorios para pilates. Perfecto para entrenar en casa.',
     productUrl:
       'https://www.elinapilates.com/eu/es/pack-accesorios/1404-pack-de-accesorios-de-pilates-kit-completo-para-entrenar-en-casa-o-gimnasio.html',
-    image: 'pack-pilates.jpg',
+    image: 'pack-pilates.jpeg',
   },
   {
     creatorEmail: LUCIA_EMAIL,
@@ -193,7 +194,7 @@ const SEED_IDEAS: SeedIdea[] = [
     description: 'Acceso a spa + desayuno buffet. Perfecto para compartir.',
     productUrl:
       'https://www.hoteltreats.com/es/espana/baleares/mallorca/hm-palma-blanc/acceso-al-spa-con-desayuno-buffet-en-mallorca',
-    image: 'spa.jpg',
+    image: 'spa.jpeg',
   },
   {
     creatorEmail: LUCIA_EMAIL,
@@ -202,7 +203,7 @@ const SEED_IDEAS: SeedIdea[] = [
     interests: [Interest.COFFEE_AND_TEA, Interest.CRAFTS_AND_DIY],
     description: 'Hecha a mano y perfecta para los amantes del té. En color rosa coral.',
     productUrl: 'https://www.etsy.com/es/listing/4572395945/coral-pink-ceramic-mug-with-lavender',
-    image: 'taza-ceramica.webp',
+    image: 'taza-ceramica.jpeg',
   },
   {
     creatorEmail: LUCIA_EMAIL,
@@ -212,7 +213,7 @@ const SEED_IDEAS: SeedIdea[] = [
     description: 'Cuaderno de cuero, vintage con 80 páginas.',
     productUrl:
       'https://www.amazon.es/Cuaderno-Recargable-Encuadernado-Escuelas-Conferencias/dp/B0DWXPCHWM/ref=sr_1_9',
-    image: 'cuaderno.jpg',
+    image: 'cuaderno.jpeg',
   },
 
   // · Marcos
@@ -224,7 +225,7 @@ const SEED_IDEAS: SeedIdea[] = [
     description: 'Para seguir sus pasos, el sueño y los entrenamientos.',
     productUrl:
       'https://www.marjoya.com/relojes-marea/34900-pulsera-de-actividad-marea-azul-marino-b570152.html',
-    image: 'pulsera-actividad.webp',
+    image: null,
   },
   {
     creatorEmail: MARCOS_EMAIL,
@@ -233,7 +234,7 @@ const SEED_IDEAS: SeedIdea[] = [
     interests: [Interest.OUTDOOR_SPORTS, Interest.ADVENTURE],
     description: 'Ligera y resistente para rutas de un día. Capacidad 30L.',
     productUrl: 'https://es.wardow.com/products/osprey-hikelite-30-mochila-de-senderismo-10007578',
-    image: 'mochila-senderismo.webp',
+    image: 'mochila-senderismo.jpeg',
   },
   {
     creatorEmail: MARCOS_EMAIL,
@@ -243,7 +244,7 @@ const SEED_IDEAS: SeedIdea[] = [
     description: 'Para animar a su equipo en cada partido.',
     productUrl:
       'https://www.elcorteingles.es/deportes/A53979215-azul-granate-pr-camiseta-de-hombre-1-equipacion-fc-barcelona-2025-2026-stadium-nike/',
-    image: 'camiseta-equipo.jpg',
+    image: 'camiseta-equipo.jpeg',
   },
   {
     creatorEmail: MARCOS_EMAIL,
@@ -252,7 +253,7 @@ const SEED_IDEAS: SeedIdea[] = [
     interests: [Interest.COOKING, Interest.TRAVEL],
     description: 'Viajar sin salir de la cocina.',
     productUrl: 'https://www.amazon.es/Recetas-del-Mundo-community-garcia/dp/B0DK3DKCBJ/ref=sr_1_2',
-    image: 'recetas-mundo.jpg',
+    image: null,
   },
   {
     creatorEmail: MARCOS_EMAIL,
@@ -261,7 +262,7 @@ const SEED_IDEAS: SeedIdea[] = [
     interests: [Interest.BAKING],
     description: 'Moldes y utensilios para sus mejores tartas.',
     productUrl: 'https://www.kaufland.es/product/561429930/',
-    image: 'reposteria.webp',
+    image: 'reposteria.jpeg',
   },
   {
     creatorEmail: MARCOS_EMAIL,
@@ -271,7 +272,7 @@ const SEED_IDEAS: SeedIdea[] = [
     description: 'Una experiencia para descubrir sabores en buena compañía.',
     productUrl:
       'https://www.winedering.com/es/among-the-best-wines-and-flavors-of-mallorca_d10382_travel',
-    image: 'cata-vinos.webp',
+    image: 'cata-vinos.jpeg',
   },
   {
     creatorEmail: MARCOS_EMAIL,
@@ -281,7 +282,7 @@ const SEED_IDEAS: SeedIdea[] = [
     description: 'Para preparar el café con calma y disfrutar de todo su sabor.',
     productUrl:
       'https://www.amazon.es/LMSAWK-Vidrio-port%C3%A1til-Cafetera-Lavavajillas/dp/B0FFYZQMV3',
-    image: 'cafetera.jpg',
+    image: 'cafetera.jpeg',
   },
   {
     creatorEmail: MARCOS_EMAIL,
@@ -290,7 +291,7 @@ const SEED_IDEAS: SeedIdea[] = [
     interests: [Interest.GARDENING, Interest.SUSTAINABILITY],
     description: 'Semillas, macetas y tierra para cultivar en el balcón.',
     productUrl: storeSearchUrl('kit huerto urbano'),
-    image: 'huerto-urbano.jpg',
+    image: null,
   },
   {
     creatorEmail: MARCOS_EMAIL,
@@ -300,7 +301,7 @@ const SEED_IDEAS: SeedIdea[] = [
     description: 'Para una cita romántica observando las estrellas.',
     productUrl:
       'https://www.mediamarkt.es/es/product/_telescopio-bresser-explorador70400-70-mm-azul-183775763.html',
-    image: 'telescopio.webp',
+    image: 'telescopio.jpeg',
   },
   {
     creatorEmail: MARCOS_EMAIL,
@@ -309,7 +310,7 @@ const SEED_IDEAS: SeedIdea[] = [
     interests: [Interest.PETS],
     description: 'El rincón más cómodo de la casa para su mascota.',
     productUrl: 'https://www.zarahome.com/es/cama-mascotas-borreguito-l44391009',
-    image: 'cama-mascota.webp',
+    image: 'cama-mascota.jpeg',
   },
   {
     creatorEmail: MARCOS_EMAIL,
@@ -319,7 +320,7 @@ const SEED_IDEAS: SeedIdea[] = [
     description: 'Para los amantes del café "on the go".',
     productUrl:
       'https://www.amazon.es/Rauwseul-Hervidor-El%C3%A9ctrico-Calentadora-12V-24V/dp/B0D9661JDX/ref=asc_df_B0D9661JDX',
-    image: 'calentador-cafe.webp',
+    image: 'calentador-cafe.jpeg',
   },
   {
     creatorEmail: MARCOS_EMAIL,
@@ -329,7 +330,7 @@ const SEED_IDEAS: SeedIdea[] = [
     description: 'Para apuntar rutas, recuerdos y pegar entradas de cada viaje.',
     productUrl:
       'https://www.amazon.es/Lanpn-Cuaderno-Mujeres-Recuerdos-Viajeros/dp/B0CJV474ZB/ref=asc_df_B0CJV474ZB',
-    image: 'diario-viaje.jpg',
+    image: 'diario-viaje.jpeg',
   },
   {
     creatorEmail: MARCOS_EMAIL,
@@ -339,7 +340,7 @@ const SEED_IDEAS: SeedIdea[] = [
     description: 'Una primera inmersión guiada para descubrir el fondo del mar.',
     productUrl:
       'https://www.yumping.com/ofertas/buceo/mallorca/bautismo-de-buceo-en-palma-de-mallorca-3h--o28721',
-    image: 'buceo.jpg',
+    image: 'buceo.jpeg',
   },
   {
     creatorEmail: MARCOS_EMAIL,
@@ -348,7 +349,7 @@ const SEED_IDEAS: SeedIdea[] = [
     interests: [Interest.CULTURAL_EXPERIENCES, Interest.MUSIC],
     description: 'Una noche de teatro, música y emoción.',
     productUrl: null,
-    image: 'musical.jpg',
+    image: 'musical.jpeg',
   },
   {
     creatorEmail: MARCOS_EMAIL,
@@ -358,7 +359,7 @@ const SEED_IDEAS: SeedIdea[] = [
     description: 'Lámpara de diseño cálida, especial para su escritorio.',
     productUrl:
       'https://www.maisonsdumonde.com/ES/es/p/lampara-de-mesa-de-hierro-en-color-laton-12x12x28cm-mushlampio-M25190543.htm',
-    image: 'lampara.jpg',
+    image: 'lampara.jpeg',
   },
   {
     creatorEmail: MARCOS_EMAIL,
@@ -368,7 +369,7 @@ const SEED_IDEAS: SeedIdea[] = [
     description: 'Set de cuidado facial reafirmante de Shiseido.',
     productUrl:
       'https://www.druni.es/estuche-vital-perfection-uplifting-firming-cream-shiseido-tratamiento-antiedad',
-    image: 'cuidado-facial.jpg',
+    image: 'cuidado-facial.jpeg',
   },
   {
     creatorEmail: MARCOS_EMAIL,
@@ -378,7 +379,7 @@ const SEED_IDEAS: SeedIdea[] = [
     description: 'Para ordenar y proteger su colección.',
     productUrl:
       'https://filabo.es/tapa-para-hojas-de-sellos/11-album-de-sellos-skay-con-cajetin.html',
-    image: 'album-sellos.jpg',
+    image: 'album-sellos.jpeg',
   },
   {
     creatorEmail: MARCOS_EMAIL,
@@ -387,7 +388,7 @@ const SEED_IDEAS: SeedIdea[] = [
     interests: [Interest.CARS_AND_MOTORSPORTS, Interest.COLLECTIBLES],
     description: 'Una pieza de colección única para los amantes del motor.',
     productUrl: 'https://www.ralphlauren.es/es/ferrari-250-gto-3615731998327.html',
-    image: 'maqueta-coche.jpg',
+    image: 'maqueta-coche.jpeg',
   },
   {
     creatorEmail: MARCOS_EMAIL,
@@ -396,7 +397,7 @@ const SEED_IDEAS: SeedIdea[] = [
     interests: [Interest.BOARD_GAMES_AND_PUZZLES, Interest.GAMING],
     description: 'Juego de ajedrez de mármol ónix negro: decoración vintage hecha a mano.',
     productUrl: 'https://www.etsy.com/es/listing/1770666031/black-onyx-marble-chess-set-handmade',
-    image: 'juego-mesa.webp',
+    image: 'juego-mesa.jpeg',
   },
   {
     creatorEmail: MARCOS_EMAIL,
@@ -406,7 +407,7 @@ const SEED_IDEAS: SeedIdea[] = [
     description: 'Un reto relajante para varias tardes.',
     productUrl:
       'https://www.elcorteingles.es/juguetes/A200036930-puzzle-1000-piezas-arte-klimt-el-beso-ravensburger/',
-    image: 'puzzle.jpg',
+    image: 'puzzle.jpeg',
   },
   {
     creatorEmail: MARCOS_EMAIL,
@@ -415,7 +416,7 @@ const SEED_IDEAS: SeedIdea[] = [
     interests: [Interest.CARS_AND_MOTORSPORTS, Interest.ADVENTURE],
     description: 'Velocidad y adrenalina en un circuito profesional.',
     productUrl: null,
-    image: 'karts.jpg',
+    image: 'karts.jpeg',
   },
 ];
 
@@ -493,13 +494,15 @@ async function upsertSeedIdea(creatorId: number, idea: SeedIdea): Promise<GiftId
     where: { userId: creatorId, name: idea.name, deletedAt: null },
   });
 
-  // Keep the image already copied in a previous run; copy it only if it is missing
-  let imageFilename = existing?.imageFilename ?? null;
-  const hasImageFile =
-    imageFilename !== null && (await fileExists(path.join(giftIdeaImagesDirectory, imageFilename)));
-  if (idea.image && !hasImageFile) {
-    imageFilename = await copySeedImage(idea.image);
+  // Always use the photo in seed.ts, so new, changed or removed photos are applied on every run:
+  // the previous copy is deleted and the current one is copied (or the idea ends without photo)
+  if (existing?.imageFilename) {
+    // basename: only a file inside the images folder can be deleted
+    await rm(path.join(giftIdeaImagesDirectory, path.basename(existing.imageFilename)), {
+      force: true,
+    });
   }
+  const imageFilename = idea.image ? await copySeedImage(idea.image) : null;
 
   const data = {
     name: idea.name,
@@ -620,16 +623,23 @@ async function main() {
     seedIdeasByName.set(idea.name, await upsertSeedIdea(creatorId, idea));
   }
 
-  // Ideas of the demo creators that are no longer in SEED_IDEAS (e.g. renamed) are soft-deleted,
-  // so Discovery only shows the current demo ideas
-  await prisma.giftIdea.updateMany({
-    where: {
-      userId: { in: [...creatorIds.values()] },
-      deletedAt: null,
-      name: { notIn: SEED_IDEAS.map((idea) => idea.name) },
-    },
-    data: { deletedAt: new Date() },
-  });
+  // 4c · Clean demo: every gift idea that is not a seed idea (from ANY user, e.g. old test ideas)
+  //      is soft-deleted, like the app does, and removed from every library and person.
+  //      Children first (saved ideas, library items), then the ideas
+  const seedIdeaIds = [
+    ceramica.id,
+    pasta.id,
+    mapa.id,
+    ...[...seedIdeasByName.values()].map((idea) => idea.id),
+  ];
+  const [, , removedIdeas] = await prisma.$transaction([
+    prisma.savedIdea.deleteMany({ where: { giftIdeaId: { notIn: seedIdeaIds } } }),
+    prisma.libraryItem.deleteMany({ where: { giftIdeaId: { notIn: seedIdeaIds } } }),
+    prisma.giftIdea.updateMany({
+      where: { id: { notIn: seedIdeaIds }, deletedAt: null },
+      data: { deletedAt: new Date() },
+    }),
+  ]);
 
   // 5 · Library of the demo user
   await prisma.libraryItem.create({
@@ -673,6 +683,7 @@ async function main() {
   console.log(
     `  ideas públicas de demo: ${SEED_IDEAS.length} (con imagen: ${ideasWithImage}) · biblioteca de Ana: ${DEMO_LIBRARY_IDEAS.length + 1}`,
   );
+  console.log(`  ideas que no son del seed retiradas: ${removedIdeas.count}`);
 }
 
 main()
