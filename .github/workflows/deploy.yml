@@ -45,7 +45,7 @@ jobs:
           #!/usr/bin/env bash
           set -Eeuo pipefail
 
-          cd /home/ubuntu/Giftory"
+          cd /home/ubuntu/Giftory
 
           echo "Checking repository..."
           if [ -n "$(runuser -u ubuntu -- git status --porcelain)" ]; then
