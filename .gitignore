@@ -3,5 +3,6 @@
 .env
 node_modules/
 /Giftory-source.zip
+recommendations-openrouter-source.zip
 
 AGENTS.md

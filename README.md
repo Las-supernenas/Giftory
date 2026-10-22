@@ -115,6 +115,20 @@ Demo photos live in `backend/prisma/seed-images/` (committed to the repository; 
 
 **The seed leaves a clean demo.** Every gift idea that is not part of the seed (from any account, for example old test ideas) is soft-deleted and removed from every library and person, so Discovery only shows the seed ideas plus the ones you create afterwards. Every run also replaces each demo idea's photo with the current file in `seed-images/` (or removes it when `image` is `null`). Do not run it on a database with real users' ideas.
 
+#### Server demo ideas (manual, one time)
+
+The server demo seed is separate from the development seed above. It is **not run by the deployment workflow**. After deploying the application and starting the database, run it manually from the project directory on the server:
+
+1. Add `DEMO_ACCOUNT_PASSWORD` to the server's ignored root `.env`. Use a unique password of 8–20 characters with uppercase and lowercase letters, a number, and a symbol. Compose passes this value to the backend container.
+2. Run:
+
+   ```bash
+   docker compose up -d db
+   docker compose run --rm -e ALLOW_SERVER_DEMO_SEED=true backend npx tsx prisma/seedDemo.ts
+   ```
+
+This creates the account `demotest@gmail.com` and the public gift ideas from `backend/prisma/seed-ideas.ts`. It copies available photos into the persistent gift-idea uploads volume. The command is guarded by `ALLOW_SERVER_DEMO_SEED=true`; it is not part of normal deployment. It can be rerun safely for ideas already created, but it does not change the password of an account that already exists.
+
 ### Architecture (hexagonal)
 
 The backend follows a hexagonal architecture (ports and adapters): the business logic does not depend on Express or Prisma, they are plugged in from the outside.
