@@ -113,7 +113,7 @@ The seed only runs if you manually add `ALLOW_DEMO_SEED=true` to `backend/.env` 
 
 Demo photos live in `backend/prisma/seed-images/` (committed to the repository; JPG, PNG or WebP). The seed copies them to `backend/uploads/giftideas/` with server-generated names; a missing photo only produces a warning. The seed fails if any interest has no demo idea. Running it again updates the demo ideas instead of duplicating them.
 
-Ideas owned by the demo creators (`lucia@giftory.dev`, `marcos@giftory.dev`) that are no longer in the seed list (for example, after renaming an idea in `seed.ts`) are soft-deleted, so Discovery always shows exactly the current demo ideas. This also applies to ideas created manually with those two accounts. Ideas created with any other account, including the demo user, are never touched.
+**The seed leaves a clean demo.** Every gift idea that is not part of the seed (from any account, for example old test ideas) is soft-deleted and removed from every library and person, so Discovery only shows the seed ideas plus the ones you create afterwards. Every run also replaces each demo idea's photo with the current file in `seed-images/` (or removes it when `image` is `null`). Do not run it on a database with real users' ideas.
 
 ### Architecture (hexagonal)
 
