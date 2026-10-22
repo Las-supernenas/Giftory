@@ -211,7 +211,7 @@ jobs:
 
           VERIFY_SCRIPT="set -eu
           cd /home/ubuntu/Giftory
-          test \"\$(git rev-parse HEAD)\" = '$DEPLOY_SHA'
+          test \"\$(runuser -u ubuntu -- git rev-parse HEAD)\" = '$DEPLOY_SHA'
           curl -fsS --resolve giftory.duckdns.org:443:127.0.0.1 https://giftory.duckdns.org/ -o /dev/null
           curl -fsS --resolve giftory.duckdns.org:443:127.0.0.1 https://giftory.duckdns.org/api/giftideas -o /dev/null
           echo 'Deployment verification successful.'"
