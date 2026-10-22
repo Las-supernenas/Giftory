@@ -23,13 +23,26 @@ async function fileExists(filePath: string): Promise<boolean> {
 }
 
 async function copySeedImage(imageFile: string): Promise<string | null> {
-  const source = path.join(SEED_IMAGES_DIRECTORY, imageFile);
-  if (!(await fileExists(source))) {
+  const imageName = path.parse(imageFile).name;
+  const sourceCandidates = [
+    path.join(SEED_IMAGES_DIRECTORY, imageFile),
+    path.join(SEED_IMAGES_DIRECTORY, `${imageName}.jpg`),
+    path.join(SEED_IMAGES_DIRECTORY, `${imageName}.webp`),
+  ];
+  let source: string | null = null;
+  for (const candidate of sourceCandidates) {
+    if (await fileExists(candidate)) {
+      source = candidate;
+      break;
+    }
+  }
+
+  if (!source) {
     console.warn(`Image not found: prisma/seed-images/${imageFile}; creating the idea without an image.`);
     return null;
   }
 
-  const extension = path.extname(imageFile).slice(1).toLowerCase().replace('jpeg', 'jpg');
+  const extension = path.extname(source).slice(1).toLowerCase().replace('jpeg', 'jpg');
   if (!['jpg', 'png', 'webp'].includes(extension)) {
     console.warn(`Unsupported image format: ${imageFile}; creating the idea without an image.`);
     return null;
@@ -64,13 +77,31 @@ async function main() {
   });
 
   let createdCount = 0;
+  let repairedImagesCount = 0;
   for (const idea of SEED_IDEAS) {
     const existing = await prisma.giftIdea.findFirst({
       where: { userId: user.id, name: idea.name, deletedAt: null },
     });
 
-    // Preserve existing ideas owned by this account; this also makes reruns safe.
-    if (existing) continue;
+    // Preserve existing ideas, but repair their image if it is missing from uploads.
+    if (existing) {
+      const existingImagePath = existing.imageFilename
+        ? path.join(giftIdeaImagesDirectory, existing.imageFilename)
+        : null;
+      const existingImageExists = existingImagePath ? await fileExists(existingImagePath) : false;
+
+      if (idea.image && !existingImageExists) {
+        const imageFilename = await copySeedImage(idea.image);
+        if (imageFilename) {
+          await prisma.giftIdea.update({
+            where: { id: existing.id },
+            data: { imageFilename },
+          });
+          repairedImagesCount += 1;
+        }
+      }
+      continue;
+    }
 
     const imageFilename = idea.image ? await copySeedImage(idea.image) : null;
     await prisma.giftIdea.create({
@@ -87,7 +118,9 @@ async function main() {
     createdCount += 1;
   }
 
-  console.log(`Server demo seed complete for ${DEMO_EMAIL}; created ${createdCount} gift ideas.`);
+  console.log(
+    `Server demo seed complete for ${DEMO_EMAIL}; created ${createdCount} gift ideas and repaired ${repairedImagesCount} missing images.`,
+  );
 }
 
 main()

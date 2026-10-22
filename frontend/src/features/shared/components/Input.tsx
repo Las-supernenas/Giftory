@@ -1,8 +1,8 @@
-import type { ComponentProps } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
 type InputProps = ComponentProps<"input"> & {
   id: string;
-  label: string;
+  label: ReactNode;
   error?: string;
 };
 

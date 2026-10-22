@@ -6,13 +6,14 @@
  * Run:      npx prisma db seed (requires ALLOW_DEMO_SEED=true)
  *
  * - It can be run several times without duplicating anything.
- * - It only touches the data of the demo users.
+ * - It resets the controlled demo user's people, events and saved ideas.
+ * - It updates seeded ideas for the controlled demo creators and soft-deletes their stale ideas.
  * - Laura's birthday is always "in 12 days", as in the demo.
  */
 import { PrismaClient, Interest, GiftIdea } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import { randomUUID } from 'node:crypto';
-import { access, copyFile, mkdir } from 'node:fs/promises';
+import { access, copyFile, mkdir, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { giftIdeaImagesDirectory } from '../src/infrastructure/giftidea/giftidea-image-storage';
 import { LUCIA_EMAIL, MARCOS_EMAIL, SEED_IDEAS, type SeedIdea } from './seed-ideas';
@@ -31,6 +32,7 @@ const CREATOR_USERS = [
 // Demo photos live in the repository (uploads/ is git-ignored); the seed copies them to uploads/
 const SEED_IMAGES_DIRECTORY = path.resolve(process.cwd(), 'prisma', 'seed-images');
 
+// Ideas the demo user keeps in the Library: more than 9 so pagination can be shown
 const DEMO_LIBRARY_IDEAS = [
   'Auriculares inalámbricos True Wireless',
   'Cámara instantánea',
@@ -104,13 +106,15 @@ async function upsertSeedIdea(creatorId: number, idea: SeedIdea): Promise<GiftId
     where: { userId: creatorId, name: idea.name, deletedAt: null },
   });
 
-  // Keep the image already copied in a previous run; copy it only if it is missing
-  let imageFilename = existing?.imageFilename ?? null;
-  const hasImageFile =
-    imageFilename !== null && (await fileExists(path.join(giftIdeaImagesDirectory, imageFilename)));
-  if (idea.image && !hasImageFile) {
-    imageFilename = await copySeedImage(idea.image);
+  // Always use the photo in seed.ts, so new, changed or removed photos are applied on every run:
+  // the previous copy is deleted and the current one is copied (or the idea ends without photo)
+  if (existing?.imageFilename) {
+    // basename: only a file inside the images folder can be deleted
+    await rm(path.join(giftIdeaImagesDirectory, path.basename(existing.imageFilename)), {
+      force: true,
+    });
   }
+  const imageFilename = idea.image ? await copySeedImage(idea.image) : null;
 
   const data = {
     name: idea.name,
@@ -231,9 +235,8 @@ async function main() {
     seedIdeasByName.set(idea.name, await upsertSeedIdea(creatorId, idea));
   }
 
-  // Ideas of the demo creators that are no longer in SEED_IDEAS (e.g. renamed) are soft-deleted,
-  // so Discovery only shows the current demo ideas
-  await prisma.giftIdea.updateMany({
+  // 4c · Only clean stale ideas owned by the controlled demo creator accounts.
+  const removedIdeas = await prisma.giftIdea.updateMany({
     where: {
       userId: { in: [...creatorIds.values()] },
       deletedAt: null,
@@ -268,8 +271,8 @@ async function main() {
   // 7 · Events: a close one (highlighted notice) and a later one without ideas
   await prisma.event.createMany({
     data: [
-      { personId: laura.id, name: 'Cumpleaños', date: daysFromToday(12) },
-      { personId: mama.id, name: 'Cumpleaños', date: daysFromToday(54) },
+      { personId: laura.id, name: 'Cumpleaños', date: daysFromToday(12), repeatsYearly: true },
+      { personId: mama.id, name: 'Cumpleaños', date: daysFromToday(54), repeatsYearly: true },
     ],
   });
 
@@ -284,6 +287,7 @@ async function main() {
   console.log(
     `  ideas públicas de demo: ${SEED_IDEAS.length} (con imagen: ${ideasWithImage}) · biblioteca de Ana: ${DEMO_LIBRARY_IDEAS.length + 1}`,
   );
+  console.log(`  ideas antiguas de creadores demo retiradas: ${removedIdeas.count}`);
 }
 
 main()

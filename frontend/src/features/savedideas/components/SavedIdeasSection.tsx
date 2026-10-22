@@ -20,7 +20,11 @@ import {
 import { getLibraryItems } from "../../library/services/library-service";
 import { Input } from "../../shared/components/Input";
 import { INTEREST_LABELS } from "../../shared/types/person";
-import { getInterestAccentColor } from "../../shared/interest-colors";
+import {
+  getInterestAccentColor,
+  getInterestColorStyle,
+} from "../../shared/interest-colors";
+import { formatPrice } from "../../shared/format-price";
 
 type SavedIdeasSectionProps = {
   personId: number;
@@ -28,6 +32,7 @@ type SavedIdeasSectionProps = {
   availableInterests: string[];
   savedIdeasVersion?: number;
   onSavedIdeasChanged?: () => void;
+  onOpenRecommendations?: () => void;
 };
 
 export function SavedIdeasSection({
@@ -36,6 +41,7 @@ export function SavedIdeasSection({
   availableInterests,
   savedIdeasVersion = 0,
   onSavedIdeasChanged,
+  onOpenRecommendations,
 }: SavedIdeasSectionProps) {
   const [savedIdeas, setSavedIdeas] = useState<SavedIdea[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -255,7 +261,9 @@ export function SavedIdeasSection({
             ),
           );
         } catch {
-          setGiftIdeaEditError("La idea se guardó, pero no se pudo quitar la imagen.");
+          setGiftIdeaEditError(
+            "La idea se guardó, pero no se pudo quitar la imagen.",
+          );
           return;
         }
       }
@@ -269,10 +277,36 @@ export function SavedIdeasSection({
   }
 
   return (
-    <section className="space-y-4">
-      <h2 className="text-xl font-semibold text-primary">
-        Ideas guardadas de {personName}
-      </h2>
+    <section className="space-y-4 border-t border-primary/10 pt-5">
+      <div className="grid gap-y-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-start md:gap-x-8">
+        <h2 className="m-0 font-serif text-lg font-semibold text-primary sm:text-xl">
+          Ideas guardadas de {personName}
+        </h2>
+        {onOpenRecommendations && (
+          <div className="min-w-0 md:col-start-1 md:row-start-2 md:mt-1">
+            <p className="m-0 text-base font-semibold text-primary sm:text-lg">
+              <span aria-hidden="true" className="mr-1.5 text-accent-gold">
+                ✦
+              </span>
+              ¿No sabes qué regalar?
+            </p>
+            <p className="mb-0 mt-1 text-sm text-muted">
+              Gifty te ayuda a encontrar ideas pensadas para {personName},
+              según sus gustos.
+            </p>
+          </div>
+        )}
+        {onOpenRecommendations && (
+          <Button
+            type="button"
+            className="w-full shrink-0 gap-2 shadow-md shadow-primary/15 transition-transform hover:-translate-y-0.5 md:col-start-2 md:row-start-2 md:mt-1 md:w-auto"
+            onClick={onOpenRecommendations}
+          >
+            <span aria-hidden="true">✨</span>
+            Pedir recomendación a Gifty
+          </Button>
+        )}
+      </div>
       {isLoadingGiftIdeas && (
         <p role="status" className="text-sm text-muted">
           Cargando ideas de tu biblioteca...
@@ -322,43 +356,77 @@ export function SavedIdeasSection({
         <EmptyState message="Esta persona todavía no tiene ideas guardadas." />
       )}
       {!isLoading && !loadError && savedIdeas.length > 0 && (
-        <ul className="m-0 grid list-none gap-3 p-0 lg:grid-cols-2">
+        <ul className="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
           {savedIdeas.map((savedIdea) => (
-            <li key={savedIdea.id}>
-              <Card>
-                <h3 className="m-0 text-lg font-semibold text-primary">
-                  {savedIdea.giftIdea.name}
-                </h3>
-                {savedIdea.giftIdea.imageFilename && (
-                  <img
-                    src={`/api/giftideas/images/${encodeURIComponent(savedIdea.giftIdea.imageFilename)}`}
-                    alt={`Imagen de ${savedIdea.giftIdea.name}`}
-                    loading="lazy"
-                    className="mb-3 aspect-video w-full rounded-xl object-cover"
-                  />
-                )}
-                {!savedIdea.giftIdea.imageFilename && (
-                  <div className="mb-3 flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-xl bg-accent-lavender/20 text-sm text-muted">
-                    <svg
-                      aria-hidden="true"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.7"
-                      className="h-7 w-7 text-primary"
-                    >
-                      <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" />
-                      <circle cx="9" cy="10" r="1.5" className="text-accent-gold" />
-                      <path d="m5 17 4.5-4 3 2.5 2.5-2 4 3.5" className="text-accent-gold" />
-                    </svg>
-                    <span>Sin imagen</span>
+            <li key={savedIdea.id} className="min-w-0">
+              <Card className="group box-border flex h-full w-full min-w-0 flex-col border-accent-gold/30! bg-surface! shadow-sm shadow-primary/5 transition-[border-color,box-shadow] duration-200 hover:border-accent-gold/60! hover:shadow-md hover:shadow-primary/10 motion-reduce:transition-none">
+                <div className="mb-2 min-h-14">
+                  <h3 className="m-0 break-words text-lg font-semibold text-primary">
+                    {savedIdea.giftIdea.name}
+                  </h3>
+                </div>
+                <div className="mb-2 flex h-7 items-center gap-2">
+                  {savedIdea.canEditGiftIdea && (
+                    <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-accent-gold/30 bg-accent-gold/10 px-3 py-1 text-xs font-semibold text-primary">
+                      <svg
+                        aria-hidden="true"
+                        viewBox="0 0 16 16"
+                        fill="currentColor"
+                        className="h-3 w-3 text-accent-gold"
+                      >
+                        <path d="M8 1.25 9.7 6.3 14.75 8 9.7 9.7 8 14.75 6.3 9.7 1.25 8 6.3 6.3 8 1.25Z" />
+                      </svg>
+                      Creada por ti
+                    </span>
+                  )}
+                  <p className="mt-0 mb-0 ml-auto shrink-0 text-base font-bold text-primary">
+                    {formatPrice(savedIdea.giftIdea.price)}
+                  </p>
+                </div>
+                <div className="relative mx-auto mb-3 box-border aspect-square w-full min-w-0 max-w-44 overflow-hidden rounded-xl border border-accent-gold/20 bg-[#fbf8f1] p-3">
+                  <div className="absolute inset-3 flex items-center justify-center">
+                    {savedIdea.giftIdea.imageFilename ? (
+                      <img
+                        src={`/api/giftideas/images/${encodeURIComponent(savedIdea.giftIdea.imageFilename)}`}
+                        alt={`Imagen de ${savedIdea.giftIdea.name}`}
+                        loading="lazy"
+                        className="h-full w-full object-contain"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-sm text-muted">
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.7"
+                          className="h-7 w-7 text-primary"
+                        >
+                          <rect
+                            x="3.5"
+                            y="4.5"
+                            width="17"
+                            height="15"
+                            rx="2.5"
+                          />
+                          <circle
+                            cx="9"
+                            cy="10"
+                            r="1.5"
+                            className="text-accent-gold"
+                          />
+                          <path
+                            d="m5 17 4.5-4 3 2.5 2.5-2 4 3.5"
+                            className="text-accent-gold"
+                          />
+                        </svg>
+                        <span>Sin imagen</span>
+                      </div>
+                    )}
                   </div>
-                )}
-                <p className="mt-1 mb-4 text-sm text-muted">
-                  {savedIdea.giftIdea.price} €
-                </p>
+                </div>
                 {savedIdea.giftIdea.description && (
-                  <p className="mb-3 whitespace-pre-wrap break-words text-sm text-foreground">
+                  <p className="mb-3 line-clamp-2 whitespace-pre-wrap break-words text-sm text-foreground">
                     {savedIdea.giftIdea.description}
                   </p>
                 )}
@@ -367,13 +435,38 @@ export function SavedIdeasSection({
                     href={savedIdea.giftIdea.productUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mb-3 flex min-h-11 w-fit max-w-full items-center gap-2 text-sm font-semibold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    className="mb-3 flex min-h-11 w-fit max-w-full items-center gap-2 rounded-lg px-2 py-1 text-sm font-semibold text-primary transition-colors duration-150 hover:bg-accent-lavender/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
                     <span aria-hidden="true">🎁</span>
                     Dónde encontrarlo
-                    <span aria-hidden="true" className="text-accent-gold">↗</span>
+                    <span aria-hidden="true" className="text-accent-gold">
+                      ↗
+                    </span>
                   </a>
                 )}
+                <div className="mb-4 flex flex-wrap gap-2">
+                  {savedIdea.giftIdea.interests.slice(0, 2).map((interest) => (
+                    <span
+                      key={interest}
+                      className={`rounded-full px-3 py-1 text-sm ring-1 ring-inset ring-primary/5 ${getInterestColorStyle(interest)}`}
+                    >
+                      {INTEREST_LABELS[interest] ?? interest}
+                    </span>
+                  ))}
+                  {savedIdea.giftIdea.interests.length > 2 && (
+                    <span
+                      className="rounded-full bg-accent-lavender/20 px-3 py-1 text-sm text-primary ring-1 ring-inset ring-primary/5"
+                      title={savedIdea.giftIdea.interests
+                        .slice(2)
+                        .map(
+                          (interest) => INTEREST_LABELS[interest] ?? interest,
+                        )
+                        .join(", ")}
+                    >
+                      +{savedIdea.giftIdea.interests.length - 2}
+                    </span>
+                  )}
+                </div>
                 {editingGiftIdeaId === savedIdea.giftIdea.id && (
                   <form
                     className="mb-4 space-y-3 rounded-xl border border-accent-lavender/50 bg-surface p-3"
@@ -489,52 +582,84 @@ export function SavedIdeasSection({
                     </Button>
                   </form>
                 )}
-                <form
-                  className="space-y-3"
-                  onSubmit={(event) => void handleSaveNote(savedIdea.id, event)}
-                >
-                  <label className="block text-sm font-medium text-foreground">
-                    Nota privada
-                    <textarea
-                      name="privateNote"
-                      defaultValue={savedIdea.privateNote ?? ""}
-                      className="mt-1 block min-h-24 w-full box-border rounded-xl border border-solid border-accent-gold/70 bg-accent-gold/10 px-3 py-2.5 text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-gold"
-                    />
-                  </label>
-                  <Button type="submit" disabled={savingNoteId !== null}>
-                    {savingNoteId === savedIdea.id
-                      ? "Guardando nota..."
-                      : savedIdea.privateNote
-                        ? "Guardar cambios nota"
-                        : "Guardar nota"}
-                  </Button>
-                </form>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {savedIdea.canEditGiftIdea && (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() =>
-                        setEditingGiftIdeaId((current) =>
-                          current === savedIdea.giftIdea.id
-                            ? null
-                            : savedIdea.giftIdea.id,
-                        )
-                      }
-                    >
-                      {editingGiftIdeaId === savedIdea.giftIdea.id
-                        ? "Cancelar edición"
-                        : "Editar idea de regalo"}
-                    </Button>
-                  )}
-                  <button
-                    type="button"
-                    className="min-h-11 rounded-xl border border-error bg-surface px-4 py-2 font-medium text-error transition-colors enabled:hover:bg-error/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error disabled:cursor-not-allowed disabled:opacity-50"
-                    disabled={deletingId !== null}
-                    onClick={() => void handleDelete(savedIdea.id)}
+                <div className="mt-auto">
+                  <form
+                    className="space-y-3"
+                    onSubmit={(event) =>
+                      void handleSaveNote(savedIdea.id, event)
+                    }
                   >
-                    {deletingId === savedIdea.id ? "Quitando..." : "Quitar idea"}
-                  </button>
+                    <label className="block text-sm font-medium text-foreground">
+                      Nota privada
+                      <textarea
+                        name="privateNote"
+                        defaultValue={savedIdea.privateNote ?? ""}
+                        className="mt-1 block min-h-24 w-full box-border rounded-xl border border-solid border-accent-gold/70 bg-accent-gold/10 px-3 py-2.5 text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-gold"
+                      />
+                    </label>
+                    <Button
+                      type="submit"
+                      className="mb-2 w-full"
+                      disabled={savingNoteId !== null}
+                    >
+                      {savingNoteId === savedIdea.id
+                        ? "Guardando nota..."
+                        : savedIdea.privateNote
+                          ? "Guardar cambios nota"
+                          : "Guardar nota"}
+                    </Button>
+                  </form>
+                  <div className="mt-3 flex min-h-11 flex-nowrap items-center justify-between gap-1">
+                    {savedIdea.canEditGiftIdea && (
+                      <button
+                        type="button"
+                        className="inline-flex min-h-11 min-w-0 items-center gap-1 rounded-xl border border-primary/10 bg-primary/5 px-2 text-xs font-medium text-primary hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                        onClick={() =>
+                          setEditingGiftIdeaId((current) =>
+                            current === savedIdea.giftIdea.id
+                              ? null
+                              : savedIdea.giftIdea.id,
+                          )
+                        }
+                      >
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="h-4 w-4 shrink-0"
+                        >
+                          <path d="m15 5 4 4M4 20l4.5-1 10-10a2.12 2.12 0 0 0-3-3l-10 10L4 20Z" />
+                        </svg>
+                        {editingGiftIdeaId === savedIdea.giftIdea.id
+                          ? "Cancelar edición"
+                          : "Editar"}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="inline-flex min-h-11 min-w-0 items-center gap-1 rounded-xl border border-error/15 bg-error/5 px-2 text-xs font-medium text-error hover:bg-error/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={deletingId !== null}
+                      onClick={() => void handleDelete(savedIdea.id)}
+                    >
+                      <svg
+                        aria-hidden="true"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="h-4 w-4 shrink-0"
+                      >
+                        <path d="M3 6h18M8 6V4h8v2m-9 0 1 14h8l1-14M10 11v5m4-5v5" />
+                      </svg>
+                      {deletingId === savedIdea.id ? "Quitando..." : "Quitar"}
+                    </button>
+                  </div>
                 </div>
               </Card>
             </li>

@@ -113,7 +113,7 @@ The seed only runs if you manually add `ALLOW_DEMO_SEED=true` to `backend/.env` 
 
 Demo photos live in `backend/prisma/seed-images/` (committed to the repository; JPG, PNG or WebP). The seed copies them to `backend/uploads/giftideas/` with server-generated names; a missing photo only produces a warning. The seed fails if any interest has no demo idea. Running it again updates the demo ideas instead of duplicating them.
 
-Ideas owned by the demo creators (`lucia@giftory.dev`, `marcos@giftory.dev`) that are no longer in the seed list (for example, after renaming an idea in `seed.ts`) are soft-deleted, so Discovery always shows exactly the current demo ideas. This also applies to ideas created manually with those two accounts. Ideas created with any other account, including the demo user, are never touched.
+**The seed leaves a clean demo.** Every gift idea that is not part of the seed (from any account, for example old test ideas) is soft-deleted and removed from every library and person, so Discovery only shows the seed ideas plus the ones you create afterwards. Every run also replaces each demo idea's photo with the current file in `seed-images/` (or removes it when `image` is `null`). Do not run it on a database with real users' ideas.
 
 #### Server demo ideas (manual, one time)
 
@@ -212,8 +212,8 @@ Domain errors are translated to HTTP status codes in `ui/shared/middlewares/erro
 | `PATCH` | `/api/people/:personId/savedideas/:id` | `200` update the private note |
 | `DELETE` | `/api/people/:personId/savedideas/:id` | `204` remove the assignment |
 | `GET` | `/api/people/:personId/events` | `200` list of the person's events · `400` invalid id · `404` person not found · `401` no token |
-| `POST` | `/api/people/:personId/events` | `201 { id, name, date }` · `400` invalid data · `404` person not found · `401` no token |
-| `PATCH` | `/api/events/:id` | `200 { id, name, date }` · `400` invalid data · `404` not found · `401` no token |
+| `POST` | `/api/people/:personId/events` | `201 { id, name, date, repeatsYearly }` · `400` invalid data · `404` person not found · `401` no token |
+| `PATCH` | `/api/events/:id` | `200 { id, name, date, repeatsYearly }` · `400` invalid data · `404` not found · `401` no token |
 | `DELETE` | `/api/events/:id` | `204` · `404` not found · `401` no token |
 | `GET` | `/api/library` | `200` library items with `giftIdea` details and `canEditGiftIdea` · `401` not authenticated |
 | `POST` | `/api/library` | `201 { id, giftIdea }` · `400` invalid data · `404` gift idea not found · `409` already in the library · `401` not authenticated |
@@ -254,6 +254,7 @@ All Event routes require the `Authorization: Bearer <accessToken>` header.
 - An event belongs to a person, and ownership is checked through that person: a user only sees and modifies events of their own (not deleted) people. Otherwise the API returns `404`.
 - `date` is a calendar day in `YYYY-MM-DD` format (e.g. `2026-10-23`), both in requests and responses. It must be a real date; past dates are allowed.
 - `name` is required, trimmed, 1–100 characters.
+- `repeatsYearly` is an optional boolean (`true` / `false`). `true` means the event repeats every year on the same day and month (e.g. a birthday); `date` keeps the original date. When creating, it defaults to `false` (one-time event); when updating, it only changes if it is sent.
 - `DELETE` is a hard delete: the event is removed from the database.
 - Events are returned ordered by date.
 
@@ -324,7 +325,8 @@ frontend/src/
 │   ├── events/
 │   │   ├── components/          EventsSection: list, create, edit and delete a person's events
 │   │   ├── services/            events-service.ts: requests to the Event endpoints
-│   │   └── types/               event.ts: PersonEvent and EventInput types
+│   │   ├── types/               event.ts: PersonEvent and EventInput types
+│   │   └── event-dates.ts       Next occurrence, countdown, past events and readable dates
 │   ├── people/
 │   │   ├── pages/               PeoplePage
 │   │   └── services/            people-service.ts: requests to /api/people
@@ -351,6 +353,7 @@ The components in `frontend/src/features/shared/components/` provide a small UI 
 - `LoadingState` while loading; `ErrorState` for errors; `EmptyState` when there is no content. Pass a `message` to the error and empty states.
 - Use the color tokens in `frontend/src/index.css`, the system font and Tailwind's spacing scale. Build for small screens first, then add responsive variants where needed. Keep labels, keyboard focus and readable contrast.
 - `AppNavigation` for the main navigation: receives `userName` (null without a session) and `onLogout` from `App`. Logo and links on the left; the user greeting ("¡Hola, Julia!" with an avatar initial) and the logout button on the right. Uses `NavLink` to highlight the current page. On mobile the links take a full-width row and logout is an icon button.
+- `AppFooter` for the footer shown on every page: brand, "Explorar" links (the same session-aware lists as `AppNavigation`, in `features/shared/navigation-links.ts`), the GitHub repository link, copyright with the current year and social icons. Giftory has no social accounts yet, so the icons are disabled buttons ("Próximamente").
 - `GiftIdeaFilters` for the Discovery and Library filters: search by name on top, and a filter panel with interests grouped by category and a price range (sidebar on desktop, collapsible on mobile). The filtering rules live in `features/shared/gift-idea-filters.ts` and the interest groups in `features/shared/interest-categories.ts`.
 - `Pagination` for page controls ("Anterior", page numbers, "Siguiente"); the calculations live in `features/shared/pagination.ts`.
 
@@ -368,10 +371,12 @@ Private routes redirect to `/login` when there is no session.
 After login, the user is redirected to Discovery (`/`).
 After a successful registration, the user is redirected to Login with the message "Cuenta creada correctamente. Inicia sesión" Registration does not log the user in.
 The main navigation (`AppNavigation`) is shown on every page. With a session it greets the user by name, links to Discovery, People and Library, and shows the logout button; without a session it links to Discovery, Login and Register. The current page is highlighted. The user's name comes from `GET /api/users/session` on page load and from the login response; the frontend never reads the token.
+The footer stays at the bottom of the window on short pages. When the route changes, the page scrolls smoothly to the top (instantly if the user prefers reduced motion); the helper is `features/shared/scroll-to-top.ts`.
 Discovery and Library can be filtered by name (case and accent insensitive), interests (an idea matches if it has ANY of the selected interests) and minimum/maximum price (both included). Filters combine: an idea must match all of them. Filtering is done in the browser on the loaded list, which is never modified. In Library, only the user's own saved ideas are filtered. All interest categories are always shown; a category with no matching ideas shows "Aún no hay ideas aquí.".
 Every interest from `GET /api/interests` is shown in its category; interests without matching ideas are disabled.
 Both lists are paginated on the client (9 ideas per page); changing a filter goes back to page 1.
 People can be searched by name with the same rules (case and accent insensitive, trimmed); the shared helper is `features/shared/normalize-text.ts`.
+In a person's details, events are one-time ("Una sola vez") or yearly ("Cada año"). A yearly event repeats on the same day and month every year (29/02 falls on 28/02 in non-leap years) and is shown with its next occurrence. Each event shows a countdown ("¡Es hoy!", "Mañana", "En X días", "En X meses", "En X años", "Ya pasó"); the last 7 days are highlighted. Upcoming events are sorted by next occurrence, and the closest one is summarized next to the title ("Próximo: …"). Past one-time events are grouped in a collapsed "Eventos pasados (N)" section and can still be edited or deleted. The form offers name suggestions (they select "Cada año") and a non-blocking warning when a one-time event has a past date. "Today" is the user's local date; the date rules live in `features/events/event-dates.ts`.
 
 ## Notes
 

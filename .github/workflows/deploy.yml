@@ -45,7 +45,7 @@ jobs:
           #!/usr/bin/env bash
           set -Eeuo pipefail
 
-          cd /home/ubuntu/Giftory
+          cd /home/ubuntu/Giftory"
 
           echo "Checking repository..."
           if [ -n "$(runuser -u ubuntu -- git status --porcelain)" ]; then
@@ -99,8 +99,11 @@ jobs:
           fi
 
           echo "PostgreSQL readiness check completed."
-          echo "Building application images..."
-          docker compose build backend frontend
+          echo "Building backend image..."
+          docker compose build backend
+
+          echo "Building frontend image..."
+          docker compose build frontend
 
           echo "Applying Prisma migrations..."
           docker compose run --rm backend npx prisma migrate deploy

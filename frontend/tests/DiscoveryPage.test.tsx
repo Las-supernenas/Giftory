@@ -38,6 +38,14 @@ const mockedGetLibraryItems = vi.mocked(getLibraryItems);
 beforeEach(() => {
   vi.resetAllMocks();
 
+  // jsdom does not implement the native dialog showModal() method.
+  Object.defineProperty(HTMLDialogElement.prototype, "showModal", {
+    configurable: true,
+    value(this: HTMLDialogElement) {
+      this.setAttribute("open", "");
+    },
+  });
+
   mockedGetGiftIdeas.mockResolvedValue([]);
   mockedGetInterests.mockResolvedValue([]);
   mockedGetLibraryItems.mockResolvedValue([]);
@@ -47,6 +55,10 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
 });
+
+function openCreateIdeaDialog() {
+  fireEvent.click(screen.getByRole("button", { name: "Crear idea" }));
+}
 
 describe("DiscoveryPage", () => {
   it("renders gift ideas returned by the API", async () => {
@@ -62,7 +74,7 @@ describe("DiscoveryPage", () => {
     render(<DiscoveryPage isAuthenticated={false} />);
 
     expect(await screen.findByText("Board Game")).toBeTruthy();
-    expect(screen.getByText("29.99 €")).toBeTruthy();
+    expect(screen.getByText((content) => content.includes("29,99"))).toBeTruthy();
     // Interests are loaded even without a session: the filters need them
     expect(mockedGetInterests).toHaveBeenCalled();
   });
@@ -94,6 +106,7 @@ describe("DiscoveryPage", () => {
     });
 
     render(<DiscoveryPage isAuthenticated={true} />);
+    openCreateIdeaDialog();
 
     fireEvent.change(screen.getByLabelText("Nombre del regalo"), {
       target: { value: "  Coffee Machine  " },
@@ -137,6 +150,7 @@ describe("DiscoveryPage", () => {
     mockedAddToLibrary.mockRejectedValue(new Error("No se pudo conectar con el servidor."));
 
     render(<DiscoveryPage isAuthenticated={true} />);
+    openCreateIdeaDialog();
 
     fireEvent.change(screen.getByLabelText("Nombre del regalo"), {
       target: { value: "Coffee Grinder" },
@@ -159,6 +173,7 @@ describe("DiscoveryPage", () => {
     mockedCreateGiftIdea.mockRejectedValue(new Error("Creation failed"));
 
     render(<DiscoveryPage isAuthenticated={true} />);
+    openCreateIdeaDialog();
 
     fireEvent.change(screen.getByLabelText("Nombre del regalo"), {
       target: { value: "Coffee Grinder" },

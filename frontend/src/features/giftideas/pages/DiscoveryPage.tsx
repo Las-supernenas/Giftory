@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   getGiftIdeas,
   createGiftIdea,
@@ -9,6 +9,7 @@ import {
 import { getInterests } from "../../shared/services/interests-service";
 import { INTEREST_LABELS } from "../../shared/types/person";
 import { Button } from "../../shared/components/Button";
+import { Card } from "../../shared/components/Card";
 import { ErrorState } from "../../shared/components/ErrorState";
 import { EmptyState } from "../../shared/components/EmptyState";
 import {
@@ -25,6 +26,7 @@ import {
   type GiftIdeaFilterValues,
 } from "../../shared/gift-idea-filters";
 import { Pagination } from "../../shared/components/Pagination";
+import { formatPrice } from "../../shared/format-price";
 import {
   clampPage,
   getPageItems,
@@ -37,6 +39,7 @@ type DiscoveryPageProps = {
 };
 
 export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
+  const createIdeaDialogRef = useRef<HTMLDialogElement>(null);
   const [giftIdeas, setGiftIdeas] = useState<GiftIdea[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -351,32 +354,80 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
-      <h1 className="mb-2 font-serif text-3xl font-bold leading-tight tracking-tight text-primary sm:text-4xl">
-        Descubre ideas de regalo
-      </h1>
+      <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="mb-2 font-serif text-3xl font-bold leading-tight tracking-tight text-primary sm:text-4xl">
+            Descubre ideas de regalo
+          </h1>
 
-      <p className="mb-8 text-muted">
-        Encuentra inspiración para tu próximo regalo.
-      </p>
+          <p className="m-0 text-muted">
+            Encuentra inspiración para tu próximo regalo.
+          </p>
+        </div>
 
-      {/* Creation form — authenticated users only */}
-      {isAuthenticated && (
-        <section className="mb-10 rounded-2xl border border-solid border-foreground/10 bg-surface p-5 shadow-sm">
-          <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-primary">
+        {isAuthenticated && (
+          <Button
+            type="button"
+            className="w-full shrink-0 gap-2 text-lg shadow-sm shadow-primary/10 sm:min-w-44 sm:px-6 sm:w-auto"
+            onClick={() => createIdeaDialogRef.current?.showModal()}
+          >
+            <span aria-hidden="true" className="text-2xl leading-none">+</span>
+            Crear idea
             <svg
               aria-hidden="true"
               viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="size-6 shrink-0 text-accent-dusty-pink"
+              fill="currentColor"
+              className="h-4 w-4 text-accent-gold"
             >
-              <path d="M3 10h18v3H3zM5 13v8h14v-8M12 10v11M12 10H8.5a2.5 2.5 0 1 1 2.5-2.5V10M12 10h3.5A2.5 2.5 0 1 0 13 7.5V10" />
+              <path d="m12 2 2.4 6.7L21 11l-6.6 2.3L12 20l-2.4-6.7L3 11l6.6-2.3L12 2Z" />
             </svg>
-            Crear una idea de regalo
-          </h2>
+          </Button>
+        )}
+      </header>
+
+      {/* Creation form — authenticated users only */}
+      {isAuthenticated && (
+        <dialog
+          ref={createIdeaDialogRef}
+          aria-labelledby="create-gift-idea-title"
+          className="m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-2xl overflow-y-auto rounded-3xl border border-accent-lavender/40 bg-surface bg-cover bg-center p-0 text-foreground shadow-2xl shadow-primary/20 backdrop:bg-primary/50 backdrop:backdrop-blur-sm"
+          style={{ backgroundImage: "url('/person-modal-bg.png')" }}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              createIdeaDialogRef.current?.close();
+            }
+          }}
+        >
+          <div className="p-5 sm:p-7">
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <h2
+                id="create-gift-idea-title"
+                className="m-0 flex items-center gap-2 text-xl font-semibold text-primary"
+              >
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="size-6 shrink-0 text-accent-dusty-pink"
+                >
+                  <path d="M3 10h18v3H3zM5 13v8h14v-8M12 10v11M12 10H8.5a2.5 2.5 0 1 1 2.5-2.5V10M12 10h3.5A2.5 2.5 0 1 0 13 7.5V10" />
+                </svg>
+                Crear una idea de regalo
+              </h2>
+
+              <button
+                type="button"
+                aria-label="Cerrar formulario de creación"
+                className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-accent-lavender/30 bg-surface text-2xl text-primary/80 transition-colors hover:bg-accent-lavender/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                onClick={() => createIdeaDialogRef.current?.close()}
+              >
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
 
           <form onSubmit={handleCreate} className="space-y-4">
             <Input
@@ -496,14 +547,12 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
               {creating ? "Creando..." : "Crear idea de regalo"}
             </Button>
           </form>
-        </section>
+          </div>
+        </dialog>
       )}
 
       {/* Public discovery list */}
       <section>
-        <h2 className="mb-4 text-xl font-semibold text-primary">
-          Ideas de regalo
-        </h2>
         {/* Result of saving to the Library: shown above the list, never instead of it */}
         {saveMessage && (
           <p
@@ -528,6 +577,7 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
           <EmptyState message="Todavía no hay ideas de regalo." />
         ) : (
           <GiftIdeaFilters
+            layout="top"
             filters={filters}
             onFiltersChange={handleFiltersChange}
             availableInterests={filterInterests}
@@ -539,60 +589,68 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
                 const isSaved = savedGiftIdeaIds.includes(idea.id);
 
                 return (
-                  <article
+                  <Card
                     key={idea.id}
-                    className="rounded-2xl border border-solid border-accent-gold/60 bg-surface p-5 shadow-sm flex flex-col"
+                    role="article"
+                    className="group box-border flex h-full w-full min-w-0 flex-col border-accent-gold/30! bg-surface! shadow-sm shadow-primary/5 transition-[border-color,box-shadow] duration-200 hover:border-accent-gold/60! hover:shadow-md hover:shadow-primary/10 motion-reduce:transition-none"
                   >
-                    <h3 className="mb-2 min-h-[5.25rem] text-xl font-semibold text-primary">
-                      {idea.name}
-                    </h3>
+                    <div className="mb-2 min-h-14">
+                      <h3 className="m-0 min-w-0 break-words text-lg font-semibold text-primary">
+                        {idea.name}
+                      </h3>
+                    </div>
 
-                    {idea.imageFilename && (
-                      <img
-                        src={`/api/giftideas/images/${encodeURIComponent(idea.imageFilename)}`}
-                        alt={`Imagen de ${idea.name}`}
-                        loading="lazy"
-                        className="mb-3 aspect-video w-full rounded-xl object-cover"
-                      />
-                    )}
-                    {!idea.imageFilename && (
-                      <div className="mb-3 flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-xl bg-accent-lavender/20 text-sm text-muted">
-                        <svg
-                          aria-hidden="true"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.7"
-                          className="h-7 w-7 text-primary"
-                        >
-                          <rect
-                            x="3.5"
-                            y="4.5"
-                            width="17"
-                            height="15"
-                            rx="2.5"
+                    <div className="mb-2 flex h-7 items-center gap-2">
+                      <p className="mt-0 mb-0 ml-auto shrink-0 text-base font-bold text-primary">
+                        {formatPrice(idea.price)}
+                      </p>
+                    </div>
+
+                    <div className="relative mx-auto mb-3 box-border aspect-square w-full min-w-0 max-w-44 overflow-hidden rounded-xl border border-accent-gold/20 bg-[#fbf8f1] p-1">
+                      <div className="absolute inset-1 flex items-center justify-center">
+                        {idea.imageFilename ? (
+                          <img
+                            src={`/api/giftideas/images/${encodeURIComponent(idea.imageFilename)}`}
+                            alt={`Imagen de ${idea.name}`}
+                            loading="lazy"
+                            className="h-full w-full object-contain"
                           />
-                          <circle
-                            cx="9"
-                            cy="10"
-                            r="1.5"
-                            className="text-accent-gold"
-                          />
-                          <path
-                            d="m5 17 4.5-4 3 2.5 2.5-2 4 3.5"
-                            className="text-accent-gold"
-                          />
-                        </svg>
-                        <span>Sin imagen</span>
+                        ) : (
+                          <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-sm text-muted">
+                            <svg
+                              aria-hidden="true"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.7"
+                              className="h-7 w-7 text-primary"
+                            >
+                              <rect
+                                x="3.5"
+                                y="4.5"
+                                width="17"
+                                height="15"
+                                rx="2.5"
+                              />
+                              <circle
+                                cx="9"
+                                cy="10"
+                                r="1.5"
+                                className="text-accent-gold"
+                              />
+                              <path
+                                d="m5 17 4.5-4 3 2.5 2.5-2 4 3.5"
+                                className="text-accent-gold"
+                              />
+                            </svg>
+                            <span>Sin imagen</span>
+                          </div>
+                        )}
                       </div>
-                    )}
-
-                    <p className="mb-3 font-medium text-muted">
-                      {idea.price.toFixed(2)} €
-                    </p>
+                    </div>
 
                     {idea.description && (
-                      <p className="mb-3 whitespace-pre-wrap break-words text-sm text-foreground">
+                      <p className="mb-3 line-clamp-2 whitespace-pre-wrap break-words text-sm text-foreground">
                         {idea.description}
                       </p>
                     )}
@@ -602,7 +660,7 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
                         href={idea.productUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="mb-3 flex min-h-11 w-fit max-w-full items-center gap-2 text-sm font-semibold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                        className="mb-3 flex min-h-11 w-fit max-w-full items-center self-start gap-2 rounded-lg px-2 py-1 text-sm font-semibold text-primary transition-colors duration-150 hover:bg-accent-lavender/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                       >
                         <span aria-hidden="true">🎁</span>
                         Dónde encontrarlo
@@ -612,22 +670,35 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
                       </a>
                     )}
 
-                    <div className="mt-auto flex min-h-20 flex-wrap content-start gap-2 pb-4">
-                      {idea.interests.map((interest) => (
+                    <div className="mt-auto mb-4 flex flex-wrap content-start gap-2">
+                      {idea.interests.slice(0, 2).map((interest) => (
                         <span
                           key={interest}
-                          className={`rounded-full px-3 py-1 text-sm ${getInterestColorStyle(interest)}`}
+                          className={`rounded-full px-3 py-1 text-sm ring-1 ring-inset ring-primary/5 ${getInterestColorStyle(interest)}`}
                         >
                           {INTEREST_LABELS[interest] ?? interest}
                         </span>
                       ))}
+                      {idea.interests.length > 2 && (
+                        <span
+                          className="rounded-full bg-accent-lavender/20 px-3 py-1 text-sm text-primary ring-1 ring-inset ring-primary/5"
+                          title={idea.interests
+                            .slice(2)
+                            .map(
+                              (interest) => INTEREST_LABELS[interest] ?? interest,
+                            )
+                            .join(", ")}
+                        >
+                          +{idea.interests.length - 2}
+                        </span>
+                      )}
                     </div>
 
                     {/* Save to Library — authenticated users only */}
                     {isAuthenticated && (
                       <Button
                         variant="secondary"
-                        className="w-full sm:w-auto"
+                        className="w-full"
                         disabled={
                           libraryLoading || savingGiftIdeaId !== null || isSaved
                         }
@@ -640,7 +711,7 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
                             : "Guardar en biblioteca"}
                       </Button>
                     )}
-                  </article>
+                  </Card>
                 );
               })}
             </div>

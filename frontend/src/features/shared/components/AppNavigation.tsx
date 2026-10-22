@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { authenticatedLinks, publicLinks } from "../navigation-links";
 
 type AppNavigationProps = {
   // Name of the logged-in user, null when there is no session
@@ -6,33 +7,15 @@ type AppNavigationProps = {
   onLogout: () => void;
 };
 
-type NavigationLink = {
-  to: string;
-  label: string;
-};
-
-//Main areas of the app. Discovery is public, People and Library need a session
-const authenticatedLinks: NavigationLink[] = [
-  { to: "/", label: "Descubrir" },
-  { to: "/people", label: "Personas" },
-  { to: "/library", label: "Biblioteca" },
-];
-
-const publicLinks: NavigationLink[] = [
-  { to: "/", label: "Descubrir" },
-  { to: "/login", label: "Iniciar sesión" },
-  { to: "/register", label: "Crear cuenta" },
-];
-
 const linkBaseClasses =
-  "inline-flex w-full min-h-11 items-center justify-center rounded-xl px-1 py-2 text-sm font-medium no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:w-auto sm:px-3 sm:text-base";
+  "inline-flex w-full min-h-10 items-center justify-center rounded-xl px-2 py-1.5 text-sm font-medium no-underline transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:w-auto sm:px-4 sm:text-base";
 
 // NavLink tells us if the link is the current page (isActive) and adds aria-current="page"
 function getLinkClasses({ isActive }: { isActive: boolean }): string {
   return `${linkBaseClasses} ${
     isActive
-      ? "bg-primary text-white"
-      : "text-foreground hover:bg-accent-lavender/30"
+      ? "bg-accent-lavender/25 text-primary shadow-sm shadow-primary/5"
+      : "text-foreground/80 hover:bg-accent-lavender/15"
   }`;
 }
 
@@ -46,10 +29,10 @@ export function AppNavigation({ userName, onLogout }: AppNavigationProps) {
   const links = isAuthenticated ? authenticatedLinks : publicLinks;
 
   return (
-    <header className="border-b border-solid border-foreground/10 bg-surface">
+    <header className="border-b border-solid border-accent-lavender/20 bg-surface/90 shadow-sm shadow-primary/5 backdrop-blur-md">
       {/* Mobile: logo + user on the first row, links in a full-width second row.
           Desktop: logo + links on the left, user on the right */}
-      <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-8 gap-y-3 px-4 py-3">
+      <div className="box-border flex w-full min-w-0 flex-wrap items-center gap-x-4 gap-y-2 px-4 py-1.5 sm:px-6 lg:px-8">
         <span className="font-serif text-2xl font-bold tracking-tight text-primary">
           Giftory
           <span aria-hidden="true" className="ml-1 text-accent-dusty-pink">
@@ -59,7 +42,7 @@ export function AppNavigation({ userName, onLogout }: AppNavigationProps) {
 
         <nav
           aria-label="Navegación principal"
-          className="order-last w-full sm:order-none sm:w-auto"
+          className="order-last min-w-0 w-full sm:order-none sm:w-auto sm:shrink-0"
         >
           <ul className="m-0 grid w-full grid-cols-3 list-none gap-1 p-0 sm:flex sm:w-auto sm:gap-2">
             {links.map((link) => (
@@ -74,14 +57,14 @@ export function AppNavigation({ userName, onLogout }: AppNavigationProps) {
         </nav>
 
         {isAuthenticated && (
-          <div className="ml-auto flex min-w-0 items-center gap-2 sm:gap-3">
+          <div className="ml-auto flex min-w-0 max-w-full shrink items-center gap-2 sm:gap-2">
             <span
               aria-hidden="true"
               className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-lavender/30 font-bold text-primary sm:inline-flex"
             >
               {getInitial(userName)}
             </span>
-            <p className="m-0 min-w-0 truncate text-sm sm:text-base">
+            <p className="m-0 min-w-0 max-w-32 truncate text-sm sm:max-w-40 sm:text-base">
               ¡Hola, <strong className="text-primary">{userName}</strong>!
             </p>
             {/* Secondary action: white with navy border. Icon only on mobile */}
@@ -89,7 +72,7 @@ export function AppNavigation({ userName, onLogout }: AppNavigationProps) {
               type="button"
               aria-label="Cerrar sesión"
               onClick={onLogout}
-              className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-2 rounded-xl border border-solid border-primary bg-surface px-2 text-base font-medium text-primary hover:bg-accent-lavender/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:px-4"
+              className="inline-flex min-h-10 min-w-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-solid border-primary bg-surface px-2 text-base font-medium text-primary hover:bg-accent-lavender/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:px-3"
             >
               <svg
                 aria-hidden="true"

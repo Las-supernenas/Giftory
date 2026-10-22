@@ -17,19 +17,20 @@ export const createCreateEventController =
         throw new ValidationError(personIdResult.error.issues[0].message);
       }
 
-      // validate the body: name and date are required (400 if invalid)
+      // validate the body: name and date are required, repeatsYearly is optional (400 if invalid)
       const bodyResult = createEventSchema.safeParse(req.body);
       if (!bodyResult.success) {
         throw new ValidationError(bodyResult.error.issues[0].message);
       }
 
-      const { name, date } = bodyResult.data;
+      const { name, date, repeatsYearly } = bodyResult.data;
 
       const event = await createEventUseCase.execute({
         userId,
         personId: personIdResult.data,
         name,
         date,
+        repeatsYearly,
       });
 
       // 201 created with the new event

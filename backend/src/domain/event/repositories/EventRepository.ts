@@ -4,6 +4,7 @@ export interface CreateEventData {
   personId: number;
   name: string;
   date: string; //"YYYY-MM-DD"
+  repeatsYearly: boolean;
 }
 export interface EventReminder {
   eventId: number;
@@ -17,6 +18,7 @@ export interface EventReminder {
 export interface UpdateEventData {
   name?: string;
   date?: string;
+  repeatsYearly?: boolean;
   resetReminder?: boolean;
 }
 
