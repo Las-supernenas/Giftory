@@ -301,11 +301,11 @@ export function RecommendationsSection({
       )}
 
       {recommendations && recommendations.length > 0 && (
-        <div className="mt-4 flex flex-wrap gap-3">
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
           {recommendations.map((recommendation) => (
             <Card
               key={recommendation.giftIdeaId}
-              className="w-full min-w-0 sm:w-80"
+              className="box-border flex h-full w-full min-w-0 flex-col"
             >
               <h3 className="m-0 text-lg font-semibold text-primary">
                 {recommendation.name}
@@ -327,8 +327,8 @@ export function RecommendationsSection({
               <p className="mb-1 mt-0">
                 Puntuación de afinidad: {recommendation.matchScore}
               </p>
-              <p className="mb-0 mt-2">{recommendation.reason}</p>
-              <div className="mt-3 flex flex-wrap items-center gap-4">
+              <p className="mb-0 mt-2 break-words">{recommendation.reason}</p>
+              <div className="mt-auto flex flex-wrap items-center gap-4 pt-3">
                 {recommendation.productUrl && (
                   <a
                     href={recommendation.productUrl}
