@@ -40,7 +40,7 @@ export class OpenRouterRecommendationService implements GiftRecommendationServic
           model: 'minimax/minimax-m3.1-flash',
           messages,
           response_format: { type: 'json_object' },
-          max_tokens: 512,
+          max_completion_tokens: 2048,
         }),
         signal: AbortSignal.timeout(30_000),
       });
