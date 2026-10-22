@@ -16,32 +16,12 @@
   --color-success: #16a34a;
 }
 body {
-  /* No Tailwind reset: remove the browser's default 8px margin so the header and footer reach the edges */
   margin: 0;
   background-color: var(--color-background);
-  background-image:
-    radial-gradient(
-      ellipse 28rem 8rem at 24% 9%,
-      var(--color-background) 18%,
-      transparent 100%
-    ),
-    url("/giftory-night-frame.png"),
-    radial-gradient(
-      circle at 5% 0%,
-      color-mix(in srgb, var(--color-accent-lavender) 20%, transparent),
-      transparent 28rem
-    ),
-    radial-gradient(
-      circle at 95% 100%,
-      color-mix(in srgb, var(--color-accent-dusty-pink) 12%, transparent),
-      transparent 24rem
-    );
-  background-size:
-    auto,
-    100% 100vh,
-    auto,
-    auto;
-  background-attachment: fixed, fixed, scroll, scroll;
+  background-image: url("/giftory-soft-frame.png");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
   background-repeat: no-repeat;
 
   color: var(--color-foreground);
@@ -50,19 +30,6 @@ body {
 
 @media (max-width: 640px) {
   body {
-    background-image:
-      url("/giftory-night-frame-mobile.png"),
-      radial-gradient(
-        circle at 5% 0%,
-        color-mix(in srgb, var(--color-accent-lavender) 20%, transparent),
-        transparent 28rem
-      ),
-      radial-gradient(
-        circle at 95% 100%,
-        color-mix(in srgb, var(--color-accent-dusty-pink) 12%, transparent),
-        transparent 24rem
-      );
-    background-size: 100% 100svh, auto, auto;
-    background-attachment: fixed, scroll, scroll;
+    background-position: center top;
   }
 }

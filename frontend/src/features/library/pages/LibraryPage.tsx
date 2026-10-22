@@ -367,54 +367,75 @@ function LibraryPage() {
         >
           <ul className="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
             {pageItems.map((item) => (
-              <li key={item.id}>
+              <li key={item.id} className="min-w-0">
                 <Card
-                  className={`box-border flex flex-col border-accent-gold/60! ${editingGiftIdeaId === null ? "sm:h-full" : ""}`}
+                  className={`group box-border flex w-full min-w-0 flex-col border-accent-gold/30! bg-surface! shadow-sm shadow-primary/5 transition-[border-color,box-shadow] duration-200 hover:border-accent-gold/60! hover:shadow-md hover:shadow-primary/10 motion-reduce:transition-none ${editingGiftIdeaId === null ? "sm:h-full" : ""}`}
                 >
-                  {item.canEditGiftIdea && (
-                    <span className="mb-2 inline-flex w-fit rounded-full bg-primary px-3 py-1 text-xs font-semibold text-white">
-                      Creada por ti
-                    </span>
-                  )}
-                  <h2 className="mt-0 mb-2 text-lg font-semibold text-primary">
-                    {item.giftIdea.name}
-                  </h2>
-                  {item.giftIdea.imageFilename && (
-                    <img
-                      src={`/api/giftideas/images/${encodeURIComponent(item.giftIdea.imageFilename)}`}
-                      alt={`Imagen de ${item.giftIdea.name}`}
-                      loading="lazy"
-                      className="mb-3 aspect-video w-full rounded-xl bg-surface object-contain"
-                    />
-                  )}
-                  {!item.giftIdea.imageFilename && (
-                    <div className="mb-3 flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-xl bg-accent-lavender/20 text-sm text-muted">
-                      <svg
-                        aria-hidden="true"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.7"
-                        className="h-7 w-7 text-primary"
-                      >
-                        <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" />
-                        <circle
-                          cx="9"
-                          cy="10"
-                          r="1.5"
-                          className="text-accent-gold"
+                  <div className="mb-2 min-h-14">
+                    <h2 className="mt-0 mb-0 min-w-0 break-words text-lg font-semibold text-primary">
+                      {item.giftIdea.name}
+                    </h2>
+                  </div>
+                  <div className="mb-2 flex h-7 items-center gap-2">
+                    {item.canEditGiftIdea && (
+                      <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-accent-gold/30 bg-accent-gold/10 px-3 py-1 text-xs font-semibold text-primary">
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 16 16"
+                          fill="currentColor"
+                          className="h-3 w-3 text-accent-gold"
+                        >
+                          <path d="M8 1.25 9.7 6.3 14.75 8 9.7 9.7 8 14.75 6.3 9.7 1.25 8 6.3 6.3 8 1.25Z" />
+                        </svg>
+                        Creada por ti
+                      </span>
+                    )}
+                    <p className="mt-0 mb-0 ml-auto shrink-0 text-base font-bold text-primary">
+                      {formatPrice(item.giftIdea.price)}
+                    </p>
+                  </div>
+                  <div className="relative mx-auto mb-3 box-border aspect-square w-full min-w-0 max-w-44 overflow-hidden rounded-xl border border-accent-gold/20 bg-[#fbf8f1] p-3">
+                    <div className="absolute inset-3 flex items-center justify-center">
+                      {item.giftIdea.imageFilename ? (
+                        <img
+                          src={`/api/giftideas/images/${encodeURIComponent(item.giftIdea.imageFilename)}`}
+                          alt={`Imagen de ${item.giftIdea.name}`}
+                          loading="lazy"
+                          className="h-full w-full object-contain"
                         />
-                        <path
-                          d="m5 17 4.5-4 3 2.5 2.5-2 4 3.5"
-                          className="text-accent-gold"
-                        />
-                      </svg>
-                      <span>Sin imagen</span>
+                      ) : (
+                        <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-sm text-muted">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.7"
+                            className="h-7 w-7 text-primary"
+                          >
+                            <rect
+                              x="3.5"
+                              y="4.5"
+                              width="17"
+                              height="15"
+                              rx="2.5"
+                            />
+                            <circle
+                              cx="9"
+                              cy="10"
+                              r="1.5"
+                              className="text-accent-gold"
+                            />
+                            <path
+                              d="m5 17 4.5-4 3 2.5 2.5-2 4 3.5"
+                              className="text-accent-gold"
+                            />
+                          </svg>
+                          <span>Sin imagen</span>
+                        </div>
+                      )}
                     </div>
-                  )}
-                  <p className="mt-0 mb-2 text-lg font-bold text-primary">
-                    {formatPrice(item.giftIdea.price)}
-                  </p>
+                  </div>
                   {item.giftIdea.description && (
                     <p className="mb-3 line-clamp-2 break-words text-sm text-foreground">
                       {item.giftIdea.description}
@@ -425,7 +446,7 @@ function LibraryPage() {
                       href={item.giftIdea.productUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mb-3 flex min-h-11 w-fit max-w-full items-center self-start gap-2 text-sm font-semibold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                      className="mb-3 flex min-h-11 w-fit max-w-full items-center self-start gap-2 rounded-lg px-2 py-1 text-sm font-semibold text-primary transition-colors duration-150 hover:bg-accent-lavender/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                     >
                       <span aria-hidden="true">🎁</span>
                       Dónde encontrarlo
@@ -438,14 +459,14 @@ function LibraryPage() {
                     {item.giftIdea.interests.slice(0, 2).map((interest) => (
                       <span
                         key={interest}
-                        className={`rounded-full px-3 py-1 text-sm ${getInterestColorStyle(interest)}`}
+                        className={`rounded-full px-3 py-1 text-sm ring-1 ring-inset ring-primary/5 ${getInterestColorStyle(interest)}`}
                       >
                         {INTEREST_LABELS[interest] ?? interest}
                       </span>
                     ))}
                     {item.giftIdea.interests.length > 2 && (
                       <span
-                        className="rounded-full bg-accent-lavender/20 px-3 py-1 text-sm text-primary"
+                        className="rounded-full bg-accent-lavender/20 px-3 py-1 text-sm text-primary ring-1 ring-inset ring-primary/5"
                         title={item.giftIdea.interests
                           .slice(2)
                           .map(
@@ -576,7 +597,7 @@ function LibraryPage() {
                     )}
                   <Button
                     type="button"
-                    className="mb-2 w-full"
+                    className="mt-auto mb-2 w-full"
                     onClick={() => {
                       setSelectedPersonId("");
                       setAssignmentError("");
@@ -637,11 +658,11 @@ function LibraryPage() {
                         )}
                     </div>
                   )}
-                  <div className="mt-auto flex min-h-11 flex-wrap items-center justify-between gap-2">
+                  <div className="flex min-h-11 flex-nowrap items-center justify-between gap-1">
                     {item.canEditGiftIdea ? (
                       <button
                         type="button"
-                        className="min-h-11 rounded-lg whitespace-nowrap border-0 bg-transparent px-1 text-sm font-medium text-primary underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                        className="inline-flex min-h-11 min-w-0 items-center gap-1 rounded-xl border border-primary/10 bg-primary/5 px-2 text-xs font-medium text-primary hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                         onClick={() => {
                           setEditError("");
                           setEditingGiftIdeaId((current) =>
@@ -651,19 +672,43 @@ function LibraryPage() {
                           );
                         }}
                       >
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="h-4 w-4 shrink-0"
+                        >
+                          <path d="m15 5 4 4M4 20l4.5-1 10-10a2.12 2.12 0 0 0-3-3l-10 10L4 20Z" />
+                        </svg>
                         {editingGiftIdeaId === item.giftIdea.id
                           ? "Cancelar edición"
-                          : "Editar idea"}
+                          : "Editar"}
                       </button>
                     ) : (
                       <span />
                     )}
                     <button
                       type="button"
-                      className="min-h-11 rounded-lg border-0 bg-transparent px-1 text-sm font-medium whitespace-nowrap text-error underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error"
+                      className="inline-flex min-h-11 min-w-0 items-center gap-1 rounded-xl border border-error/15 bg-error/5 px-2 text-xs font-medium text-error hover:bg-error/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error"
                       onClick={() => void removeLibraryItem(item.id)}
                     >
-                      Quitar de la biblioteca
+                      <svg
+                        aria-hidden="true"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="h-4 w-4 shrink-0"
+                      >
+                        <path d="M3 6h18M8 6V4h8v2m-9 0 1 14h8l1-14M10 11v5m4-5v5" />
+                      </svg>
+                      Quitar
                     </button>
                   </div>
                 </Card>

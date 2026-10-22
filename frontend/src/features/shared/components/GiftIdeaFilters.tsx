@@ -30,6 +30,8 @@ type GiftIdeaFiltersProps = {
   // Optional texts of the search field, so each page can describe what it searches
   searchLabel?: string;
   searchPlaceholder?: string;
+  // Optional placement for pages that show filters above the result list
+  layout?: "sidebar" | "top";
 };
 
 type ActiveFilterChip = {
@@ -50,9 +52,13 @@ export function GiftIdeaFilters({
   emptyMessage,
   searchLabel = "Buscar ideas de regalo",
   searchPlaceholder = "Busca por nombre: taza, libro, viaje...",
+  layout = "sidebar",
 }: GiftIdeaFiltersProps) {
   // mobile only: the panel starts collapsed. On desktop is always visible
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [openInterestCategory, setOpenInterestCategory] = useState<string | null>(
+    null,
+  );
 
   const categories = groupInterestsByCategory(
     allInterests.length > 0 ? allInterests : availableInterests,
@@ -161,13 +167,25 @@ export function GiftIdeaFilters({
         {panelFilterCount > 0 && ` (${panelFilterCount})`}
       </Button>
 
-      <div className="md:grid md:grid-cols-[15rem_minmax(0,1fr)] md:items-start md:gap-6">
+      <div
+        className={
+          layout === "top"
+            ? "space-y-5"
+            : "md:grid md:grid-cols-[15rem_minmax(0,1fr)] md:items-start md:gap-6"
+        }
+      >
         <aside
           id="gift-filter-panel"
           aria-label="Filtros"
-          className={`${isPanelOpen ? "block" : "hidden"} mb-4 space-y-4 rounded-2xl border border-solid border-foreground/10 bg-surface p-4 shadow-sm md:mb-0 md:block`}
+          className={`${isPanelOpen ? "block" : "hidden"} ${layout === "top" ? "mb-0" : "mb-4"} rounded-2xl border border-solid border-foreground/10 bg-surface shadow-sm md:mb-0 md:block ${
+            layout === "top"
+              ? "space-y-2 p-2.5 md:grid md:grid-cols-[minmax(0,1fr)_20rem] md:items-start md:gap-2 md:space-y-0"
+              : "space-y-4 p-4"
+          }`}
         >
-          <div className="flex items-center justify-between">
+          <div
+            className={`flex items-center justify-between ${layout === "top" ? "md:col-span-full" : ""}`}
+          >
             <h2 className="m-0 text-base font-semibold text-primary">
               Filtrar
             </h2>
@@ -176,130 +194,288 @@ export function GiftIdeaFilters({
               type="button"
               onClick={clearFilters}
               disabled={!canClear}
-              className="min-h-11 rounded-lg border-0 bg-transparent px-2 text-sm font-medium text-primary underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-40"
+              className={`min-h-11 rounded-lg border-0 text-sm text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed ${
+                layout === "top"
+                  ? "bg-accent-lavender/15 px-3 font-semibold transition-colors hover:bg-accent-lavender/25 disabled:opacity-50"
+                  : "bg-transparent px-2 font-medium underline disabled:opacity-40"
+              }`}
             >
               Limpiar
             </button>
           </div>
 
           <fieldset className="m-0 min-w-0 border-0 p-0">
-            <legend className="mb-2 p-0 text-xs font-bold uppercase tracking-wider text-muted">
+            <legend
+              className={`${layout === "top" ? "sr-only" : "mb-2 text-xs font-bold uppercase tracking-wider text-muted"} p-0`}
+            >
               Intereses
             </legend>
 
-            <div className="space-y-2">
-              {categories.map((category) => {
-                const selectedInCategory = category.interests.filter(
-                  (interest) => filters.interests.includes(interest),
-                ).length;
-
-                return (
-                  <details
-                    key={category.label}
-                    className="group rounded-xl border border-solid border-foreground/10"
+            {layout === "top" ? (
+              <details className="group relative">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-xl border border-solid border-foreground/10 bg-surface px-3 py-2 text-sm font-medium text-primary hover:bg-accent-lavender/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary [&::-webkit-details-marker]:hidden">
+                  {filters.interests.length === 0
+                    ? "Todas las temáticas"
+                    : "Temáticas seleccionadas"}
+                  {filters.interests.length > 0 && (
+                    <span className="text-xs font-semibold text-muted">
+                      · {filters.interests.length}
+                    </span>
+                  )}
+                  <span
+                    aria-hidden="true"
+                    className="ml-auto inline-block transition-transform group-open:rotate-180"
                   >
-                    <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-primary hover:bg-accent-lavender/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary [&::-webkit-details-marker]:hidden">
-                      {category.label}
-                      {selectedInCategory > 0 && (
-                        <span className="rounded-full bg-accent-lavender/30 px-2 py-0.5 text-xs">
-                          {selectedInCategory}
-                        </span>
-                      )}
-                      <span
-                        aria-hidden="true"
-                        className="ml-auto inline-block transition-transform group-open:rotate-180"
+                    ▾
+                  </span>
+                </summary>
+                <div className="absolute top-full left-0 z-20 mt-2 max-h-52 w-full min-w-64 overflow-y-auto rounded-xl border border-solid border-primary/15 bg-surface p-4 shadow-md">
+                  <div className="space-y-4">
+                    {categories.map((category) => (
+                      <section key={category.label}>
+                        <h3 className="m-0 mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
+                          {category.label}
+                        </h3>
+                        {category.interests.length === 0 ? (
+                          <p className="m-0 text-sm text-muted">
+                            Aún no hay ideas aquí.
+                          </p>
+                        ) : (
+                          <div className="flex flex-wrap gap-1.5">
+                            {category.interests.map((interest) => {
+                              const isSelected =
+                                filters.interests.includes(interest);
+                              const isEmpty =
+                                !availableInterests.includes(interest) &&
+                                !isSelected;
+
+                              return (
+                                <button
+                                  key={interest}
+                                  type="button"
+                                  aria-pressed={isSelected}
+                                  aria-disabled={isEmpty}
+                                  title={
+                                    isEmpty
+                                      ? "Aún no hay ideas con este interés"
+                                      : undefined
+                                  }
+                                  onClick={() => {
+                                    if (!isEmpty) {
+                                      toggleInterest(interest);
+                                    }
+                                  }}
+                                  className={`min-h-11 rounded-full border px-2.5 py-1 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                                    isEmpty
+                                      ? "cursor-not-allowed border-dashed border-foreground/20 bg-surface text-muted"
+                                      : isSelected
+                                        ? `border-solid border-primary font-semibold ring-2 ring-primary/40 hover:brightness-90 ${getInterestColorStyle(interest)}`
+                                        : "border-transparent bg-accent-lavender/15 text-foreground hover:border-primary/20 hover:bg-accent-lavender/25"
+                                  }`}
+                                >
+                                  {INTEREST_LABELS[interest] ?? interest}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </section>
+                    ))}
+                  </div>
+                </div>
+              </details>
+            ) : (
+              <div className="space-y-2">
+                {categories.map((category, index) => {
+                  const selectedInCategory = category.interests.filter(
+                    (interest) => filters.interests.includes(interest),
+                  ).length;
+                  const isCategoryOpen =
+                    openInterestCategory === category.label;
+                  const interestListId = `gift-interest-category-${index}`;
+
+                  return (
+                    <div
+                      key={category.label}
+                      className="rounded-xl border border-solid border-foreground/10"
+                    >
+                      <button
+                        type="button"
+                        aria-expanded={isCategoryOpen}
+                        aria-controls={interestListId}
+                        onClick={() =>
+                          setOpenInterestCategory((currentCategory) =>
+                            currentCategory === category.label
+                              ? null
+                              : category.label,
+                          )
+                        }
+                        className={`flex min-h-11 w-full cursor-pointer items-center gap-2 rounded-xl border-0 bg-transparent px-3 py-2 text-left text-sm font-medium leading-tight text-primary hover:bg-accent-lavender/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary`}
                       >
-                        ▾
-                      </span>
-                    </summary>
+                        {category.label}
+                        {selectedInCategory > 0 && (
+                          <span className="rounded-full bg-accent-lavender/20 px-1.5 py-0.5 text-xs text-muted">
+                            {selectedInCategory}
+                          </span>
+                        )}
+                        <span
+                          aria-hidden="true"
+                          className={`ml-auto inline-block transition-transform ${isCategoryOpen ? "rotate-180" : ""}`}
+                        >
+                          ▾
+                        </span>
+                      </button>
 
-                    {category.interests.length === 0 ? (
-                      <p className="m-0 px-3 pb-3 text-sm text-muted">
-                        Aún no hay ideas aquí.
-                      </p>
-                    ) : (
-                      <div className="flex flex-wrap gap-2 px-3 pb-3">
-                        {category.interests.map((interest) => {
-                          const isSelected =
-                            filters.interests.includes(interest);
-                          // No idea has this interest yet. A selected one stays clickable so it can be removed
-                          const isEmpty =
-                            !availableInterests.includes(interest) &&
-                            !isSelected;
+                      <div
+                        id={interestListId}
+                        className={`${isCategoryOpen ? "flex" : "hidden"} max-h-36 flex-wrap gap-2 overflow-y-auto px-3 pb-3`}
+                      >
+                        {category.interests.length === 0 ? (
+                          <p className="m-0 text-sm text-muted">
+                            Aún no hay ideas aquí.
+                          </p>
+                        ) : (
+                          category.interests.map((interest) => {
+                            const isSelected =
+                              filters.interests.includes(interest);
+                            const isEmpty =
+                              !availableInterests.includes(interest) &&
+                              !isSelected;
 
-                          return (
-                            <button
-                              key={interest}
-                              type="button"
-                              aria-pressed={isSelected}
-                              aria-disabled={isEmpty}
-                              title={
-                                isEmpty
-                                  ? "Aún no hay ideas con este interés"
-                                  : undefined
-                              }
-                              onClick={() => {
-                                if (!isEmpty) {
-                                  toggleInterest(interest);
+                            return (
+                              <button
+                                key={interest}
+                                type="button"
+                                aria-pressed={isSelected}
+                                aria-disabled={isEmpty}
+                                title={
+                                  isEmpty
+                                    ? "Aún no hay ideas con este interés"
+                                    : undefined
                                 }
-                              }}
-                              className={`min-h-11 rounded-full border px-3 py-1 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
-                                isEmpty
-                                  ? "cursor-not-allowed border-dashed border-foreground/20 bg-surface text-muted"
-                                  : isSelected
-                                    ? `border-solid border-primary ring-2 ring-primary/25 hover:brightness-90 ${getInterestColorStyle(interest)}`
-                                    : "border-solid border-primary/30 bg-surface text-foreground hover:border-primary"
-                              }`}
-                            >
-                              {INTEREST_LABELS[interest] ?? interest}
-                            </button>
-                          );
-                        })}
+                                onClick={() => {
+                                  if (!isEmpty) {
+                                    toggleInterest(interest);
+                                  }
+                                }}
+                                className={`min-h-11 rounded-full border px-3 py-1 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                                  isEmpty
+                                    ? "cursor-not-allowed border-dashed border-foreground/20 bg-surface text-muted"
+                                    : isSelected
+                                      ? `border-solid border-primary ring-2 ring-primary/25 hover:brightness-90 ${getInterestColorStyle(interest)}`
+                                      : "border-solid border-primary/30 bg-surface text-foreground hover:border-primary"
+                                }`}
+                              >
+                                {INTEREST_LABELS[interest] ?? interest}
+                              </button>
+                            );
+                          })
+                        )}
                       </div>
-                    )}
-                  </details>
-                );
-              })}
-            </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </fieldset>
 
           <fieldset className="m-0 min-w-0 border-0 p-0">
-            <legend className="mb-2 p-0 text-xs font-bold uppercase tracking-wider text-muted">
+            <legend
+              className={`${layout === "top" ? "sr-only" : "mb-2 text-xs font-bold uppercase tracking-wider text-muted"} p-0`}
+            >
               Precio
             </legend>
-            <div className="grid grid-cols-2 gap-3">
-              <Input
-                id="gift-filter-min-price"
-                label="Mínimo (€)"
-                type="number"
-                min="0"
-                step="0.01"
-                inputMode="decimal"
-                value={filters.minPrice}
-                onChange={(event) =>
-                  updateFilters({ minPrice: event.target.value })
-                }
-              />
-              <Input
-                id="gift-filter-max-price"
-                label="Máximo (€)"
-                type="number"
-                min="0"
-                step="0.01"
-                inputMode="decimal"
-                value={filters.maxPrice}
-                onChange={(event) =>
-                  updateFilters({ maxPrice: event.target.value })
-                }
-              />
-            </div>
+            {layout === "top" ? (
+              <div className="flex flex-col gap-2 md:flex-row">
+                <div className="flex min-w-0 flex-1 items-center gap-2">
+                  <label
+                    htmlFor="gift-filter-min-price"
+                    className="shrink-0 text-sm font-medium text-foreground"
+                  >
+                    Mínimo (€)
+                  </label>
+                  <input
+                    id="gift-filter-min-price"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    inputMode="decimal"
+                    value={filters.minPrice}
+                    onChange={(event) =>
+                      updateFilters({ minPrice: event.target.value })
+                    }
+                    className="box-border min-h-11 min-w-0 flex-1 rounded-xl border border-solid border-muted bg-surface px-3 py-2.5 text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  />
+                </div>
+                <div className="flex min-w-0 flex-1 items-center gap-2">
+                  <label
+                    htmlFor="gift-filter-max-price"
+                    className="shrink-0 text-sm font-medium text-foreground"
+                  >
+                    Máximo (€)
+                  </label>
+                  <input
+                    id="gift-filter-max-price"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    inputMode="decimal"
+                    value={filters.maxPrice}
+                    onChange={(event) =>
+                      updateFilters({ maxPrice: event.target.value })
+                    }
+                    className="box-border min-h-11 min-w-0 flex-1 rounded-xl border border-solid border-muted bg-surface px-3 py-2.5 text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  id="gift-filter-min-price"
+                  label="Mínimo (€)"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  inputMode="decimal"
+                  value={filters.minPrice}
+                  onChange={(event) =>
+                    updateFilters({ minPrice: event.target.value })
+                  }
+                />
+                <Input
+                  id="gift-filter-max-price"
+                  label="Máximo (€)"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  inputMode="decimal"
+                  value={filters.maxPrice}
+                  onChange={(event) =>
+                    updateFilters({ maxPrice: event.target.value })
+                  }
+                />
+              </div>
+            )}
           </fieldset>
         </aside>
 
         <div id="gift-idea-results" className="min-w-0">
-          <div className="mb-3 flex flex-wrap items-center gap-2">
-            <p className="m-0 text-sm text-muted" aria-live="polite">
-              <strong className="text-foreground">{resultCount}</strong>{" "}
+          <div
+            className={`flex flex-wrap items-center gap-2 ${layout === "top" ? "mb-4 mt-1" : "mb-3"}`}
+          >
+            <p
+              className={`m-0 ${layout === "top" ? "text-base font-medium text-primary" : "text-sm text-muted"}`}
+              aria-live="polite"
+            >
+              <strong
+                className={
+                  layout === "top"
+                    ? "text-lg font-bold text-primary"
+                    : "text-foreground"
+                }
+              >
+                {resultCount}
+              </strong>{" "}
               {resultCount === 1 ? "idea" : "ideas"}
             </p>
             {activeChips.map((chip) => (
