@@ -24,22 +24,31 @@ function LoginPage({ onLogin }: LoginPageProps) {
   const comesFromRegister = locationState?.registered === true;
 
   return (
-    <main className="mx-auto max-w-md px-4 py-8 sm:py-12">
-      <h1 className="mb-6 font-serif text-3xl font-bold leading-tight tracking-tight text-primary sm:text-4xl">
-        Iniciar sesión
-      </h1>
-
-      {comesFromRegister && (
-        <p
-          role="status"
-          className="mb-4 rounded-xl border-l-4 border-success bg-surface px-4 py-3 text-sm text-foreground"
-        >
-          Cuenta creada correctamente. Inicia sesión.
-        </p>
-      )}
-      <Card className="shadow-sm">
+    <main className="mx-auto flex min-h-[calc(100dvh-7rem)] w-full max-w-5xl items-center justify-center px-4 py-10 sm:px-6">
+      <section className="w-full max-w-lg">
+        {comesFromRegister && (
+          <p
+            role="status"
+            className="mb-4 rounded-xl border border-success/25 bg-surface/95 px-4 py-3 text-sm text-foreground shadow-sm shadow-primary/5 backdrop-blur-sm"
+          >
+            Cuenta creada correctamente. Inicia sesión.
+          </p>
+        )}
+        <Card className="w-full border-accent-gold/30! bg-surface/95! p-6 shadow-xl shadow-primary/10 backdrop-blur-sm sm:p-8">
+          <header className="mb-6">
+            <p className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted">
+              <span aria-hidden="true" className="text-accent-gold">✦</span>
+              Giftory · detalles que importan
+            </p>
+            <h1 className="m-0 font-serif text-3xl font-bold leading-tight tracking-tight text-primary sm:text-4xl">
+              Iniciar sesión
+            </h1>
+            <p className="mb-0 mt-2 text-sm leading-relaxed text-muted sm:text-base">
+              Vuelve a tus personas especiales y a las ideas que guardaste para ellas.
+            </p>
+          </header>
         <form
-          className="space-y-4"
+          className="space-y-5"
           onSubmit={async (event) => {
             event.preventDefault();
 
@@ -88,16 +97,21 @@ function LoginPage({ onLogin }: LoginPageProps) {
             type="password"
           />
 
-          <Button type="submit" disabled={isLoading} className="w-full">
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="min-h-12 w-full text-base font-semibold shadow-sm shadow-primary/10"
+          >
             {isLoading ? "Iniciando sesión..." : "Iniciar sesión"}
           </Button>
         </form>
-      </Card>
-      {errorMessage && (
-        <div className="mt-4">
-          <ErrorState message={errorMessage} />
-        </div>
-      )}
+          {errorMessage && (
+            <div className="mt-5">
+              <ErrorState message={errorMessage} />
+            </div>
+          )}
+        </Card>
+      </section>
     </main>
   );
 }

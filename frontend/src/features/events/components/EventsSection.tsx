@@ -206,14 +206,28 @@ function EventsSection({ personId }: EventsSectionProps) {
 
   return (
     <section className="space-y-4">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h2 className="text-xl font-semibold text-primary">Eventos</h2>
-        {nextEvent && nextCountdown && (
-          <p className="m-0 text-sm text-foreground">
-            Próximo: <strong>{nextEvent.name}</strong>, {nextCountdown.inline}
-          </p>
-        )}
-      </div>
+<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+  <div className="flex min-w-0 flex-wrap items-baseline gap-x-4 gap-y-1">
+    <h2 className="m-0 text-xl font-semibold text-primary">Eventos</h2>
+
+    {nextEvent && nextCountdown && (
+      <p className="m-0 text-sm text-foreground">
+        Próximo: <strong>{nextEvent.name}</strong>, {nextCountdown.inline}
+      </p>
+    )}
+  </div>
+
+  <Button
+    variant="secondary"
+    aria-expanded={isEventFormOpen}
+    onClick={() => {
+      setEditingEvent(null);
+      setIsEventFormOpen((open) => !open);
+    }}
+  >
+    {isEventFormOpen ? "Ocultar formulario" : "Añadir evento"}
+  </Button>
+</div>
       {isLoading && <LoadingState />}
 
       {loadError && <ErrorState message={loadError} />}
@@ -249,18 +263,6 @@ function EventsSection({ personId }: EventsSectionProps) {
           </ul>
         </details>
       )}
-      <div className="pt-4">
-        <Button
-          variant="secondary"
-          aria-expanded={isEventFormOpen}
-          onClick={() => {
-            fillForm(null);
-            setIsEventFormOpen((open) => !open);
-          }}
-        >
-          {isEventFormOpen ? "Ocultar formulario" : "Nuevo evento"}
-        </Button>
-      </div>
       {isEventFormOpen && (
         <Card>
           <h3 className="mt-0 mb-3 font-semibold text-primary">
