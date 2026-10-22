@@ -63,10 +63,10 @@ const socialLinks: SocialLink[] = [
 ];
 
 const footerLinkClasses =
-  "inline-flex min-h-11 items-center rounded-lg text-sm text-muted no-underline transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:min-h-9";
+  "inline-flex min-h-11 items-center rounded-lg text-sm text-muted no-underline transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:min-h-6";
 
 const columnTitleClasses =
-  "m-0 mb-2 text-xs font-bold uppercase tracking-widest text-primary";
+  "m-0 mb-1 text-xs font-bold uppercase tracking-widest text-primary";
 
 // Footer shown on every page: brand, link columns and a bottom bar with copyright and social icons
 export function AppFooter({ isAuthenticated }: AppFooterProps) {
@@ -76,14 +76,14 @@ export function AppFooter({ isAuthenticated }: AppFooterProps) {
 
   return (
     // border-0 first: without Tailwind's reset, border-solid alone would draw all four sides
-    <footer className="mt-16 border-0 border-t border-solid border-foreground/10 bg-surface">
+    <footer className="mt-10 border-0 border-t border-solid border-foreground/10 bg-surface">
       {/* Thin brand line on top: lavender → pink → gold */}
       <div
         aria-hidden="true"
         className="h-1 bg-linear-to-r from-accent-lavender via-accent-dusty-pink to-accent-gold"
       />
 
-      <div className="mx-auto grid max-w-5xl gap-10 px-4 py-12 sm:grid-cols-[2fr_1fr_1fr]">
+      <div className="mx-auto grid max-w-5xl gap-5 px-4 py-5 md:grid-cols-[2fr_1fr_1fr_auto] md:items-center md:gap-6">
         <div>
           <p className="m-0 font-serif text-2xl font-bold tracking-tight text-primary">
             Giftory
@@ -91,7 +91,7 @@ export function AppFooter({ isAuthenticated }: AppFooterProps) {
               ✦
             </span>
           </p>
-          <p className="mt-3 mb-0 max-w-xs text-sm leading-relaxed text-muted">
+          <p className="mt-1 mb-0 line-clamp-2 max-w-sm text-sm leading-snug text-muted">
             Guarda los gustos de las personas que quieres, recuerda sus fechas
             especiales y encuentra el regalo perfecto.
           </p>
@@ -100,7 +100,7 @@ export function AppFooter({ isAuthenticated }: AppFooterProps) {
         {/* A different label so screen readers can tell it apart from the main navigation */}
         <nav
           aria-label="Enlaces del pie de página"
-          className="grid grid-cols-2 gap-8 sm:col-span-2"
+          className="grid grid-cols-2 gap-4 md:col-span-2 md:gap-6"
         >
           <div>
             <h2 className={columnTitleClasses}>Explorar</h2>
@@ -143,12 +143,32 @@ export function AppFooter({ isAuthenticated }: AppFooterProps) {
             </ul>
           </div>
         </nav>
+
+        <ul
+          aria-label="Redes sociales"
+          className="m-0 flex list-none gap-2 p-0 md:justify-self-end"
+        >
+          {socialLinks.map((social) => (
+            <li key={social.label}>
+              {/* aria-disabled instead of disabled: it stays focusable and the tooltip still works */}
+              <button
+                type="button"
+                aria-label={social.label + " (próximamente)"}
+                aria-disabled="true"
+                title="Próximamente"
+                className="inline-flex h-9 w-9 cursor-default items-center justify-center rounded-full border-0 bg-surface text-primary shadow-sm ring-1 ring-primary/10 transition-colors hover:bg-primary hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              >
+                {social.icon}
+              </button>
+            </li>
+          ))}
+        </ul>
       </div>
 
       {/* Bottom bar: soft lavender band, full width */}
       <div className="bg-accent-lavender/10">
-        <div className="mx-auto flex max-w-5xl flex-col items-center gap-4 px-4 py-5 text-center sm:flex-row sm:justify-between sm:text-left">
-          <div className="space-y-1 text-xs text-muted">
+        <div className="mx-auto flex max-w-5xl flex-col items-center gap-1 px-4 py-2.5 text-center sm:flex-row sm:justify-start sm:gap-2 sm:text-left">
+          <div className="flex flex-col gap-1 text-xs text-muted sm:flex-row sm:items-center sm:gap-2">
             <p className="m-0">© {currentYear} Giftory · Proyecto final</p>
             <p className="m-0">
               Hecho con{" "}
@@ -161,26 +181,6 @@ export function AppFooter({ isAuthenticated }: AppFooterProps) {
               </strong>
             </p>
           </div>
-
-          <ul
-            aria-label="Redes sociales"
-            className="m-0 flex list-none gap-2 p-0"
-          >
-            {socialLinks.map((social) => (
-              <li key={social.label}>
-                {/* aria-disabled instead of disabled: it stays focusable and the tooltip still works */}
-                <button
-                  type="button"
-                  aria-label={`${social.label} (próximamente)`}
-                  aria-disabled="true"
-                  title="Próximamente"
-                  className="inline-flex h-11 w-11 cursor-default items-center justify-center rounded-full border-0 bg-surface text-primary shadow-sm ring-1 ring-primary/10 transition-colors hover:bg-primary hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                >
-                  {social.icon}
-                </button>
-              </li>
-            ))}
-          </ul>
         </div>
       </div>
     </footer>
