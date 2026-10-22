@@ -371,12 +371,8 @@ function LibraryPage() {
                 <Card
                   className={`group box-border flex w-full min-w-0 flex-col border-accent-gold/30! bg-surface! shadow-sm shadow-primary/5 transition-[border-color,box-shadow] duration-200 hover:border-accent-gold/60! hover:shadow-md hover:shadow-primary/10 motion-reduce:transition-none ${editingGiftIdeaId === null ? "sm:h-full" : ""}`}
                 >
-                  <div className="mb-2 min-h-14">
-                    <h2 className="mt-0 mb-0 min-w-0 break-words text-lg font-semibold text-primary">
-                      {item.giftIdea.name}
-                    </h2>
-                  </div>
-                  <div className="mb-2 flex h-7 items-center gap-2">
+                  {/* Badge row: always reserved (h-6) so the photos of a row start at the same height */}
+                  <div className="mb-2 flex h-6 items-center">
                     {item.canEditGiftIdea && (
                       <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-accent-gold/30 bg-accent-gold/10 px-3 py-1 text-xs font-semibold text-primary">
                         <svg
@@ -390,11 +386,8 @@ function LibraryPage() {
                         Creada por ti
                       </span>
                     )}
-                    <p className="mt-0 mb-0 ml-auto shrink-0 text-base font-bold text-primary">
-                      {formatPrice(item.giftIdea.price)}
-                    </p>
                   </div>
-                  <div className="relative mx-auto mb-3 box-border aspect-square w-full min-w-0 max-w-44 overflow-hidden rounded-xl border border-accent-gold/20 bg-[#fbf8f1] p-3">
+                  <div className="relative mx-auto mb-3 box-border aspect-video w-full min-w-0 overflow-hidden rounded-xl border border-accent-gold/20 bg-[#fbf8f1] p-3">
                     <div className="absolute inset-3 flex items-center justify-center">
                       {item.giftIdea.imageFilename ? (
                         <img
@@ -436,8 +429,16 @@ function LibraryPage() {
                       )}
                     </div>
                   </div>
+                  <div className="mb-1">
+                    <h2 className="mt-0 mb-0 min-w-0 line-clamp-2 min-h-[2lh] break-words text-lg leading-tight font-bold text-primary">
+                      {item.giftIdea.name}
+                    </h2>
+                  </div>
+                  <p className="mt-0 mb-2 text-xl font-extrabold tracking-tight text-primary">
+                    {formatPrice(item.giftIdea.price)}
+                  </p>
                   {item.giftIdea.description && (
-                    <p className="mb-3 line-clamp-2 break-words text-sm text-foreground">
+                    <p className="mb-2 line-clamp-2 break-words text-sm text-foreground">
                       {item.giftIdea.description}
                     </p>
                   )}
@@ -446,7 +447,7 @@ function LibraryPage() {
                       href={item.giftIdea.productUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mb-3 flex min-h-11 w-fit max-w-full items-center self-start gap-2 rounded-lg px-2 py-1 text-sm font-semibold text-primary transition-colors duration-150 hover:bg-accent-lavender/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                      className="mb-2 flex min-h-11 sm:min-h-8 w-fit max-w-full items-center self-start gap-2 rounded-lg px-2 py-1 text-sm font-semibold text-primary transition-colors duration-150 hover:bg-accent-lavender/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                     >
                       <span aria-hidden="true">🎁</span>
                       Dónde encontrarlo
@@ -455,18 +456,18 @@ function LibraryPage() {
                       </span>
                     </a>
                   )}
-                  <div className="mb-4 flex flex-wrap gap-2">
+                  <div className="mb-3 flex flex-wrap gap-2">
                     {item.giftIdea.interests.slice(0, 2).map((interest) => (
                       <span
                         key={interest}
-                        className={`rounded-full px-3 py-1 text-sm ring-1 ring-inset ring-primary/5 ${getInterestColorStyle(interest)}`}
+                        className={`rounded-full px-2.5 py-0.5 text-xs ring-1 ring-inset ring-primary/5 ${getInterestColorStyle(interest)}`}
                       >
                         {INTEREST_LABELS[interest] ?? interest}
                       </span>
                     ))}
                     {item.giftIdea.interests.length > 2 && (
                       <span
-                        className="rounded-full bg-accent-lavender/20 px-3 py-1 text-sm text-primary ring-1 ring-inset ring-primary/5"
+                        className="rounded-full bg-accent-lavender/20 px-2.5 py-0.5 text-xs text-primary ring-1 ring-inset ring-primary/5"
                         title={item.giftIdea.interests
                           .slice(2)
                           .map(
