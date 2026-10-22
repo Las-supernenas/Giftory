@@ -20,6 +20,7 @@ services:
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
       MAILGUN_API_KEY: ${MAILGUN_API_KEY}
       MAILGUN_DOMAIN: ${MAILGUN_DOMAIN}
+      DEMO_ACCOUNT_PASSWORD: ${DEMO_ACCOUNT_PASSWORD}
     depends_on:
       db:
         condition: service_healthy
