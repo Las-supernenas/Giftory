@@ -594,19 +594,7 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
                     role="article"
                     className="group box-border flex h-full w-full min-w-0 flex-col border-accent-gold/30! bg-surface! shadow-sm shadow-primary/5 transition-[border-color,box-shadow] duration-200 hover:border-accent-gold/60! hover:shadow-md hover:shadow-primary/10 motion-reduce:transition-none"
                   >
-                    <div className="mb-2 min-h-14">
-                      <h3 className="m-0 min-w-0 break-words text-lg font-semibold text-primary">
-                        {idea.name}
-                      </h3>
-                    </div>
-
-                    <div className="mb-2 flex h-7 items-center gap-2">
-                      <p className="mt-0 mb-0 ml-auto shrink-0 text-base font-bold text-primary">
-                        {formatPrice(idea.price)}
-                      </p>
-                    </div>
-
-                    <div className="relative mx-auto mb-3 box-border aspect-square w-full min-w-0 max-w-44 overflow-hidden rounded-xl border border-accent-gold/20 bg-[#fbf8f1] p-1">
+                    <div className="relative mx-auto mb-3 box-border aspect-video w-full min-w-0 overflow-hidden rounded-xl border border-accent-gold/20 bg-[#fbf8f1] p-1">
                       <div className="absolute inset-1 flex items-center justify-center">
                         {idea.imageFilename ? (
                           <img
@@ -648,9 +636,17 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
                         )}
                       </div>
                     </div>
+                    <div className="mb-1">
+                      <h3 className="m-0 min-w-0 line-clamp-2 min-h-[2lh] break-words text-lg leading-tight font-bold text-primary">
+                        {idea.name}
+                      </h3>
+                    </div>
+                    <p className="mt-0 mb-2 text-xl font-extrabold tracking-tight text-primary">
+                      {formatPrice(idea.price)}
+                    </p>
 
                     {idea.description && (
-                      <p className="mb-3 line-clamp-2 whitespace-pre-wrap break-words text-sm text-foreground">
+                      <p className="mb-2 line-clamp-2 whitespace-pre-wrap break-words text-sm text-foreground">
                         {idea.description}
                       </p>
                     )}
@@ -660,7 +656,7 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
                         href={idea.productUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="mb-3 flex min-h-11 w-fit max-w-full items-center self-start gap-2 rounded-lg px-2 py-1 text-sm font-semibold text-primary transition-colors duration-150 hover:bg-accent-lavender/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                        className="mb-2 flex min-h-11 sm:min-h-8 w-fit max-w-full items-center self-start gap-2 rounded-lg px-2 py-1 text-sm font-semibold text-primary transition-colors duration-150 hover:bg-accent-lavender/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                       >
                         <span aria-hidden="true">🎁</span>
                         Dónde encontrarlo
@@ -670,18 +666,18 @@ export default function DiscoveryPage({ isAuthenticated }: DiscoveryPageProps) {
                       </a>
                     )}
 
-                    <div className="mt-auto mb-4 flex flex-wrap content-start gap-2">
+                    <div className="mt-auto mb-3 flex flex-wrap content-start gap-2">
                       {idea.interests.slice(0, 2).map((interest) => (
                         <span
                           key={interest}
-                          className={`rounded-full px-3 py-1 text-sm ring-1 ring-inset ring-primary/5 ${getInterestColorStyle(interest)}`}
+                          className={`rounded-full px-2.5 py-0.5 text-xs ring-1 ring-inset ring-primary/5 ${getInterestColorStyle(interest)}`}
                         >
                           {INTEREST_LABELS[interest] ?? interest}
                         </span>
                       ))}
                       {idea.interests.length > 2 && (
                         <span
-                          className="rounded-full bg-accent-lavender/20 px-3 py-1 text-sm text-primary ring-1 ring-inset ring-primary/5"
+                          className="rounded-full bg-accent-lavender/20 px-2.5 py-0.5 text-xs text-primary ring-1 ring-inset ring-primary/5"
                           title={idea.interests
                             .slice(2)
                             .map(
