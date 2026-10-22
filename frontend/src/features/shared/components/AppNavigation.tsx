@@ -32,7 +32,7 @@ export function AppNavigation({ userName, onLogout }: AppNavigationProps) {
     <header className="border-b border-solid border-accent-lavender/20 bg-surface/90 shadow-sm shadow-primary/5 backdrop-blur-md">
       {/* Mobile: logo + user on the first row, links in a full-width second row.
           Desktop: logo + links on the left, user on the right */}
-      <div className="flex w-full flex-wrap items-center gap-x-8 gap-y-2 px-4 py-1.5 sm:px-6 lg:px-8">
+      <div className="box-border flex w-full min-w-0 flex-wrap items-center gap-x-4 gap-y-2 px-4 py-1.5 sm:px-6 lg:px-8">
         <span className="font-serif text-2xl font-bold tracking-tight text-primary">
           Giftory
           <span aria-hidden="true" className="ml-1 text-accent-dusty-pink">
@@ -42,7 +42,7 @@ export function AppNavigation({ userName, onLogout }: AppNavigationProps) {
 
         <nav
           aria-label="Navegación principal"
-          className="order-last w-full sm:order-none sm:w-auto"
+          className="order-last min-w-0 w-full sm:order-none sm:w-auto sm:shrink-0"
         >
           <ul className="m-0 grid w-full grid-cols-3 list-none gap-1 p-0 sm:flex sm:w-auto sm:gap-2">
             {links.map((link) => (
@@ -57,14 +57,14 @@ export function AppNavigation({ userName, onLogout }: AppNavigationProps) {
         </nav>
 
         {isAuthenticated && (
-          <div className="ml-auto flex min-w-0 items-center gap-2 sm:gap-3">
+          <div className="ml-auto flex min-w-0 max-w-full shrink items-center gap-2 sm:gap-2">
             <span
               aria-hidden="true"
               className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-lavender/30 font-bold text-primary sm:inline-flex"
             >
               {getInitial(userName)}
             </span>
-            <p className="m-0 min-w-0 truncate text-sm sm:text-base">
+            <p className="m-0 min-w-0 max-w-32 truncate text-sm sm:max-w-40 sm:text-base">
               ¡Hola, <strong className="text-primary">{userName}</strong>!
             </p>
             {/* Secondary action: white with navy border. Icon only on mobile */}
@@ -72,7 +72,7 @@ export function AppNavigation({ userName, onLogout }: AppNavigationProps) {
               type="button"
               aria-label="Cerrar sesión"
               onClick={onLogout}
-              className="inline-flex min-h-10 min-w-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-solid border-primary bg-surface px-2 text-base font-medium text-primary hover:bg-accent-lavender/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:px-4"
+              className="inline-flex min-h-10 min-w-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-solid border-primary bg-surface px-2 text-base font-medium text-primary hover:bg-accent-lavender/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:px-3"
             >
               <svg
                 aria-hidden="true"
